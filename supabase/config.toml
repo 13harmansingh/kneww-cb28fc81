@@ -1,1 +1,4 @@
 project_id = "xiadarnexsajzdilesoc"
+
+[functions.fetch-news]
+verify_jwt = false
