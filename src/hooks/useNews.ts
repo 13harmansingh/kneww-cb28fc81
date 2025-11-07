@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 export interface NewsArticle {
   id: string;
@@ -16,7 +16,6 @@ export interface NewsArticle {
 export const useNews = (state: string | null, category: string) => {
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     if (!state) return;
@@ -35,18 +34,14 @@ export const useNews = (state: string | null, category: string) => {
         }
       } catch (error) {
         console.error("Error fetching news:", error);
-        toast({
-          title: "Error fetching news",
-          description: "Could not load news articles. Please try again.",
-          variant: "destructive",
-        });
+        toast.error("Could not load news articles. Please try again.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchNews();
-  }, [state, category, toast]);
+  }, [state, category]);
 
   return { news, loading };
 };
