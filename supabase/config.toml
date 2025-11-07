@@ -2,3 +2,6 @@ project_id = "xiadarnexsajzdilesoc"
 
 [functions.fetch-news]
 verify_jwt = false
+
+[functions.analyze-news]
+verify_jwt = false

@@ -13,13 +13,18 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
   const map = useRef<mapboxgl.Map | null>(null);
 
   useEffect(() => {
-    if (!mapContainer.current || map.current) return;
+    if (!mapContainer.current) return;
 
     const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN || "";
     
     if (!MAPBOX_TOKEN) {
       console.error("Mapbox token not found");
       return;
+    }
+
+    if (map.current) {
+      map.current.remove();
+      map.current = null;
     }
 
     mapboxgl.accessToken = MAPBOX_TOKEN;
@@ -34,9 +39,12 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
     });
 
     return () => {
-      map.current?.remove();
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
     };
-  }, [state]);
+  }, [state.code]);
 
   return (
     <button

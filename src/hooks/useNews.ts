@@ -11,6 +11,10 @@ export interface NewsArticle {
   publish_date?: string;
   author?: string;
   source_country?: string;
+  bias?: string;
+  summary?: string;
+  ownership?: string;
+  analysisLoading?: boolean;
 }
 
 export const useNews = (state: string | null, category: string) => {
@@ -30,7 +34,54 @@ export const useNews = (state: string | null, category: string) => {
         if (error) throw error;
 
         if (data?.news) {
-          setNews(data.news);
+          const articlesWithAnalysis = data.news.map((article: NewsArticle) => ({
+            ...article,
+            analysisLoading: true,
+            bias: 'Analyzing...',
+            summary: 'AI analysis in progress...',
+            ownership: 'Analyzing...'
+          }));
+          setNews(articlesWithAnalysis);
+
+          // Analyze each article with AI
+          articlesWithAnalysis.forEach(async (article: NewsArticle, index: number) => {
+            try {
+              const { data: analysisData, error: analysisError } = await supabase.functions.invoke('analyze-news', {
+                body: { 
+                  title: article.title,
+                  text: article.text,
+                  url: article.url
+                }
+              });
+
+              if (!analysisError && analysisData) {
+                setNews(prev => prev.map((a, i) => 
+                  i === index 
+                    ? { 
+                        ...a, 
+                        bias: analysisData.bias,
+                        summary: analysisData.summary,
+                        ownership: analysisData.ownership,
+                        analysisLoading: false
+                      }
+                    : a
+                ));
+              }
+            } catch (err) {
+              console.error('Error analyzing article:', err);
+              setNews(prev => prev.map((a, i) => 
+                i === index 
+                  ? { 
+                      ...a, 
+                      bias: 'Unknown',
+                      summary: a.text?.substring(0, 200) || 'No summary available',
+                      ownership: 'Unknown',
+                      analysisLoading: false
+                    }
+                  : a
+              ));
+            }
+          });
         }
       } catch (error) {
         console.error("Error fetching news:", error);

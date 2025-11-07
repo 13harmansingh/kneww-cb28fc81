@@ -133,21 +133,68 @@ const Index = () => {
                         className="w-full h-48 object-cover"
                       />
                     )}
-                    <div className="p-4">
+                    <div className="p-4 space-y-4">
                       <h3 className="text-lg font-semibold text-white mb-2">{article.title}</h3>
-                      {article.text && (
-                        <p className="text-muted-foreground text-sm line-clamp-3 mb-3">
-                          {article.text}
-                        </p>
-                      )}
+                      
+                      {/* AI Analysis Section */}
+                      <div className="space-y-3 bg-secondary/50 rounded-xl p-3 border border-accent/20">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+                          <span className="text-xs font-semibold text-accent uppercase">AI Analysis</span>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div>
+                            <span className="text-xs text-muted-foreground font-medium">Bias:</span>
+                            <p className={`text-sm font-semibold ${
+                              article.bias?.includes('Left') ? 'text-blue-400' : 
+                              article.bias?.includes('Right') ? 'text-red-400' : 
+                              article.bias?.includes('Center') ? 'text-green-400' : 
+                              'text-muted-foreground'
+                            }`}>
+                              {article.analysisLoading ? (
+                                <span className="inline-block w-16 h-4 bg-muted animate-pulse rounded" />
+                              ) : (
+                                article.bias || 'Unknown'
+                              )}
+                            </p>
+                          </div>
+                          
+                          <div>
+                            <span className="text-xs text-muted-foreground font-medium">Summary:</span>
+                            <p className="text-sm text-foreground">
+                              {article.analysisLoading ? (
+                                <span className="space-y-1">
+                                  <span className="block w-full h-3 bg-muted animate-pulse rounded" />
+                                  <span className="block w-3/4 h-3 bg-muted animate-pulse rounded" />
+                                </span>
+                              ) : (
+                                article.summary || 'No summary available'
+                              )}
+                            </p>
+                          </div>
+                          
+                          <div>
+                            <span className="text-xs text-muted-foreground font-medium">Media Ownership:</span>
+                            <p className="text-sm text-foreground">
+                              {article.analysisLoading ? (
+                                <span className="inline-block w-24 h-4 bg-muted animate-pulse rounded" />
+                              ) : (
+                                article.ownership || 'Unknown'
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
                       {article.url && (
                         <a
                           href={article.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-accent text-sm hover:underline"
+                          className="text-accent text-sm hover:underline inline-block"
                         >
-                          Read more →
+                          Read full article →
                         </a>
                       )}
                     </div>
