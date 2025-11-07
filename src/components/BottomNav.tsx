@@ -8,7 +8,7 @@ export const BottomNav = () => {
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
     { icon: Compass, label: "Explore", path: "/explore" },
-    { icon: Bookmark, label: "Bookmark", path: "/bookmark" },
+    { icon: Bookmark, label: "Saved", path: "/bookmarks" },
     { icon: User, label: "Profile", path: "/profile" },
   ];
 
