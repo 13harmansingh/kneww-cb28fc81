@@ -7,6 +7,7 @@ import Article from "./pages/Article";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Bookmarks from "./pages/Bookmarks";
+import Compare from "./pages/Compare";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/bookmarks" element={<Bookmarks />} />
+          <Route path="/compare" element={<Compare />} />
           <Route path="/explore" element={<Index />} />
           <Route path="/profile" element={<Index />} />
           <Route path="*" element={<NotFound />} />

@@ -24,12 +24,22 @@ serve(async (req) => {
 1. Political Bias (Left, Center-Left, Center, Center-Right, Right, or Unknown)
 2. A concise 2-sentence summary
 3. Media ownership information (if identifiable from the URL/source)
+4. Sentiment analysis (positive, negative, or neutral)
+5. Extract up to 3 key factual claims and verify them (verified, disputed, or unverified)
 
 Respond in JSON format only:
 {
   "bias": "string",
   "summary": "string",
-  "ownership": "string"
+  "ownership": "string",
+  "sentiment": "positive" | "negative" | "neutral",
+  "claims": [
+    {
+      "text": "claim text",
+      "verification": "verified" | "disputed" | "unverified",
+      "explanation": "brief explanation of verification status"
+    }
+  ]
 }`;
 
     const userPrompt = `Article Title: ${title}\nArticle URL: ${url}\nArticle Text: ${text?.substring(0, 1000) || 'No content available'}`;
@@ -56,7 +66,9 @@ Respond in JSON format only:
           error: 'Rate limit exceeded. Please try again later.',
           bias: 'Unknown',
           summary: text?.substring(0, 200) || 'No summary available',
-          ownership: 'Unknown'
+          ownership: 'Unknown',
+          sentiment: 'neutral',
+          claims: []
         }), {
           status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -67,7 +79,9 @@ Respond in JSON format only:
           error: 'AI credits exhausted. Please add funds.',
           bias: 'Unknown',
           summary: text?.substring(0, 200) || 'No summary available',
-          ownership: 'Unknown'
+          ownership: 'Unknown',
+          sentiment: 'neutral',
+          claims: []
         }), {
           status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -93,7 +107,9 @@ Respond in JSON format only:
         error: error instanceof Error ? error.message : 'Unknown error',
         bias: 'Unknown',
         summary: 'Analysis unavailable',
-        ownership: 'Unknown'
+        ownership: 'Unknown',
+        sentiment: 'neutral',
+        claims: []
       }),
       {
         status: 200,

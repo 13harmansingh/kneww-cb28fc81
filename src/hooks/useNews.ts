@@ -2,6 +2,12 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+export interface Claim {
+  text: string;
+  verification: "verified" | "disputed" | "unverified";
+  explanation: string;
+}
+
 export interface NewsArticle {
   id: string;
   title: string;
@@ -14,6 +20,8 @@ export interface NewsArticle {
   bias?: string;
   summary?: string;
   ownership?: string;
+  sentiment?: "positive" | "negative" | "neutral";
+  claims?: Claim[];
   analysisLoading?: boolean;
 }
 
@@ -39,7 +47,9 @@ export const useNews = (state: string | null, category: string) => {
             analysisLoading: true,
             bias: 'Analyzing...',
             summary: 'AI analysis in progress...',
-            ownership: 'Analyzing...'
+            ownership: 'Analyzing...',
+            sentiment: 'neutral' as const,
+            claims: []
           }));
           setNews(articlesWithAnalysis);
 
@@ -62,6 +72,8 @@ export const useNews = (state: string | null, category: string) => {
                         bias: analysisData.bias,
                         summary: analysisData.summary,
                         ownership: analysisData.ownership,
+                        sentiment: analysisData.sentiment,
+                        claims: analysisData.claims,
                         analysisLoading: false
                       }
                     : a
@@ -76,6 +88,8 @@ export const useNews = (state: string | null, category: string) => {
                       bias: 'Unknown',
                       summary: a.text?.substring(0, 200) || 'No summary available',
                       ownership: 'Unknown',
+                      sentiment: 'neutral' as const,
+                      claims: [],
                       analysisLoading: false
                     }
                   : a
