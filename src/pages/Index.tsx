@@ -1,4 +1,4 @@
-import { Search, Bell, ArrowRight, MapPin, Scale } from "lucide-react";
+import { Search, Bell, ArrowRight, MapPin, Scale, Bookmark } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
@@ -6,8 +6,10 @@ import { NewsCard } from "@/components/NewsCard";
 import { CategoryPill } from "@/components/CategoryPill";
 import { StateMapCard } from "@/components/StateMapCard";
 import { SentimentBadge } from "@/components/SentimentBadge";
+import { ArticleBookmarkButton } from "@/components/ArticleBookmarkButton";
 import { US_STATES } from "@/data/usStates";
 import { useNews, NewsArticle } from "@/hooks/useNews";
+import { cn } from "@/lib/utils";
 
 const Index = () => {
   const [selectedState, setSelectedState] = useState<string | null>(null);
@@ -197,19 +199,22 @@ const Index = () => {
                       <div className="p-4 space-y-4">
                         <div className="flex items-start justify-between gap-3">
                           <h3 className="text-lg font-semibold text-white mb-2 flex-1">{article.title}</h3>
-                          <button
-                            onClick={() => toggleArticleForCompare(article)}
-                            disabled={!isSelected && selectedForCompare.length >= 3}
-                            className={`flex-shrink-0 px-3 py-1 rounded-lg text-xs font-semibold transition ${
-                              isSelected 
-                                ? 'bg-accent text-white' 
-                                : selectedForCompare.length >= 3
-                                ? 'bg-muted text-muted-foreground cursor-not-allowed'
-                                : 'bg-accent/20 text-accent hover:bg-accent/30'
-                            }`}
-                          >
-                            {isSelected ? '✓ Selected' : 'Compare'}
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <ArticleBookmarkButton article={article} />
+                            <button
+                              onClick={() => toggleArticleForCompare(article)}
+                              disabled={!isSelected && selectedForCompare.length >= 3}
+                              className={`flex-shrink-0 px-3 py-1 rounded-lg text-xs font-semibold transition ${
+                                isSelected 
+                                  ? 'bg-accent text-white' 
+                                  : selectedForCompare.length >= 3
+                                  ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                                  : 'bg-accent/20 text-accent hover:bg-accent/30'
+                              }`}
+                            >
+                              {isSelected ? '✓ Selected' : 'Compare'}
+                            </button>
+                          </div>
                         </div>
                         
                         {/* Sentiment Badge */}

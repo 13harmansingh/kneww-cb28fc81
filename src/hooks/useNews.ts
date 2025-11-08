@@ -35,6 +35,16 @@ export const useNews = (state: string | null, category: string) => {
     const fetchNews = async () => {
       setLoading(true);
       try {
+        // Save search history
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          await supabase.from('search_history').insert({
+            user_id: session.user.id,
+            state,
+            category
+          });
+        }
+
         const { data, error } = await supabase.functions.invoke("fetch-news", {
           body: { state, category },
         });

@@ -22,29 +22,36 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
       return;
     }
 
+    // Clean up existing map before creating new one
     if (map.current) {
       map.current.remove();
       map.current = null;
     }
 
-    mapboxgl.accessToken = MAPBOX_TOKEN;
+    // Add small delay to ensure proper cleanup
+    const timeoutId = setTimeout(() => {
+      if (!mapContainer.current) return;
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: "mapbox://styles/mapbox/dark-v11",
-      center: state.coordinates,
-      zoom: state.zoom,
-      interactive: false,
-      attributionControl: false,
-    });
+      mapboxgl.accessToken = MAPBOX_TOKEN;
+
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: "mapbox://styles/mapbox/dark-v11",
+        center: state.coordinates,
+        zoom: state.zoom,
+        interactive: false,
+        attributionControl: false,
+      });
+    }, 50);
 
     return () => {
+      clearTimeout(timeoutId);
       if (map.current) {
         map.current.remove();
         map.current = null;
       }
     };
-  }, [state.code]);
+  }, [state.code, state.coordinates, state.zoom]);
 
   return (
     <button

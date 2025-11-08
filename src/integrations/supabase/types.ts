@@ -20,8 +20,13 @@ export type Database = {
           article_image: string | null
           article_title: string
           article_url: string | null
+          bias: string | null
+          claims: Json | null
           created_at: string
           id: string
+          ownership: string | null
+          sentiment: string | null
+          summary: string | null
           user_id: string
         }
         Insert: {
@@ -29,8 +34,13 @@ export type Database = {
           article_image?: string | null
           article_title: string
           article_url?: string | null
+          bias?: string | null
+          claims?: Json | null
           created_at?: string
           id?: string
+          ownership?: string | null
+          sentiment?: string | null
+          summary?: string | null
           user_id: string
         }
         Update: {
@@ -38,8 +48,64 @@ export type Database = {
           article_image?: string | null
           article_title?: string
           article_url?: string | null
+          bias?: string | null
+          claims?: Json | null
           created_at?: string
           id?: string
+          ownership?: string | null
+          sentiment?: string | null
+          summary?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      search_history: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          state: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: string
+          state: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          state?: string
           user_id?: string
         }
         Relationships: []
