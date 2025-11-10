@@ -28,14 +28,17 @@ serve(async (req) => {
       'number': '10',
     });
 
-    // Add state filter if provided
+    // Build search text combining state and category
+    const searchTerms = [];
     if (state && state !== 'all') {
-      params.append('text', state);
+      searchTerms.push(state);
     }
-
-    // Add category filter if provided
     if (category && category !== 'all') {
-      params.append('text', category);
+      searchTerms.push(category);
+    }
+    
+    if (searchTerms.length > 0) {
+      params.append('text', searchTerms.join(' '));
     }
 
     const url = `https://api.worldnewsapi.com/search-news?${params.toString()}`;

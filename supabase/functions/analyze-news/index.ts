@@ -93,7 +93,12 @@ Respond in JSON format only:
     }
 
     const data = await response.json();
-    const analysis = JSON.parse(data.choices[0].message.content);
+    let content = data.choices[0].message.content;
+    
+    // Remove markdown code blocks if present
+    content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    
+    const analysis = JSON.parse(content);
     
     console.log('Analysis complete:', analysis);
 
