@@ -96,7 +96,9 @@ Respond in JSON format only:
     let content = data.choices[0].message.content;
     
     // Remove markdown code blocks if present
-    content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    if (content.includes('```')) {
+      content = content.split('```json').join('').split('```').join('').trim();
+    }
     
     const analysis = JSON.parse(content);
     
