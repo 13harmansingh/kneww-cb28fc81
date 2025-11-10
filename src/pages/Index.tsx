@@ -1,17 +1,22 @@
-import { Search, Bell, ArrowRight, MapPin, Scale, Bookmark } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Search, Bell, ArrowRight, MapPin, Scale, Bookmark, Globe } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { NewsCard } from "@/components/NewsCard";
 import { CategoryPill } from "@/components/CategoryPill";
 import { StateMapCard } from "@/components/StateMapCard";
+import { CountryMapCard } from "@/components/CountryMapCard";
 import { SentimentBadge } from "@/components/SentimentBadge";
 import { ArticleBookmarkButton } from "@/components/ArticleBookmarkButton";
 import { US_STATES } from "@/data/usStates";
+import { COUNTRIES } from "@/data/countries";
 import { useNews, NewsArticle } from "@/hooks/useNews";
 import { cn } from "@/lib/utils";
 
 const Index = () => {
+  const [searchParams] = useSearchParams();
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [selectedCountryName, setSelectedCountryName] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -19,14 +24,46 @@ const Index = () => {
   const navigate = useNavigate();
 
   const categories = ["All", "Politics", "Sports", "Technology", "Entertainment"];
-  const { news, loading } = useNews(selectedState, selectedCategory);
+  const location = selectedState || selectedCountryName;
+  const { news, loading } = useNews(location, selectedCategory);
+
+  useEffect(() => {
+    const country = searchParams.get("country");
+    const countryName = searchParams.get("countryName");
+    if (country && countryName) {
+      setSelectedCountry(country);
+      setSelectedCountryName(countryName);
+    }
+  }, [searchParams]);
+
+  const filteredCountries = COUNTRIES.filter((country) =>
+    country.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const filteredStates = US_STATES.filter((state) =>
     state.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleCountrySelect = (countryCode: string, countryName: string) => {
+    setSelectedCountry(countryCode);
+    setSelectedCountryName(countryName);
+    // If country has states (only US for now), don't fetch news yet
+    if (countryCode === "US") {
+      return;
+    }
+  };
+
   const handleStateSelect = (stateName: string) => {
     setSelectedState(stateName);
+  };
+
+  const handleBackToCountries = () => {
+    setSelectedCountry(null);
+    setSelectedCountryName(null);
+    setSelectedState(null);
+    setSelectedCategory("all");
+    setSelectedForCompare([]);
+    navigate("/");
   };
 
   const handleBackToStates = () => {
@@ -61,7 +98,13 @@ const Index = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <input
               type="text"
-              placeholder={selectedState ? "Search news..." : "Search states..."}
+              placeholder={
+                selectedState 
+                  ? "Search news..." 
+                  : selectedCountry 
+                  ? "Search states..." 
+                  : "Search countries..."
+              }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-secondary border border-border rounded-full py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
@@ -73,14 +116,43 @@ const Index = () => {
         </div>
       </div>
 
-      {!selectedState ? (
-        /* State Selection View */
+      {!selectedCountry ? (
+        /* Country Selection View */
         <div className="px-4 mt-6">
+          <div className="flex items-center gap-2 mb-6">
+            <Globe className="w-8 h-8 text-accent" />
+            <div>
+              <h2 className="text-3xl font-bold text-white">Select Your Country</h2>
+              <p className="text-muted-foreground">Choose a country to view news</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredCountries.map((country) => (
+              <CountryMapCard
+                key={country.code}
+                country={country}
+                onClick={() => handleCountrySelect(country.code, country.name)}
+              />
+            ))}
+          </div>
+        </div>
+      ) : selectedCountry === "US" && !selectedState ? (
+        /* US State Selection View */
+        <div className="px-4 mt-6">
+          <button
+            onClick={handleBackToCountries}
+            className="flex items-center gap-2 text-accent mb-4 hover:underline"
+          >
+            <ArrowRight className="w-4 h-4 rotate-180" />
+            Back to Countries
+          </button>
+          
           <div className="flex items-center gap-2 mb-6">
             <MapPin className="w-8 h-8 text-accent" />
             <div>
               <h2 className="text-3xl font-bold text-white">Select Your State</h2>
-              <p className="text-muted-foreground">Choose a state to view local news</p>
+              <p className="text-muted-foreground">Choose a US state to view local news</p>
             </div>
           </div>
 
@@ -97,26 +169,35 @@ const Index = () => {
       ) : (
         /* News View */
         <>
-          {/* State Header with Mini Map */}
+          {/* Location Header */}
           <div className="px-4 mt-6">
             <button
-              onClick={handleBackToStates}
+              onClick={selectedState ? handleBackToStates : handleBackToCountries}
               className="flex items-center gap-2 text-accent mb-4 hover:underline"
             >
               <ArrowRight className="w-4 h-4 rotate-180" />
-              Back to States
+              {selectedState ? "Back to States" : "Back to Countries"}
             </button>
             
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-24 h-24 rounded-xl overflow-hidden border-2 border-accent">
-                <StateMapCard
-                  state={US_STATES.find((s) => s.name === selectedState)!}
-                  onClick={() => {}}
-                />
-              </div>
+              {selectedState && (
+                <div className="w-24 h-24 rounded-xl overflow-hidden border-2 border-accent">
+                  <StateMapCard
+                    state={US_STATES.find((s) => s.name === selectedState)!}
+                    onClick={() => {}}
+                  />
+                </div>
+              )}
+              {!selectedState && selectedCountryName && (
+                <Globe className="w-24 h-24 text-accent" />
+              )}
               <div>
-                <h2 className="text-3xl font-bold text-white">{selectedState} News</h2>
-                <p className="text-muted-foreground">Latest updates from {selectedState}</p>
+                <h2 className="text-3xl font-bold text-white">
+                  {selectedState ? `${selectedState} News` : `${selectedCountryName} News`}
+                </h2>
+                <p className="text-muted-foreground">
+                  Latest updates from {selectedState || selectedCountryName}
+                </p>
               </div>
             </div>
           </div>
@@ -317,7 +398,9 @@ const Index = () => {
               </div>
             ) : (
               <div className="text-center py-12">
-                <p className="text-muted-foreground">No news articles found for {selectedState}</p>
+                <p className="text-muted-foreground">
+                  No news articles found for {selectedState || selectedCountryName}
+                </p>
               </div>
             )}
           </div>

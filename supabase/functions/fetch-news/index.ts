@@ -18,7 +18,7 @@ serve(async (req) => {
       throw new Error('WORLDNEWS_API_KEY not configured');
     }
 
-    console.log('Fetching news for state:', state, 'category:', category);
+    console.log('Fetching news for location:', state, 'category:', category);
 
     // Build the API URL with parameters
     const params = new URLSearchParams({
@@ -28,7 +28,7 @@ serve(async (req) => {
       'number': '10',
     });
 
-    // Build search text combining state and category
+    // Build search text combining location and category
     const searchTerms = [];
     if (state && state !== 'all') {
       searchTerms.push(state);
