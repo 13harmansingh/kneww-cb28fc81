@@ -6,15 +6,17 @@ import { NewsCard } from "@/components/NewsCard";
 import { CategoryPill } from "@/components/CategoryPill";
 import { StateMapCard } from "@/components/StateMapCard";
 import { CountryMapCard } from "@/components/CountryMapCard";
+import { RegionCard } from "@/components/RegionCard";
 import { SentimentBadge } from "@/components/SentimentBadge";
 import { ArticleBookmarkButton } from "@/components/ArticleBookmarkButton";
 import { US_STATES } from "@/data/usStates";
-import { COUNTRIES } from "@/data/countries";
+import { COUNTRIES, REGIONS, getCountriesByRegion } from "@/data/countries";
 import { useNews, NewsArticle } from "@/hooks/useNews";
 import { cn } from "@/lib/utils";
 
 const Index = () => {
   const [searchParams] = useSearchParams();
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [selectedCountryName, setSelectedCountryName] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
@@ -33,16 +35,32 @@ const Index = () => {
     if (country && countryName) {
       setSelectedCountry(country);
       setSelectedCountryName(countryName);
+      // Find and set the region for this country
+      const countryData = COUNTRIES.find(c => c.code === country);
+      if (countryData) {
+        setSelectedRegion(countryData.region);
+      }
     }
   }, [searchParams]);
 
-  const filteredCountries = COUNTRIES.filter((country) =>
-    country.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredRegions = REGIONS.filter((region) =>
+    region.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const filteredCountries = selectedRegion 
+    ? getCountriesByRegion(selectedRegion).filter((country) =>
+        country.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : [];
 
   const filteredStates = US_STATES.filter((state) =>
     state.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleRegionSelect = (regionId: string) => {
+    setSelectedRegion(regionId);
+    setSearchQuery("");
+  };
 
   const handleCountrySelect = (countryCode: string, countryName: string) => {
     setSelectedCountry(countryCode);
@@ -57,13 +75,22 @@ const Index = () => {
     setSelectedState(stateName);
   };
 
-  const handleBackToCountries = () => {
+  const handleBackToRegions = () => {
+    setSelectedRegion(null);
     setSelectedCountry(null);
     setSelectedCountryName(null);
     setSelectedState(null);
     setSelectedCategory("all");
     setSelectedForCompare([]);
     navigate("/");
+  };
+
+  const handleBackToCountries = () => {
+    setSelectedCountry(null);
+    setSelectedCountryName(null);
+    setSelectedState(null);
+    setSelectedCategory("all");
+    setSelectedForCompare([]);
   };
 
   const handleBackToStates = () => {
@@ -93,7 +120,7 @@ const Index = () => {
     <div className="min-h-screen bg-background pb-24">
       {/* Header Search */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur px-4 pt-6 pb-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 mb-3">
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <input
@@ -103,7 +130,9 @@ const Index = () => {
                   ? "Search news..." 
                   : selectedCountry 
                   ? "Search states..." 
-                  : "Search countries..."
+                  : selectedRegion
+                  ? "Search countries..."
+                  : "Search regions..."
               }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -114,15 +143,50 @@ const Index = () => {
             <Bell className="w-6 h-6" />
           </button>
         </div>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-white">KNEW</h1>
+          <span className="text-xs text-muted-foreground">Global News Platform</span>
+        </div>
       </div>
 
-      {!selectedCountry ? (
-        /* Country Selection View */
+      {!selectedRegion ? (
+        /* Region Selection View */
         <div className="px-4 mt-6">
           <div className="flex items-center gap-2 mb-6">
             <Globe className="w-8 h-8 text-accent" />
             <div>
-              <h2 className="text-3xl font-bold text-white">Select Your Country</h2>
+              <h2 className="text-3xl font-bold text-white">Select Your Region</h2>
+              <p className="text-muted-foreground">Choose a region to explore countries</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredRegions.map((region) => (
+              <RegionCard
+                key={region.id}
+                region={region}
+                onClick={() => handleRegionSelect(region.id)}
+              />
+            ))}
+          </div>
+        </div>
+      ) : !selectedCountry ? (
+        /* Country Selection View */
+        <div className="px-4 mt-6">
+          <button
+            onClick={handleBackToRegions}
+            className="flex items-center gap-2 text-accent mb-4 hover:underline"
+          >
+            <ArrowRight className="w-4 h-4 rotate-180" />
+            Back to Regions
+          </button>
+          
+          <div className="flex items-center gap-2 mb-6">
+            <Globe className="w-8 h-8 text-accent" />
+            <div>
+              <h2 className="text-3xl font-bold text-white">
+                {REGIONS.find(r => r.id === selectedRegion)?.name} - Select Country
+              </h2>
               <p className="text-muted-foreground">Choose a country to view news</p>
             </div>
           </div>
@@ -145,7 +209,7 @@ const Index = () => {
             className="flex items-center gap-2 text-accent mb-4 hover:underline"
           >
             <ArrowRight className="w-4 h-4 rotate-180" />
-            Back to Countries
+            Back to {REGIONS.find(r => r.id === selectedRegion)?.name}
           </button>
           
           <div className="flex items-center gap-2 mb-6">
@@ -176,7 +240,7 @@ const Index = () => {
               className="flex items-center gap-2 text-accent mb-4 hover:underline"
             >
               <ArrowRight className="w-4 h-4 rotate-180" />
-              {selectedState ? "Back to States" : "Back to Countries"}
+              {selectedState ? "Back to States" : `Back to ${REGIONS.find(r => r.id === selectedRegion)?.name}`}
             </button>
             
             <div className="flex items-center gap-4 mb-6">
