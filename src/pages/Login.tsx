@@ -4,6 +4,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { z } from "zod";
+
+const loginSchema = z.object({
+  email: z.string().trim().email({ message: "Invalid email address" }).max(255, { message: "Email must be less than 255 characters" }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters" }).max(100, { message: "Password must be less than 100 characters" }),
+});
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -14,9 +20,18 @@ export default function Login() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate input
+    const result = loginSchema.safeParse({ email, password });
+    if (!result.success) {
+      const errors = result.error.errors.map(err => err.message).join(", ");
+      toast.error(errors);
+      return;
+    }
+    
     setLoading(true);
     try {
-      await signIn(email, password);
+      await signIn(email.trim(), password);
       toast.success("Logged in successfully!");
       navigate("/");
     } catch (error: any) {
