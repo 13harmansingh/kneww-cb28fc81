@@ -35,8 +35,16 @@ export const useNews = (state: string | null, category: string) => {
     const fetchNews = async () => {
       setLoading(true);
       try {
-        // Save search history
+        // Check authentication first
         const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          toast.error("Please log in to view news articles");
+          setLoading(false);
+          return;
+        }
+
+        // Save search history
         if (session?.user) {
           await supabase.from('search_history').insert({
             user_id: session.user.id,

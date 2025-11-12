@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { z } from "zod";
+import { BottomNav } from "@/components/BottomNav";
 
 const loginSchema = z.object({
   email: z.string().trim().email({ message: "Invalid email address" }).max(255, { message: "Email must be less than 255 characters" }),
@@ -98,6 +99,7 @@ export default function Login() {
           </p>
         </form>
       </div>
+      <BottomNav />
     </div>
   );
 }

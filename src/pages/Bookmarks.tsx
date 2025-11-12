@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { NewsCard } from "@/components/NewsCard";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { BottomNav } from "@/components/BottomNav";
 
 interface Bookmark {
   id: string;
@@ -82,6 +83,7 @@ export default function Bookmarks() {
           </div>
         )}
       </div>
+      <BottomNav />
     </div>
   );
 }

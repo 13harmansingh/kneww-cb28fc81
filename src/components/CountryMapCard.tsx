@@ -34,10 +34,7 @@ export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
       attributionControl: false,
     });
 
-    // Add a marker for the country
-    new mapboxgl.Marker({ color: "#9b87f5" })
-      .setLngLat(country.coordinates)
-      .addTo(map.current);
+    // Removed marker to keep the map clean
 
     return () => {
       if (map.current) {
