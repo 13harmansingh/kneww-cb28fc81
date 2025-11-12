@@ -55,6 +55,9 @@ export const useNews = (state: string | null, category: string) => {
 
         const { data, error } = await supabase.functions.invoke("fetch-news", {
           body: { state, category },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
         });
 
         if (error) throw error;
@@ -79,7 +82,10 @@ export const useNews = (state: string | null, category: string) => {
                   title: article.title,
                   text: article.text,
                   url: article.url
-                }
+                },
+                headers: {
+                  Authorization: `Bearer ${session.access_token}`,
+                },
               });
 
               if (!analysisError && analysisData) {

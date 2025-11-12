@@ -14,6 +14,8 @@ import { COUNTRIES, REGIONS, getCountriesByRegion } from "@/data/countries";
 import { useNews, NewsArticle } from "@/hooks/useNews";
 import { cn } from "@/lib/utils";
 
+import { useAuth } from "@/hooks/useAuth";
+
 const Index = () => {
   const [searchParams] = useSearchParams();
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
@@ -25,6 +27,7 @@ const Index = () => {
   const [selectedForCompare, setSelectedForCompare] = useState<NewsArticle[]>([]);
   const navigate = useNavigate();
 
+  const { user } = useAuth();
   const categories = ["All", "Politics", "Sports", "Technology", "Entertainment"];
   const location = selectedState || selectedCountryName;
   const { news, loading } = useNews(location, selectedCategory);
@@ -462,9 +465,14 @@ const Index = () => {
               </div>
             ) : (
               <div className="text-center py-12">
-                <p className="text-muted-foreground">
-                  No news articles found for {selectedState || selectedCountryName}
-                </p>
+                {!user ? (
+                  <div>
+                    <p className="text-muted-foreground">Please log in to view news for {selectedState || selectedCountryName}.</p>
+                    <a href="/login" className="inline-block mt-4 px-4 py-2 bg-accent text-white rounded-lg">Log in</a>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No news articles found for {selectedState || selectedCountryName}</p>
+                )}
               </div>
             )}
           </div>
