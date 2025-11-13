@@ -30,7 +30,7 @@ const Index = () => {
   const { user } = useAuth();
   const categories = ["All", "Politics", "Sports", "Technology", "Entertainment"];
   const location = selectedState || selectedCountryName;
-  const { news, loading } = useNews(location, selectedCategory);
+  const { news, loading, error, retry } = useNews(location, selectedCategory);
 
   useEffect(() => {
     const country = searchParams.get("country");
@@ -321,7 +321,21 @@ const Index = () => {
 
           {/* News Feed */}
           <div className="px-4 mt-6">
-            {loading ? (
+            {error ? (
+              <div className="text-center py-12">
+                <div className="max-w-md mx-auto bg-destructive/10 border border-destructive/20 rounded-xl p-6">
+                  <div className="text-destructive text-4xl mb-3">⚠️</div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Failed to Load News</h3>
+                  <p className="text-sm text-muted-foreground mb-4">{error}</p>
+                  <button
+                    onClick={retry}
+                    className="px-6 py-2 bg-accent text-white rounded-lg font-semibold hover:bg-accent/90 transition"
+                  >
+                    Retry
+                  </button>
+                </div>
+              </div>
+            ) : loading ? (
               <div className="text-center py-12">
                 <div className="inline-block w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
                 <p className="mt-4 text-muted-foreground">Loading news...</p>
