@@ -9,6 +9,7 @@ import { CountryMapCard } from "@/components/CountryMapCard";
 import { RegionCard } from "@/components/RegionCard";
 import { SentimentBadge } from "@/components/SentimentBadge";
 import { ArticleBookmarkButton } from "@/components/ArticleBookmarkButton";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { US_STATES } from "@/data/usStates";
 import { COUNTRIES, REGIONS, getCountriesByRegion } from "@/data/countries";
 import { useNews, NewsArticle } from "@/hooks/useNews";
@@ -25,12 +26,23 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedForCompare, setSelectedForCompare] = useState<NewsArticle[]>([]);
+  const [selectedLanguage, setSelectedLanguage] = useState("en");
   const navigate = useNavigate();
 
   const { user, session, loading: authLoading } = useAuth();
   const categories = ["All", "Politics", "Sports", "Technology", "Entertainment"];
+  const languages = [
+    { code: "en", name: "English" },
+    { code: "pt", name: "Português" },
+    { code: "es", name: "Español" },
+    { code: "fr", name: "Français" },
+    { code: "de", name: "Deutsch" },
+    { code: "zh", name: "中文" },
+    { code: "ja", name: "日本語" },
+    { code: "ko", name: "한국어" },
+  ];
   const location = selectedState || selectedCountryName;
-  const { news, loading, error, retry } = useNews(location, selectedCategory, session);
+  const { news, loading, error, retry } = useNews(location, selectedCategory, session, selectedLanguage);
 
   useEffect(() => {
     const country = searchParams.get("country");
@@ -319,6 +331,26 @@ const Index = () => {
                 />
               ))}
             </div>
+          </div>
+
+          {/* Language Selector */}
+          <div className="px-4 mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-white">Language</h2>
+            </div>
+
+            <ScrollArea className="w-full">
+              <div className="flex gap-3 pb-4">
+                {languages.map((lang) => (
+                  <CategoryPill
+                    key={lang.code}
+                    label={lang.name}
+                    isActive={selectedLanguage === lang.code}
+                    onClick={() => setSelectedLanguage(lang.code)}
+                  />
+                ))}
+              </div>
+            </ScrollArea>
           </div>
 
           {/* Compare Bar */}

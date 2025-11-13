@@ -14,6 +14,7 @@ const MAX_REQUESTS = 10; // 10 requests per minute
 interface FetchNewsRequest {
   state?: string;
   category?: string;
+  language?: string;
 }
 
 function validateInput(data: any): data is FetchNewsRequest {
@@ -29,12 +30,20 @@ function validateInput(data: any): data is FetchNewsRequest {
     return false;
   }
   
+  if (data.language !== undefined && typeof data.language !== 'string') {
+    return false;
+  }
+  
   // Validate length to prevent abuse
   if (data.state && data.state.length > 100) {
     return false;
   }
   
   if (data.category && data.category.length > 100) {
+    return false;
+  }
+  
+  if (data.language && data.language.length > 10) {
     return false;
   }
   
@@ -108,20 +117,20 @@ serve(async (req) => {
       });
     }
 
-    const { state, category } = requestData;
+    const { state, category, language = 'en' } = requestData;
     const WORLDNEWS_API_KEY = Deno.env.get('WORLDNEWS_API_KEY');
 
     if (!WORLDNEWS_API_KEY) {
       throw new Error('WORLDNEWS_API_KEY not configured');
     }
 
-    console.log('Fetching news for user:', user.id, 'location:', state, 'category:', category);
+    console.log('Fetching news for user:', user.id, 'location:', state, 'category:', category, 'language:', language);
 
     // Build the API URL with parameters
     const params = new URLSearchParams({
       'api-key': WORLDNEWS_API_KEY,
       'source-countries': 'us',
-      'language': 'en',
+      'language': language,
       'number': '10',
     });
 
