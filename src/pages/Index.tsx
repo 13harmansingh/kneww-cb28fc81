@@ -27,10 +27,10 @@ const Index = () => {
   const [selectedForCompare, setSelectedForCompare] = useState<NewsArticle[]>([]);
   const navigate = useNavigate();
 
-  const { user } = useAuth();
+  const { user, session, loading: authLoading } = useAuth();
   const categories = ["All", "Politics", "Sports", "Technology", "Entertainment"];
   const location = selectedState || selectedCountryName;
-  const { news, loading, error, retry } = useNews(location, selectedCategory);
+  const { news, loading, error, retry } = useNews(location, selectedCategory, session);
 
   useEffect(() => {
     const country = searchParams.get("country");
@@ -118,6 +118,40 @@ const Index = () => {
   const handleCompare = () => {
     navigate("/compare", { state: { articles: selectedForCompare } });
   };
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Require authentication
+  if (!user || !session) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4 pb-24">
+        <div className="text-center max-w-md">
+          <div className="text-6xl mb-6">🔒</div>
+          <h2 className="text-2xl font-bold text-white mb-3">Authentication Required</h2>
+          <p className="text-muted-foreground mb-6">
+            Please log in to view news articles and explore global news coverage.
+          </p>
+          <button
+            onClick={() => navigate("/login")}
+            className="px-6 py-3 bg-accent text-white rounded-lg font-semibold hover:bg-accent/90 transition"
+          >
+            Go to Login
+          </button>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-24">

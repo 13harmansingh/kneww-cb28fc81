@@ -36,7 +36,7 @@ const isTransientError = (error: any): boolean => {
   return false;
 };
 
-export const useNews = (state: string | null, category: string) => {
+export const useNews = (state: string | null, category: string, session: any) => {
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,20 +44,17 @@ export const useNews = (state: string | null, category: string) => {
 
   const fetchNews = useCallback(async (attempt = 0) => {
     if (!state) return;
+    
+    // Check authentication first
+    if (!session) {
+      setError("Please log in to view news articles");
+      return;
+    }
 
     setLoading(true);
     setError(null);
     
     try {
-      // Check authentication first
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        setError("Please log in to view news articles");
-        setLoading(false);
-        return;
-      }
-
       // Save search history
       if (session?.user) {
         await supabase.from('search_history').insert({
@@ -157,7 +154,7 @@ export const useNews = (state: string | null, category: string) => {
     } finally {
       setLoading(false);
     }
-  }, [state, category]);
+  }, [state, category, session]);
 
   useEffect(() => {
     fetchNews();
