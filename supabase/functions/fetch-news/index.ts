@@ -15,6 +15,7 @@ interface FetchNewsRequest {
   state?: string;
   category?: string;
   language?: string;
+  source_country?: string;
 }
 
 function validateInput(data: any): data is FetchNewsRequest {
@@ -34,6 +35,10 @@ function validateInput(data: any): data is FetchNewsRequest {
     return false;
   }
   
+  if (data.source_country !== undefined && typeof data.source_country !== 'string') {
+    return false;
+  }
+  
   // Validate length to prevent abuse
   if (data.state && data.state.length > 100) {
     return false;
@@ -44,6 +49,10 @@ function validateInput(data: any): data is FetchNewsRequest {
   }
   
   if (data.language && data.language.length > 10) {
+    return false;
+  }
+  
+  if (data.source_country && data.source_country.length > 10) {
     return false;
   }
   
@@ -117,19 +126,19 @@ serve(async (req) => {
       });
     }
 
-    const { state, category, language = 'en' } = requestData;
+    const { state, category, language = 'en', source_country = 'us' } = requestData;
     const WORLDNEWS_API_KEY = Deno.env.get('WORLDNEWS_API_KEY');
 
     if (!WORLDNEWS_API_KEY) {
       throw new Error('WORLDNEWS_API_KEY not configured');
     }
 
-    console.log('Fetching news for user:', user.id, 'location:', state, 'category:', category, 'language:', language);
+    console.log('Fetching news for user:', user.id, 'location:', state, 'category:', category, 'language:', language, 'source_country:', source_country);
 
     // Build the API URL with parameters
     const params = new URLSearchParams({
       'api-key': WORLDNEWS_API_KEY,
-      'source-countries': 'us',
+      'source-countries': source_country.toLowerCase(),
       'language': language,
       'number': '10',
     });
