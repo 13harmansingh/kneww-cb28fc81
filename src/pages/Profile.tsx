@@ -11,6 +11,7 @@ interface Profile {
   email: string;
   display_name: string | null;
   avatar_url: string | null;
+  principal_language: string | null;
 }
 
 export default function Profile() {
@@ -19,8 +20,20 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState("");
+  const [principalLanguage, setPrincipalLanguage] = useState("en");
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
+
+  const languages = [
+    { code: "en", name: "English" },
+    { code: "pt", name: "Português" },
+    { code: "es", name: "Español" },
+    { code: "fr", name: "Français" },
+    { code: "de", name: "Deutsch" },
+    { code: "zh", name: "中文" },
+    { code: "ja", name: "日本語" },
+    { code: "ko", name: "한국어" },
+  ];
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -60,6 +73,7 @@ export default function Profile() {
       } else {
         setProfile(data);
         setDisplayName(data?.display_name || "");
+        setPrincipalLanguage(data?.principal_language || "en");
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -78,12 +92,13 @@ export default function Profile() {
         .from("profiles")
         .update({
           display_name: displayName || null,
+          principal_language: principalLanguage,
         })
         .eq("id", user.id);
 
       if (error) throw error;
 
-      setProfile((prev) => prev ? { ...prev, display_name: displayName } : null);
+      setProfile((prev) => prev ? { ...prev, display_name: displayName, principal_language: principalLanguage } : null);
       setEditing(false);
       toast.success("Profile updated successfully");
     } catch (error) {
@@ -213,6 +228,29 @@ export default function Profile() {
                 </button>
               </div>
             )}
+          </div>
+
+          {/* Principal Language Section */}
+          <div className="space-y-3">
+            <label className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <span>🌐</span>
+              Principal Language
+            </label>
+            <p className="text-xs text-muted-foreground">
+              Your preferred language for news. Articles will be shown in this language when available.
+            </p>
+            <select
+              value={principalLanguage}
+              onChange={(e) => setPrincipalLanguage(e.target.value)}
+              disabled={!editing}
+              className="w-full px-4 py-3 bg-background/50 border border-border rounded-xl text-foreground disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-accent"
+            >
+              {languages.map((lang) => (
+                <option key={lang.code} value={lang.code}>
+                  {lang.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Sign Out Button */}

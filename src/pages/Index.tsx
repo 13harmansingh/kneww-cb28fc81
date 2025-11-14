@@ -14,6 +14,7 @@ import { US_STATES } from "@/data/usStates";
 import { COUNTRIES, REGIONS, getCountriesByRegion } from "@/data/countries";
 import { useNews, NewsArticle } from "@/hooks/useNews";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 import { useAuth } from "@/hooks/useAuth";
 
@@ -27,6 +28,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedForCompare, setSelectedForCompare] = useState<NewsArticle[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState("en");
+  const [userLanguage, setUserLanguage] = useState("en");
   const navigate = useNavigate();
 
   const { user, session, loading: authLoading } = useAuth();
@@ -58,6 +60,25 @@ const Index = () => {
       }
     }
   }, [searchParams]);
+
+  // Fetch user's principal language
+  useEffect(() => {
+    const fetchUserLanguage = async () => {
+      if (user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("principal_language")
+          .eq("id", user.id)
+          .single();
+        
+        if (data?.principal_language) {
+          setUserLanguage(data.principal_language);
+          setSelectedLanguage(data.principal_language);
+        }
+      }
+    };
+    fetchUserLanguage();
+  }, [user]);
 
   const filteredRegions = REGIONS.filter((region) =>
     region.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -431,17 +452,10 @@ const Index = () => {
                           <div className="flex items-center gap-2">
                             <ArticleBookmarkButton article={article} />
                             <button
-                              onClick={() => toggleArticleForCompare(article)}
-                              disabled={!isSelected && selectedForCompare.length >= 3}
-                              className={`flex-shrink-0 px-3 py-1 rounded-lg text-xs font-semibold transition ${
-                                isSelected 
-                                  ? 'bg-accent text-white' 
-                                  : selectedForCompare.length >= 3
-                                  ? 'bg-muted text-muted-foreground cursor-not-allowed'
-                                  : 'bg-accent/20 text-accent hover:bg-accent/30'
-                              }`}
+                              onClick={() => navigate('/compare', { state: { article } })}
+                              className="flex-shrink-0 px-3 py-1 rounded-lg text-xs font-semibold bg-accent/20 text-accent hover:bg-accent/30 transition"
                             >
-                              {isSelected ? '✓ Selected' : 'Compare'}
+                              Compare Sources
                             </button>
                           </div>
                         </div>
