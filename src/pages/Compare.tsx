@@ -1,17 +1,131 @@
-import { ArrowLeft, Scale } from "lucide-react";
+import { ArrowLeft, Scale, Loader2, Languages } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { NewsArticle } from "@/hooks/useNews";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 export default function Compare() {
   const navigate = useNavigate();
   const location = useLocation();
-  const articles = (location.state?.articles || []) as NewsArticle[];
+  const article = location.state?.article as NewsArticle | undefined;
+  const { session } = useAuth();
+  
+  const [relatedArticles, setRelatedArticles] = useState<NewsArticle[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [translating, setTranslating] = useState<string | null>(null);
 
-  if (articles.length < 2) {
+  useEffect(() => {
+    if (!article) {
+      return;
+    }
+
+    fetchRelatedNews();
+  }, [article]);
+
+  const fetchRelatedNews = async () => {
+    if (!article || !session) return;
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("fetch-related-news", {
+        body: { 
+          topic: article.title,
+          language: 'en',
+          source_country: 'us,gb,ca,au,in'
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.news) {
+        // Analyze each article
+        const articlesWithAnalysis = data.news.map((item: NewsArticle) => ({
+          ...item,
+          analysisLoading: true,
+          bias: 'Analyzing...',
+          sentiment: 'neutral' as const,
+        }));
+        
+        setRelatedArticles(articlesWithAnalysis);
+
+        // Analyze articles in parallel
+        articlesWithAnalysis.forEach(async (item: NewsArticle, index: number) => {
+          try {
+            const { data: analysisData, error: analysisError } = await supabase.functions.invoke('analyze-news', {
+              body: { 
+                title: item.title,
+                text: item.text,
+                url: item.url
+              },
+              headers: {
+                Authorization: `Bearer ${session.access_token}`,
+              },
+            });
+
+            if (!analysisError && analysisData) {
+              setRelatedArticles(prev => prev.map((a, i) => 
+                i === index 
+                  ? { ...a, ...analysisData, analysisLoading: false }
+                  : a
+              ));
+            }
+          } catch (err) {
+            console.error('Error analyzing article:', err);
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching related news:", error);
+      toast.error("Failed to load related articles");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const translateArticle = async (articleToTranslate: NewsArticle, targetLang: string) => {
+    if (!session) return;
+
+    setTranslating(articleToTranslate.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("translate-article", {
+        body: {
+          title: articleToTranslate.title,
+          text: articleToTranslate.text,
+          summary: articleToTranslate.summary,
+          targetLanguage: targetLang,
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      setRelatedArticles(prev => prev.map(a => 
+        a.id === articleToTranslate.id
+          ? { ...a, ...data, translated: true }
+          : a
+      ));
+
+      toast.success("Article translated successfully");
+    } catch (error) {
+      console.error("Translation error:", error);
+      toast.error("Failed to translate article");
+    } finally {
+      setTranslating(null);
+    }
+  };
+
+  if (!article) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <p className="text-muted-foreground">Please select at least 2 articles to compare</p>
+          <p className="text-muted-foreground">Please select an article to compare</p>
           <button
             onClick={() => navigate("/")}
             className="mt-4 text-accent hover:underline"
@@ -23,161 +137,231 @@ export default function Compare() {
     );
   }
 
-  const getSentimentColor = (sentiment?: string) => {
-    switch (sentiment) {
-      case "positive": return "text-green-400";
-      case "negative": return "text-red-400";
-      case "neutral": return "text-yellow-400";
-      default: return "text-muted-foreground";
-    }
-  };
-
-  const getSentimentEmoji = (sentiment?: string) => {
-    switch (sentiment) {
-      case "positive": return "😊";
-      case "negative": return "😔";
-      case "neutral": return "😐";
-      default: return "❓";
-    }
-  };
-
   const getBiasColor = (bias?: string) => {
-    if (bias?.includes('Left')) return 'text-blue-400';
-    if (bias?.includes('Right')) return 'text-red-400';
-    if (bias?.includes('Center')) return 'text-green-400';
-    return 'text-muted-foreground';
+    if (!bias || bias === 'Analyzing...') return 'bg-secondary/50';
+    if (bias.toLowerCase().includes('left')) return 'bg-blue-500/20 border-blue-500/50';
+    if (bias.toLowerCase().includes('right')) return 'bg-red-500/20 border-red-500/50';
+    if (bias.toLowerCase().includes('center')) return 'bg-green-500/20 border-green-500/50';
+    return 'bg-secondary/50';
+  };
+
+  const getBiasPosition = (bias?: string): 'left' | 'center' | 'right' => {
+    if (!bias) return 'center';
+    const lowerBias = bias.toLowerCase();
+    if (lowerBias.includes('left')) return 'left';
+    if (lowerBias.includes('right')) return 'right';
+    return 'center';
+  };
+
+  const groupedArticles = {
+    left: relatedArticles.filter(a => getBiasPosition(a.bias) === 'left'),
+    center: relatedArticles.filter(a => getBiasPosition(a.bias) === 'center'),
+    right: relatedArticles.filter(a => getBiasPosition(a.bias) === 'right'),
   };
 
   return (
     <div className="min-h-screen bg-background pb-6">
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
         <div className="flex items-center gap-4 p-4">
           <button onClick={() => navigate(-1)} className="text-white">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1">
             <Scale className="w-6 h-6 text-accent" />
-            <h1 className="text-2xl font-bold text-white">Article Comparison</h1>
+            <div>
+              <h1 className="text-xl font-bold text-white">Coverage Analysis</h1>
+              <p className="text-xs text-muted-foreground">Multiple perspectives on: {article.title.substring(0, 60)}...</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="px-4 mt-6 space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {articles.map((article, idx) => (
-            <div key={article.id} className="rounded-2xl border border-border bg-card p-6 space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-accent/20 text-accent flex items-center justify-center font-bold">
-                  {idx + 1}
-                </div>
-                <div className="flex-1">
-                  <h2 className="text-xl font-bold text-white mb-2">{article.title}</h2>
-                  {article.image && (
-                    <img
-                      src={article.image}
-                      alt={article.title}
-                      className="w-full h-40 object-cover rounded-lg mb-4"
-                    />
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-4 bg-secondary/50 rounded-xl p-4 border border-accent/20">
-                <div>
-                  <span className="text-xs text-muted-foreground font-medium">Political Bias:</span>
-                  <p className={`text-lg font-bold ${getBiasColor(article.bias)}`}>
-                    {article.bias || 'Unknown'}
-                  </p>
-                </div>
-
-                <div>
-                  <span className="text-xs text-muted-foreground font-medium">Sentiment:</span>
-                  <p className={`text-lg font-bold ${getSentimentColor(article.sentiment)}`}>
-                    {getSentimentEmoji(article.sentiment)} {article.sentiment || 'neutral'}
-                  </p>
-                </div>
-
-                <div>
-                  <span className="text-xs text-muted-foreground font-medium">Summary:</span>
-                  <p className="text-sm text-foreground mt-1">{article.summary || 'No summary available'}</p>
-                </div>
-
-                <div>
-                  <span className="text-xs text-muted-foreground font-medium">Media Ownership:</span>
-                  <p className="text-sm text-foreground">{article.ownership || 'Unknown'}</p>
-                </div>
-
-                {article.claims && article.claims.length > 0 && (
-                  <div>
-                    <span className="text-xs text-muted-foreground font-medium">Key Claims:</span>
-                    <div className="mt-2 space-y-2">
-                      {article.claims.map((claim, i) => (
-                        <div key={i} className="text-sm bg-background/50 rounded-lg p-2">
-                          <div className="flex items-start gap-2">
-                            <span className={`text-xs font-bold ${
-                              claim.verification === 'verified' ? 'text-green-400' :
-                              claim.verification === 'disputed' ? 'text-red-400' :
-                              'text-yellow-400'
-                            }`}>
-                              {claim.verification === 'verified' ? '✓' :
-                               claim.verification === 'disputed' ? '✗' : '?'}
-                            </span>
-                            <div className="flex-1">
-                              <p className="text-foreground">{claim.text}</p>
-                              <p className="text-xs text-muted-foreground mt-1">{claim.explanation}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {article.url && (
-                <a
-                  href={article.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-accent text-sm hover:underline inline-block"
-                >
-                  Read full article →
-                </a>
-              )}
-            </div>
-          ))}
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 text-accent animate-spin" />
         </div>
-
-        {articles.length >= 2 && (
-          <div className="rounded-2xl border border-accent bg-accent/5 p-6">
-            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <Scale className="w-5 h-5 text-accent" />
-              Comparison Insights
-            </h3>
-            <div className="space-y-3 text-sm">
-              <div>
-                <span className="text-muted-foreground">Bias Difference: </span>
-                <span className="text-foreground font-medium">
-                  {articles[0].bias} vs {articles[1].bias}
-                </span>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Sentiment Difference: </span>
-                <span className="text-foreground font-medium">
-                  {getSentimentEmoji(articles[0].sentiment)} {articles[0].sentiment} vs{" "}
-                  {getSentimentEmoji(articles[1].sentiment)} {articles[1].sentiment}
-                </span>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Coverage: </span>
-                <span className="text-foreground">
-                  These sources provide different perspectives on the same story, 
-                  allowing you to form a more balanced understanding.
-                </span>
-              </div>
+      ) : (
+        <div className="px-4 mt-6 space-y-6">
+          {/* Political Spectrum Header */}
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/30">
+              <h3 className="font-bold text-blue-400">Left ({groupedArticles.left.length})</h3>
+            </div>
+            <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/30">
+              <h3 className="font-bold text-green-400">Center ({groupedArticles.center.length})</h3>
+            </div>
+            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30">
+              <h3 className="font-bold text-red-400">Right ({groupedArticles.right.length})</h3>
             </div>
           </div>
+
+          {/* Articles Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column */}
+            <div className="space-y-4">
+              {groupedArticles.left.map((art) => (
+                <ArticleCard 
+                  key={art.id} 
+                  article={art} 
+                  onTranslate={translateArticle}
+                  translating={translating === art.id}
+                />
+              ))}
+              {groupedArticles.left.length === 0 && (
+                <div className="p-6 rounded-xl border border-border bg-card/50 text-center text-muted-foreground">
+                  No left-leaning sources found
+                </div>
+              )}
+            </div>
+
+            {/* Center Column */}
+            <div className="space-y-4">
+              {groupedArticles.center.map((art) => (
+                <ArticleCard 
+                  key={art.id} 
+                  article={art} 
+                  onTranslate={translateArticle}
+                  translating={translating === art.id}
+                />
+              ))}
+              {groupedArticles.center.length === 0 && (
+                <div className="p-6 rounded-xl border border-border bg-card/50 text-center text-muted-foreground">
+                  No centrist sources found
+                </div>
+              )}
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-4">
+              {groupedArticles.right.map((art) => (
+                <ArticleCard 
+                  key={art.id} 
+                  article={art} 
+                  onTranslate={translateArticle}
+                  translating={translating === art.id}
+                />
+              ))}
+              {groupedArticles.right.length === 0 && (
+                <div className="p-6 rounded-xl border border-border bg-card/50 text-center text-muted-foreground">
+                  No right-leaning sources found
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ArticleCard({ 
+  article, 
+  onTranslate, 
+  translating 
+}: { 
+  article: NewsArticle; 
+  onTranslate: (article: NewsArticle, lang: string) => void;
+  translating: boolean;
+}) {
+  const [showTranslateMenu, setShowTranslateMenu] = useState(false);
+
+  const getBiasColor = (bias?: string) => {
+    if (!bias || bias === 'Analyzing...') return 'bg-secondary/50';
+    if (bias.toLowerCase().includes('left')) return 'bg-blue-500/20 border-blue-500/50';
+    if (bias.toLowerCase().includes('right')) return 'bg-red-500/20 border-red-500/50';
+    if (bias.toLowerCase().includes('center')) return 'bg-green-500/20 border-green-500/50';
+    return 'bg-secondary/50';
+  };
+
+  const languages = [
+    { code: "pt", name: "Português" },
+    { code: "es", name: "Español" },
+    { code: "fr", name: "Français" },
+    { code: "de", name: "Deutsch" },
+    { code: "zh", name: "中文" },
+    { code: "ja", name: "日本語" },
+    { code: "ko", name: "한국어" },
+  ];
+
+  return (
+    <div className={`rounded-xl border p-4 space-y-3 ${getBiasColor(article.bias)}`}>
+      {article.image && (
+        <img
+          src={article.image}
+          alt={article.title}
+          className="w-full h-32 object-cover rounded-lg"
+        />
+      )}
+      
+      <h3 className="font-bold text-white text-sm line-clamp-3">{article.title}</h3>
+      
+      {article.source_country && (
+        <div className="text-xs text-muted-foreground">
+          Source: {article.source_country.toUpperCase()}
+        </div>
+      )}
+
+      <div className="flex items-center gap-2 text-xs">
+        <span className="px-2 py-1 rounded-full bg-background/50 text-foreground">
+          {article.bias || 'Unknown'}
+        </span>
+        <span className="px-2 py-1 rounded-full bg-background/50 text-foreground">
+          {article.sentiment || 'neutral'}
+        </span>
+      </div>
+
+      {article.summary && (
+        <p className="text-xs text-foreground/80 line-clamp-3">{article.summary}</p>
+      )}
+
+      <div className="flex gap-2">
+        {article.url && (
+          <a
+            href={article.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-accent hover:underline"
+          >
+            Read original →
+          </a>
         )}
+        
+        <div className="relative ml-auto">
+          <button
+            onClick={() => setShowTranslateMenu(!showTranslateMenu)}
+            disabled={translating}
+            className="text-xs flex items-center gap-1 text-accent hover:underline disabled:opacity-50"
+          >
+            {translating ? (
+              <>
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Translating...
+              </>
+            ) : (
+              <>
+                <Languages className="w-3 h-3" />
+                Translate
+              </>
+            )}
+          </button>
+          
+          {showTranslateMenu && !translating && (
+            <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-lg shadow-lg p-2 z-10 min-w-[120px]">
+              {languages.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => {
+                    onTranslate(article, lang.code);
+                    setShowTranslateMenu(false);
+                  }}
+                  className="block w-full text-left px-3 py-2 text-xs hover:bg-accent/10 rounded"
+                >
+                  {lang.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
