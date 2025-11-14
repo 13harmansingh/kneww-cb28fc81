@@ -42,7 +42,8 @@ const Index = () => {
     { code: "ko", name: "한국어" },
   ];
   const location = selectedState || selectedCountryName;
-  const { news, loading, error, retry } = useNews(location, selectedCategory, session, selectedLanguage);
+  const sourceCountryCode = selectedCountry || 'us';
+  const { news, loading, error, retry } = useNews(location, selectedCategory, session, selectedLanguage, sourceCountryCode);
 
   useEffect(() => {
     const country = searchParams.get("country");
@@ -443,6 +444,32 @@ const Index = () => {
                               {isSelected ? '✓ Selected' : 'Compare'}
                             </button>
                           </div>
+                        </div>
+                        
+                        {/* Article Metadata */}
+                        <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                          {article.author && (
+                            <div className="flex items-center gap-1">
+                              <span className="font-medium">Author:</span>
+                              <span>{article.author}</span>
+                            </div>
+                          )}
+                          {article.publish_date && (
+                            <div className="flex items-center gap-1">
+                              <span className="font-medium">Published:</span>
+                              <span>{new Date(article.publish_date).toLocaleDateString()}</span>
+                            </div>
+                          )}
+                          {article.url && (
+                            <a 
+                              href={article.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-accent hover:underline"
+                            >
+                              Read original →
+                            </a>
+                          )}
                         </div>
                         
                         {/* Sentiment Badge */}

@@ -36,7 +36,7 @@ const isTransientError = (error: any): boolean => {
   return false;
 };
 
-export const useNews = (state: string | null, category: string, session: any, language: string = 'en') => {
+export const useNews = (state: string | null, category: string, session: any, language: string = 'en', sourceCountry: string = 'us') => {
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +65,7 @@ export const useNews = (state: string | null, category: string, session: any, la
       }
 
       const { data, error: fetchError } = await supabase.functions.invoke("fetch-news", {
-        body: { state, category, language },
+        body: { state, category, language, source_country: sourceCountry },
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
@@ -154,7 +154,7 @@ export const useNews = (state: string | null, category: string, session: any, la
     } finally {
       setLoading(false);
     }
-  }, [state, category, session, language]);
+  }, [state, category, session, language, sourceCountry]);
 
   useEffect(() => {
     fetchNews();
