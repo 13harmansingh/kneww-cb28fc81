@@ -1,9 +1,10 @@
 import { Search, Bell, ArrowRight, MapPin, Scale, Bookmark, Globe } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { NewsCard } from "@/components/NewsCard";
 import { CategoryPill } from "@/components/CategoryPill";
+import { LanguagePill } from "@/components/LanguagePill";
 import { StateMapCard } from "@/components/StateMapCard";
 import { CountryMapCard } from "@/components/CountryMapCard";
 import { RegionCard } from "@/components/RegionCard";
@@ -12,6 +13,7 @@ import { ArticleBookmarkButton } from "@/components/ArticleBookmarkButton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { US_STATES } from "@/data/usStates";
 import { COUNTRIES, REGIONS, getCountriesByRegion } from "@/data/countries";
+import { getCountryLanguages, GLOBAL_LANGUAGES } from "@/data/countryLanguages";
 import { useNews, NewsArticle } from "@/hooks/useNews";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,19 +35,39 @@ const Index = () => {
 
   const { user, session, loading: authLoading } = useAuth();
   const categories = ["All", "Politics", "Sports", "Technology", "Entertainment"];
-  const languages = [
-    { code: "en", name: "English" },
-    { code: "pt", name: "Português" },
-    { code: "es", name: "Español" },
-    { code: "fr", name: "Français" },
-    { code: "de", name: "Deutsch" },
-    { code: "zh", name: "中文" },
-    { code: "ja", name: "日本語" },
-    { code: "ko", name: "한국어" },
-  ];
+  
+  // Get languages for selected country or global
+  const countryLanguages = selectedCountry 
+    ? getCountryLanguages(selectedCountry)
+    : GLOBAL_LANGUAGES;
+  
+  const languagesString = countryLanguages.map(l => l.code).join(',');
   const location = selectedState || selectedCountryName;
   const sourceCountryCode = selectedCountry || 'us';
-  const { news, loading, error, retry } = useNews(location, selectedCategory, session, selectedLanguage, sourceCountryCode);
+  
+  const { news, availableLanguages, defaultLanguage, loading, error, retry } = useNews(
+    location,
+    selectedCategory,
+    session,
+    languagesString,
+    sourceCountryCode
+  );
+
+  // Filter news by selected language on client side
+  const filteredNews = useMemo(() => {
+    if (selectedLanguage === 'all' || !selectedLanguage) {
+      return news;
+    }
+    return news.filter(article => article.language === selectedLanguage);
+  }, [news, selectedLanguage]);
+
+  // Update selected language when available languages change
+  useEffect(() => {
+    if (availableLanguages.length > 0 && !availableLanguages.find(l => l.code === selectedLanguage)) {
+      // If current language not available, use default or first available
+      setSelectedLanguage(defaultLanguage || availableLanguages[0].code);
+    }
+  }, [availableLanguages, defaultLanguage]);
 
   useEffect(() => {
     const country = searchParams.get("country");
@@ -355,25 +377,39 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Language Selector */}
-          <div className="px-4 mt-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-white">Language</h2>
-            </div>
-
-            <ScrollArea className="w-full">
-              <div className="flex gap-3 pb-4">
-                {languages.map((lang) => (
-                  <CategoryPill
-                    key={lang.code}
-                    label={lang.name}
-                    isActive={selectedLanguage === lang.code}
-                    onClick={() => setSelectedLanguage(lang.code)}
-                  />
-                ))}
+          {/* Dynamic Language Selector - Only show if we have languages */}
+          {availableLanguages.length > 0 && (
+            <div className="px-4 mt-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-white">Available Languages</h2>
+                <p className="text-sm text-muted-foreground">
+                  {filteredNews.length} {filteredNews.length === 1 ? 'article' : 'articles'}
+                </p>
               </div>
-            </ScrollArea>
-          </div>
+
+              <ScrollArea className="w-full">
+                <div className="flex gap-3 pb-4">
+                  <LanguagePill
+                    code="all"
+                    name="All Languages"
+                    count={news.length}
+                    isActive={selectedLanguage === 'all'}
+                    onClick={() => setSelectedLanguage('all')}
+                  />
+                  {availableLanguages.map((lang) => (
+                    <LanguagePill
+                      key={lang.code}
+                      code={lang.code}
+                      name={lang.name}
+                      count={lang.count}
+                      isActive={selectedLanguage === lang.code}
+                      onClick={() => setSelectedLanguage(lang.code)}
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          )}
 
           {/* Compare Bar */}
           {selectedForCompare.length > 0 && (
@@ -428,9 +464,9 @@ const Index = () => {
                 <div className="inline-block w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
                 <p className="mt-4 text-muted-foreground">Loading news...</p>
               </div>
-            ) : news.length > 0 ? (
+            ) : filteredNews.length > 0 ? (
               <div className="grid grid-cols-1 gap-6">
-                {news.map((article) => {
+                {filteredNews.map((article) => {
                   const isSelected = selectedForCompare.find(a => a.id === article.id);
                   return (
                     <div 
