@@ -14,8 +14,9 @@ const MAX_REQUESTS = 10; // 10 requests per minute
 interface FetchNewsRequest {
   state?: string;
   category?: string;
-  language?: string;
+  languages?: string; // Comma-separated language codes
   source_country?: string;
+  countries?: string; // Comma-separated country codes for continent fetching
 }
 
 function validateInput(data: any): data is FetchNewsRequest {
@@ -48,11 +49,15 @@ function validateInput(data: any): data is FetchNewsRequest {
     return false;
   }
   
-  if (data.language && data.language.length > 10) {
+  if (data.languages && data.languages.length > 200) {
     return false;
   }
   
   if (data.source_country && data.source_country.length > 10) {
+    return false;
+  }
+  
+  if (data.countries && data.countries.length > 500) {
     return false;
   }
   
@@ -126,66 +131,160 @@ serve(async (req) => {
       });
     }
 
-    const { state, category, language = 'en', source_country = 'us' } = requestData;
+    const { state, category, languages = 'en', source_country = 'us', countries } = requestData;
     const WORLDNEWS_API_KEY = Deno.env.get('WORLDNEWS_API_KEY');
 
     if (!WORLDNEWS_API_KEY) {
       throw new Error('WORLDNEWS_API_KEY not configured');
     }
 
-    console.log('Fetching news for user:', user.id, 'location:', state, 'category:', category, 'language:', language, 'source_country:', source_country);
+    console.log('Fetching news for user:', user.id, 'location:', state, 'category:', category, 'languages:', languages, 'source_country:', source_country);
 
     // Build the API URL with parameters
-    const params = new URLSearchParams({
-      'api-key': WORLDNEWS_API_KEY,
-      'source-countries': source_country.toLowerCase(),
-      'language': language,
-      'number': '10',
-    });
-
-    // Build search text combining location and category
-    const searchTerms = [];
-    if (state && state !== 'all') {
-      searchTerms.push(state);
-    }
-    if (category && category !== 'all') {
-      searchTerms.push(category);
+    const apiUrl = new URL('https://api.worldnewsapi.com/search-news');
+    
+    if (state) {
+      apiUrl.searchParams.append('text', state);
     }
     
-    if (searchTerms.length > 0) {
-      params.append('text', searchTerms.join(' '));
+    if (category && category !== 'all') {
+      apiUrl.searchParams.append('categories', category);
     }
+    
+    // Multiple languages support
+    apiUrl.searchParams.append('language', languages);
+    
+    // Multiple countries support for continent fetching
+    if (countries) {
+      apiUrl.searchParams.append('source-countries', countries);
+    } else {
+      apiUrl.searchParams.append('source-country', source_country);
+    }
+    
+    apiUrl.searchParams.append('number', '100');
+    apiUrl.searchParams.append('sort', 'publish-time');
+    apiUrl.searchParams.append('sort-direction', 'DESC');
 
-    const url = `https://api.worldnewsapi.com/search-news?${params.toString()}`;
-    console.log('Fetching from URL:', url);
+    console.log('Fetching news from:', apiUrl.toString());
 
-    const response = await fetch(url, {
-      method: 'GET',
+    const response = await fetch(apiUrl.toString(), {
       headers: {
-        'Content-Type': 'application/json',
+        'x-api-key': WORLDNEWS_API_KEY,
       },
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('WorldNews API error:', response.status, errorText);
-      throw new Error(`WorldNews API error: ${response.status}`);
+      throw new Error(`WorldNews API error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log('Successfully fetched', data.news?.length || 0, 'articles');
+    const articles = data?.news || [];
+    console.log(`Successfully fetched ${articles.length} articles`);
 
-    return new Response(JSON.stringify(data), {
+    // Detect available languages from response
+    const languageMap = new Map<string, { name: string; count: number; articles: any[] }>();
+    
+    articles.forEach((article: any) => {
+      const lang = article.language || 'en';
+      if (!languageMap.has(lang)) {
+        languageMap.set(lang, { name: lang, count: 0, articles: [] });
+      }
+      const langData = languageMap.get(lang)!;
+      langData.count++;
+      langData.articles.push(article);
+    });
+
+    // Build available_languages array (only languages with 3+ articles)
+    const available_languages = Array.from(languageMap.entries())
+      .filter(([_, data]) => data.count >= 3)
+      .map(([code, data]) => ({
+        code,
+        name: getLanguageName(code),
+        count: data.count,
+      }))
+      .sort((a, b) => b.count - a.count);
+
+    // Determine default language (prefer user's browser language or most common)
+    const defaultLanguage = available_languages.length > 0 
+      ? available_languages[0].code 
+      : 'en';
+
+    // Prioritize local sources (TLD matching)
+    const prioritizedArticles = articles.sort((a: any, b: any) => {
+      const aIsLocal = isLocalSource(a.url, source_country);
+      const bIsLocal = isLocalSource(b.url, source_country);
+      if (aIsLocal && !bIsLocal) return -1;
+      if (!aIsLocal && bIsLocal) return 1;
+      return 0;
+    });
+
+    const responseData = {
+      country: source_country,
+      country_name: getCountryName(source_country),
+      available_languages,
+      default_language: defaultLanguage,
+      news: prioritizedArticles,
+      status: articles.length === 0 ? 'empty' : available_languages.length > 0 ? 'success' : 'partial',
+    };
+
+    return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Error in fetch-news function:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      {
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'An unknown error occurred',
+        details: 'Failed to fetch news from WorldNews API'
+      }),
+      { 
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }
 });
+
+// Helper functions
+function getLanguageName(code: string): string {
+  const names: Record<string, string> = {
+    en: 'English', es: 'Español', fr: 'Français', de: 'Deutsch', it: 'Italiano',
+    pt: 'Português', ru: 'Русский', zh: '中文', ja: '日本語', ko: '한국어',
+    ar: 'العربية', hi: 'हिन्दी', bn: 'বাংলা', ur: 'اردو', tr: 'Türkçe',
+    vi: 'Tiếng Việt', th: 'ไทย', nl: 'Nederlands', pl: 'Polski', id: 'Bahasa Indonesia',
+  };
+  return names[code] || code.toUpperCase();
+}
+
+function getCountryName(code: string): string {
+  const names: Record<string, string> = {
+    us: 'United States', gb: 'United Kingdom', ca: 'Canada', au: 'Australia',
+    de: 'Germany', fr: 'France', in: 'India', cn: 'China', jp: 'Japan',
+    td: 'Chad', ng: 'Nigeria', pk: 'Pakistan', sa: 'Saudi Arabia',
+  };
+  return names[code.toLowerCase()] || code.toUpperCase();
+}
+
+function isLocalSource(url: string, countryCode: string): boolean {
+  if (!url) return false;
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    const tld = `.${countryCode.toLowerCase()}`;
+    
+    // Check if domain ends with country TLD
+    if (hostname.endsWith(tld)) return true;
+    
+    // Known local sources
+    const localDomains: Record<string, string[]> = {
+      td: ['leprogres.td', 'tchadinfos.com'],
+      pk: ['geo.tv', 'dawn.com', 'thenews.com.pk'],
+      in: ['ndtv.com', 'thehindu.com', 'indianexpress.com'],
+      ng: ['punchng.com', 'vanguardngr.com', 'premiumtimesng.com'],
+    };
+    
+    const localList = localDomains[countryCode.toLowerCase()] || [];
+    return localList.some(domain => hostname.includes(domain));
+  } catch {
+    return false;
+  }
+}

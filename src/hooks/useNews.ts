@@ -17,6 +17,7 @@ export interface NewsArticle {
   publish_date?: string;
   author?: string;
   source_country?: string;
+  language?: string;
   bias?: string;
   summary?: string;
   ownership?: string;
@@ -36,8 +37,23 @@ const isTransientError = (error: any): boolean => {
   return false;
 };
 
-export const useNews = (state: string | null, category: string, session: any, language: string = 'en', sourceCountry: string = 'us') => {
+export interface AvailableLanguage {
+  code: string;
+  name: string;
+  count: number;
+}
+
+export const useNews = (
+  state: string | null,
+  category: string,
+  session: any,
+  languages: string = 'en',
+  sourceCountry: string = 'us',
+  sourceCountries?: string
+) => {
   const [news, setNews] = useState<NewsArticle[]>([]);
+  const [availableLanguages, setAvailableLanguages] = useState<AvailableLanguage[]>([]);
+  const [defaultLanguage, setDefaultLanguage] = useState<string>('en');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -65,7 +81,13 @@ export const useNews = (state: string | null, category: string, session: any, la
       }
 
       const { data, error: fetchError } = await supabase.functions.invoke("fetch-news", {
-        body: { state, category, language, source_country: sourceCountry },
+        body: {
+          state,
+          category,
+          languages,
+          source_country: sourceCountry,
+          countries: sourceCountries,
+        },
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
@@ -93,6 +115,8 @@ export const useNews = (state: string | null, category: string, session: any, la
           claims: []
         }));
         setNews(articlesWithAnalysis);
+        setAvailableLanguages(data.available_languages || []);
+        setDefaultLanguage(data.default_language || 'en');
         setRetryCount(0); // Reset retry count on success
 
         // Analyze each article with AI
@@ -154,7 +178,7 @@ export const useNews = (state: string | null, category: string, session: any, la
     } finally {
       setLoading(false);
     }
-  }, [state, category, session, language, sourceCountry]);
+  }, [state, category, session, languages, sourceCountry, sourceCountries]);
 
   useEffect(() => {
     fetchNews();
@@ -164,5 +188,5 @@ export const useNews = (state: string | null, category: string, session: any, la
     fetchNews(0);
   }, [fetchNews]);
 
-  return { news, loading, error, retry };
+  return { news, availableLanguages, defaultLanguage, loading, error, retry };
 };
