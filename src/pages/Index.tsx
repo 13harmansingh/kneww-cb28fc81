@@ -1,4 +1,4 @@
-import { Search, Bell, ArrowRight, MapPin, Scale, Bookmark, Globe } from "lucide-react";
+import { Search, Bell, ArrowRight, MapPin, Scale, Bookmark, Globe, Languages } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
@@ -7,16 +7,16 @@ import { CategoryPill } from "@/components/CategoryPill";
 import { LanguagePill } from "@/components/LanguagePill";
 import { StateMapCard } from "@/components/StateMapCard";
 import { CountryMapCard } from "@/components/CountryMapCard";
-import { RegionCard } from "@/components/RegionCard";
+import { ContinentMapCard } from "@/components/ContinentMapCard";
 import { SentimentBadge } from "@/components/SentimentBadge";
 import { ArticleBookmarkButton } from "@/components/ArticleBookmarkButton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { US_STATES } from "@/data/usStates";
 import { COUNTRIES, REGIONS, getCountriesByRegion } from "@/data/countries";
-import { getCountryLanguages, GLOBAL_LANGUAGES } from "@/data/countryLanguages";
 import { useNews, NewsArticle } from "@/hooks/useNews";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 import { useAuth } from "@/hooks/useAuth";
 
@@ -29,45 +29,38 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedForCompare, setSelectedForCompare] = useState<NewsArticle[]>([]);
-  const [selectedLanguage, setSelectedLanguage] = useState("en");
+  const [selectedLanguage, setSelectedLanguage] = useState("all");
   const [userLanguage, setUserLanguage] = useState("en");
+  const [translating, setTranslating] = useState<Record<string, boolean>>({});
   const navigate = useNavigate();
 
   const { user, session, loading: authLoading } = useAuth();
   const categories = ["All", "Politics", "Sports", "Technology", "Entertainment"];
   
-  // Get languages for selected country or global
-  const countryLanguages = selectedCountry 
-    ? getCountryLanguages(selectedCountry)
-    : GLOBAL_LANGUAGES;
+  const location = selectedState || selectedCountryName || selectedRegion;
+  const sourceCountryCode = selectedCountry || undefined;
   
-  const languagesString = countryLanguages.map(l => l.code).join(',');
-  const location = selectedState || selectedCountryName;
-  const sourceCountryCode = selectedCountry || 'us';
+  // For continent-level, get all country codes
+  const sourceCountryCodes = selectedRegion && !selectedCountry
+    ? getCountriesByRegion(selectedRegion).map(c => c.code).join(',')
+    : undefined;
   
   const { news, availableLanguages, defaultLanguage, loading, error, retry } = useNews(
     location,
     selectedCategory,
     session,
-    languagesString,
-    sourceCountryCode
+    selectedLanguage,
+    sourceCountryCode,
+    sourceCountryCodes
   );
 
   // Filter news by selected language on client side
   const filteredNews = useMemo(() => {
-    if (selectedLanguage === 'all' || !selectedLanguage) {
+    if (selectedLanguage === 'all') {
       return news;
     }
     return news.filter(article => article.language === selectedLanguage);
   }, [news, selectedLanguage]);
-
-  // Update selected language when available languages change
-  useEffect(() => {
-    if (availableLanguages.length > 0 && !availableLanguages.find(l => l.code === selectedLanguage)) {
-      // If current language not available, use default or first available
-      setSelectedLanguage(defaultLanguage || availableLanguages[0].code);
-    }
-  }, [availableLanguages, defaultLanguage]);
 
   useEffect(() => {
     const country = searchParams.get("country");
@@ -118,12 +111,14 @@ const Index = () => {
 
   const handleRegionSelect = (regionId: string) => {
     setSelectedRegion(regionId);
+    setSelectedLanguage('all'); // Reset language when changing region
     setSearchQuery("");
   };
 
   const handleCountrySelect = (countryCode: string, countryName: string) => {
     setSelectedCountry(countryCode);
     setSelectedCountryName(countryName);
+    setSelectedLanguage('all'); // Reset language when changing country
     // If country has states (only US for now), don't fetch news yet
     if (countryCode === "US") {
       return;
@@ -132,6 +127,7 @@ const Index = () => {
 
   const handleStateSelect = (stateName: string) => {
     setSelectedState(stateName);
+    setSelectedLanguage('all'); // Reset language when changing state
   };
 
   const handleBackToRegions = () => {
@@ -140,6 +136,7 @@ const Index = () => {
     setSelectedCountryName(null);
     setSelectedState(null);
     setSelectedCategory("all");
+    setSelectedLanguage('all');
     setSelectedForCompare([]);
     navigate("/");
   };
@@ -149,13 +146,49 @@ const Index = () => {
     setSelectedCountryName(null);
     setSelectedState(null);
     setSelectedCategory("all");
+    setSelectedLanguage('all');
     setSelectedForCompare([]);
   };
 
   const handleBackToStates = () => {
     setSelectedState(null);
     setSelectedCategory("all");
+    setSelectedLanguage('all');
     setSelectedForCompare([]);
+  };
+
+  const translateArticle = async (articleId: string, article: NewsArticle) => {
+    if (translating[articleId]) return;
+    
+    setTranslating(prev => ({ ...prev, [articleId]: true }));
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('translate-article', {
+        body: {
+          title: article.title,
+          text: article.text,
+          summary: article.summary,
+          target_language: userLanguage,
+        },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data) {
+        toast.success(`Article translated to ${userLanguage.toUpperCase()}`);
+        // Update the article in the news array
+        // You might want to store translated versions separately
+        console.log('Translation:', data);
+      }
+    } catch (err) {
+      console.error('Translation error:', err);
+      toast.error('Failed to translate article');
+    } finally {
+      setTranslating(prev => ({ ...prev, [articleId]: false }));
+    }
   };
 
   const toggleArticleForCompare = (article: NewsArticle) => {
@@ -255,7 +288,7 @@ const Index = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredRegions.map((region) => (
-              <RegionCard
+              <ContinentMapCard
                 key={region.id}
                 region={region}
                 onClick={() => handleRegionSelect(region.id)}
@@ -486,6 +519,20 @@ const Index = () => {
                         <div className="flex items-start justify-between gap-3">
                           <h3 className="text-lg font-semibold text-white mb-2 flex-1">{article.title}</h3>
                           <div className="flex items-center gap-2">
+                            {article.language && article.language !== userLanguage && (
+                              <button
+                                onClick={() => translateArticle(article.id, article)}
+                                disabled={translating[article.id]}
+                                className="flex-shrink-0 p-2 rounded-lg bg-secondary/50 hover:bg-secondary transition disabled:opacity-50"
+                                title={`Translate to ${userLanguage.toUpperCase()}`}
+                              >
+                                {translating[article.id] ? (
+                                  <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                  <Languages className="w-4 h-4 text-accent" />
+                                )}
+                              </button>
+                            )}
                             <ArticleBookmarkButton article={article} />
                             <button
                               onClick={() => navigate('/compare', { state: { article } })}
@@ -498,6 +545,12 @@ const Index = () => {
                         
                         {/* Article Metadata */}
                         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                          {article.language && (
+                            <div className="flex items-center gap-1">
+                              <span className="font-medium">Language:</span>
+                              <span className="uppercase">{article.language}</span>
+                            </div>
+                          )}
                           {article.author && (
                             <div className="flex items-center gap-1">
                               <span className="font-medium">Author:</span>

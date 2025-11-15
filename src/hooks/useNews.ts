@@ -47,7 +47,7 @@ export const useNews = (
   state: string | null,
   category: string,
   session: any,
-  languages: string = 'en',
+  language: string = 'all',
   sourceCountry: string = 'us',
   sourceCountries?: string
 ) => {
@@ -84,9 +84,9 @@ export const useNews = (
         body: {
           state,
           category,
-          languages,
+          language: language === 'all' ? undefined : language,
           source_country: sourceCountry,
-          countries: sourceCountries,
+          source_countries: sourceCountries,
         },
         headers: {
           Authorization: `Bearer ${session.access_token}`,
@@ -178,7 +178,7 @@ export const useNews = (
     } finally {
       setLoading(false);
     }
-  }, [state, category, session, languages, sourceCountry, sourceCountries]);
+  }, [state, category, session, language, sourceCountry, sourceCountries]);
 
   useEffect(() => {
     fetchNews();

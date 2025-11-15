@@ -14,9 +14,9 @@ const MAX_REQUESTS = 10; // 10 requests per minute
 interface FetchNewsRequest {
   state?: string;
   category?: string;
-  languages?: string; // Comma-separated language codes
+  language?: string; // Single language code or empty for all
   source_country?: string;
-  countries?: string; // Comma-separated country codes for continent fetching
+  source_countries?: string; // Comma-separated for continent/multi-country
 }
 
 function validateInput(data: any): data is FetchNewsRequest {
@@ -49,7 +49,7 @@ function validateInput(data: any): data is FetchNewsRequest {
     return false;
   }
   
-  if (data.languages && data.languages.length > 200) {
+  if (data.language && data.language.length > 10) {
     return false;
   }
   
@@ -57,7 +57,7 @@ function validateInput(data: any): data is FetchNewsRequest {
     return false;
   }
   
-  if (data.countries && data.countries.length > 500) {
+  if (data.source_countries && data.source_countries.length > 500) {
     return false;
   }
   
@@ -131,14 +131,14 @@ serve(async (req) => {
       });
     }
 
-    const { state, category, languages = 'en', source_country = 'us', countries } = requestData;
+    const { state, category, language, source_country = 'us', source_countries } = requestData;
     const WORLDNEWS_API_KEY = Deno.env.get('WORLDNEWS_API_KEY');
 
     if (!WORLDNEWS_API_KEY) {
       throw new Error('WORLDNEWS_API_KEY not configured');
     }
 
-    console.log('Fetching news for user:', user.id, 'location:', state, 'category:', category, 'languages:', languages, 'source_country:', source_country);
+    console.log('Fetching news for:', { state, category, language, source_country, source_countries });
 
     // Build the API URL with parameters
     const apiUrl = new URL('https://api.worldnewsapi.com/search-news');
@@ -151,12 +151,14 @@ serve(async (req) => {
       apiUrl.searchParams.append('categories', category);
     }
     
-    // Multiple languages support
-    apiUrl.searchParams.append('language', languages);
+    // Language filter - only one at a time, or omit for all languages
+    if (language && language !== 'all') {
+      apiUrl.searchParams.append('language', language);
+    }
     
     // Multiple countries support for continent fetching
-    if (countries) {
-      apiUrl.searchParams.append('source-countries', countries);
+    if (source_countries) {
+      apiUrl.searchParams.append('source-countries', source_countries);
     } else {
       apiUrl.searchParams.append('source-country', source_country);
     }
@@ -182,29 +184,26 @@ serve(async (req) => {
     console.log(`Successfully fetched ${articles.length} articles`);
 
     // Detect available languages from response
-    const languageMap = new Map<string, { name: string; count: number; articles: any[] }>();
+    const languageMap = new Map<string, { name: string; count: number }>();
     
     articles.forEach((article: any) => {
       const lang = article.language || 'en';
       if (!languageMap.has(lang)) {
-        languageMap.set(lang, { name: lang, count: 0, articles: [] });
+        languageMap.set(lang, { name: getLanguageName(lang), count: 0 });
       }
-      const langData = languageMap.get(lang)!;
-      langData.count++;
-      langData.articles.push(article);
+      languageMap.get(lang)!.count++;
     });
 
-    // Build available_languages array (only languages with 3+ articles)
+    // Build available_languages array (only languages with 1+ articles, sorted by count)
     const available_languages = Array.from(languageMap.entries())
-      .filter(([_, data]) => data.count >= 3)
       .map(([code, data]) => ({
         code,
-        name: getLanguageName(code),
+        name: data.name,
         count: data.count,
       }))
       .sort((a, b) => b.count - a.count);
 
-    // Determine default language (prefer user's browser language or most common)
+    // Determine default language (most common)
     const defaultLanguage = available_languages.length > 0 
       ? available_languages[0].code 
       : 'en';
