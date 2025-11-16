@@ -12,6 +12,9 @@ import { SentimentBadge } from "@/components/SentimentBadge";
 import { ArticleBookmarkButton } from "@/components/ArticleBookmarkButton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { US_STATES } from "@/data/usStates";
+import { CANADA_PROVINCES } from "@/data/canadaProvinces";
+import { AUSTRALIA_STATES } from "@/data/australiaStates";
+import { INDIA_STATES } from "@/data/indiaStates";
 import { COUNTRIES, REGIONS, getCountriesByRegion } from "@/data/countries";
 import { useNews, NewsArticle } from "@/hooks/useNews";
 import { cn } from "@/lib/utils";
@@ -108,7 +111,27 @@ const Index = () => {
       )
     : [];
 
-  const filteredStates = US_STATES.filter((state) =>
+  // Get states based on selected country
+  const getStatesForCountry = (countryCode: string) => {
+    const country = COUNTRIES.find(c => c.code === countryCode);
+    if (!country?.hasStates) return [];
+    
+    switch (country.stateType) {
+      case 'us-states':
+        return US_STATES;
+      case 'canada-provinces':
+        return CANADA_PROVINCES;
+      case 'australia-states':
+        return AUSTRALIA_STATES;
+      case 'india-states':
+        return INDIA_STATES;
+      default:
+        return [];
+    }
+  };
+
+  const currentStates = selectedCountry ? getStatesForCountry(selectedCountry) : [];
+  const filteredStates = currentStates.filter((state) =>
     state.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -122,8 +145,11 @@ const Index = () => {
     setSelectedCountry(countryCode);
     setSelectedCountryName(countryName);
     setSelectedLanguage('all'); // Reset language when changing country
-    // If country has states (only US for now), don't fetch news yet
-    if (countryCode === "US") {
+    
+    // Check if country has states
+    const country = COUNTRIES.find(c => c.code === countryCode);
+    if (country?.hasStates) {
+      // Don't fetch news yet, let user select state
       return;
     }
   };
@@ -186,8 +212,19 @@ const Index = () => {
 
     setAiSearching(true);
     try {
+      // Build context for AI search
+      const context = {
+        selectedRegion: selectedRegion ? REGIONS.find(r => r.id === selectedRegion)?.name : null,
+        selectedCountry: selectedCountryName,
+        selectedState,
+      };
+
       const { data, error } = await supabase.functions.invoke('ai-search-news', {
-        body: { query: aiSearchQuery, language: userLanguage }
+        body: { 
+          query: aiSearchQuery, 
+          language: userLanguage,
+          context // Pass context to AI
+        }
       });
 
       if (error) throw error;
@@ -196,10 +233,25 @@ const Index = () => {
       
       // Use the parsed search text for news fetching
       setSearchQuery(data.searchText || aiSearchQuery);
+      
+      // If AI suggested specific locations, override current selection
+      if (data.locations && data.locations.length > 0 && !selectedState && !selectedCountry && !selectedRegion) {
+        // Global search mode - locations will be handled by fetch-news
+        toast.success(`Searching globally: ${data.searchText || aiSearchQuery}`);
+      } else {
+        // Context-aware search
+        const contextMsg = selectedState 
+          ? `in ${selectedState}` 
+          : selectedCountry 
+          ? `in ${selectedCountryName}` 
+          : selectedRegion 
+          ? `in ${REGIONS.find(r => r.id === selectedRegion)?.name}`
+          : 'worldwide';
+        toast.success(`Searching ${contextMsg}: ${data.searchText || aiSearchQuery}`);
+      }
+      
       setAiSearchMode(false);
       setAiSearchQuery("");
-      
-      toast.success(`Searching: ${data.searchText || aiSearchQuery}`);
     } catch (error) {
       console.error('AI Search error:', error);
       toast.error("Search failed. Using your query directly.");
@@ -440,8 +492,8 @@ const Index = () => {
             ))}
           </div>
         </div>
-      ) : selectedCountry === "US" && !selectedState ? (
-        /* US State Selection View */
+      ) : selectedCountry && COUNTRIES.find(c => c.code === selectedCountry)?.hasStates && !selectedState ? (
+        /* State/Province Selection View */
         <div className="px-4 mt-6">
           <button
             onClick={handleBackToCountries}
@@ -454,8 +506,12 @@ const Index = () => {
           <div className="flex items-center gap-2 mb-6">
             <MapPin className="w-8 h-8 text-accent" />
             <div>
-              <h2 className="text-3xl font-bold text-white">Select Your State</h2>
-              <p className="text-muted-foreground">Choose a US state to view local news</p>
+              <h2 className="text-3xl font-bold text-white">
+                Select {selectedCountry === 'CA' ? 'Province' : selectedCountry === 'AU' ? 'State/Territory' : selectedCountry === 'IN' ? 'State' : 'State'}
+              </h2>
+              <p className="text-muted-foreground">
+                Choose a {selectedCountry === 'CA' ? 'province' : 'state'} to view local news from {selectedCountryName}
+              </p>
             </div>
           </div>
 
@@ -486,7 +542,7 @@ const Index = () => {
               {selectedState && (
                 <div className="w-24 h-24 rounded-xl overflow-hidden border-2 border-accent">
                   <StateMapCard
-                    state={US_STATES.find((s) => s.name === selectedState)!}
+                    state={currentStates.find((s) => s.name === selectedState)!}
                     onClick={() => {}}
                   />
                 </div>

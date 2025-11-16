@@ -251,18 +251,38 @@ export default function Profile() {
             <p className="text-xs text-muted-foreground">
               Your preferred language for news. Articles will be shown in this language when available.
             </p>
-            <select
-              value={principalLanguage}
-              onChange={(e) => setPrincipalLanguage(e.target.value)}
-              disabled={!editing}
-              className="w-full px-4 py-3 bg-background/50 border border-border rounded-xl text-foreground disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-accent"
-            >
-              {languages.map((lang) => (
-                <option key={lang.code} value={lang.code}>
-                  {lang.name}
-                </option>
-              ))}
-            </select>
+            <div className="flex gap-2">
+              <select
+                value={principalLanguage}
+                onChange={async (e) => {
+                  const newLanguage = e.target.value;
+                  setPrincipalLanguage(newLanguage);
+                  
+                  // Save immediately
+                  try {
+                    const { error } = await supabase
+                      .from("profiles")
+                      .update({ principal_language: newLanguage })
+                      .eq("id", user?.id);
+                    
+                    if (error) throw error;
+                    
+                    setProfile((prev) => prev ? { ...prev, principal_language: newLanguage } : null);
+                    toast.success("Language preference updated");
+                  } catch (error) {
+                    console.error("Error updating language:", error);
+                    toast.error("Failed to update language");
+                  }
+                }}
+                className="flex-1 px-4 py-3 bg-background/50 border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-accent cursor-pointer"
+              >
+                {languages.map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Sign Out Button */}
