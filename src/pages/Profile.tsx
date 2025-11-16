@@ -26,13 +26,25 @@ export default function Profile() {
 
   const languages = [
     { code: "en", name: "English" },
-    { code: "pt", name: "Português" },
     { code: "es", name: "Español" },
     { code: "fr", name: "Français" },
     { code: "de", name: "Deutsch" },
+    { code: "it", name: "Italiano" },
+    { code: "pt", name: "Português" },
+    { code: "nl", name: "Nederlands" },
+    { code: "pl", name: "Polski" },
+    { code: "ru", name: "Русский" },
     { code: "zh", name: "中文" },
     { code: "ja", name: "日本語" },
     { code: "ko", name: "한국어" },
+    { code: "ar", name: "العربية" },
+    { code: "hi", name: "हिन्दी" },
+    { code: "tr", name: "Türkçe" },
+    { code: "sv", name: "Svenska" },
+    { code: "no", name: "Norsk" },
+    { code: "da", name: "Dansk" },
+    { code: "fi", name: "Suomi" },
+    { code: "el", name: "Ελληνικά" },
   ];
 
   useEffect(() => {
