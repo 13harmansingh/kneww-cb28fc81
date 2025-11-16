@@ -1,4 +1,4 @@
-import { Search, Bell, ArrowRight, MapPin, Scale, Bookmark, Globe, Languages } from "lucide-react";
+import { Search, Bell, ArrowRight, MapPin, Scale, Bookmark, Globe, Languages, Sparkles, Loader2, ChevronLeft } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
@@ -32,6 +32,9 @@ const Index = () => {
   const [selectedLanguage, setSelectedLanguage] = useState("all");
   const [userLanguage, setUserLanguage] = useState("en");
   const [translating, setTranslating] = useState<Record<string, boolean>>({});
+  const [aiSearchMode, setAiSearchMode] = useState(false);
+  const [aiSearchQuery, setAiSearchQuery] = useState("");
+  const [aiSearching, setAiSearching] = useState(false);
   const navigate = useNavigate();
 
   const { user, session, loading: authLoading } = useAuth();
@@ -157,6 +160,57 @@ const Index = () => {
     setSelectedForCompare([]);
   };
 
+  // Fetch user's preferred language from profile
+  useEffect(() => {
+    const fetchUserLanguage = async () => {
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('principal_language')
+          .eq('id', user.id)
+          .single();
+        
+        if (data?.principal_language) {
+          setUserLanguage(data.principal_language);
+        }
+      }
+    };
+    fetchUserLanguage();
+  }, [user]);
+
+  const handleAiSearch = async () => {
+    if (!aiSearchQuery.trim() || aiSearchQuery.length < 2) {
+      toast.error("Please enter at least 2 characters");
+      return;
+    }
+
+    setAiSearching(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-search-news', {
+        body: { query: aiSearchQuery, language: userLanguage }
+      });
+
+      if (error) throw error;
+
+      console.log('AI Search result:', data);
+      
+      // Use the parsed search text for news fetching
+      setSearchQuery(data.searchText || aiSearchQuery);
+      setAiSearchMode(false);
+      setAiSearchQuery("");
+      
+      toast.success(`Searching: ${data.searchText || aiSearchQuery}`);
+    } catch (error) {
+      console.error('AI Search error:', error);
+      toast.error("Search failed. Using your query directly.");
+      setSearchQuery(aiSearchQuery);
+      setAiSearchMode(false);
+      setAiSearchQuery("");
+    } finally {
+      setAiSearching(false);
+    }
+  };
+
   const translateArticle = async (articleId: string, article: NewsArticle) => {
     if (translating[articleId]) return;
     
@@ -248,27 +302,86 @@ const Index = () => {
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur px-4 pt-6 pb-4">
         <div className="flex items-center gap-3 mb-3">
           <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder={
-                selectedState 
-                  ? "Search news..." 
-                  : selectedCountry 
-                  ? "Search states..." 
-                  : selectedRegion
-                  ? "Search countries..."
-                  : "Search regions..."
-              }
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-secondary border border-border rounded-full py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-            />
+            {aiSearchMode ? (
+              <>
+                <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-accent" />
+                <input
+                  type="text"
+                  placeholder="Ask anything... (e.g., 'Trump buying Canada news')"
+                  value={aiSearchQuery}
+                  onChange={(e) => setAiSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAiSearch()}
+                  className="w-full bg-accent/10 border-2 border-accent rounded-full py-3 pl-12 pr-24 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                  autoFocus
+                />
+                <button
+                  onClick={() => {
+                    setAiSearchMode(false);
+                    setAiSearchQuery("");
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <>
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder={
+                    selectedState 
+                      ? "Search news..." 
+                      : selectedCountry 
+                      ? "Search states..." 
+                      : selectedRegion
+                      ? "Search countries..."
+                      : "Search regions..."
+                  }
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-secondary border border-border rounded-full py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                />
+              </>
+            )}
           </div>
+          {selectedState && !aiSearchMode && (
+            <button 
+              onClick={() => setAiSearchMode(true)}
+              className="p-2 rounded-full bg-accent/20 hover:bg-accent/30 transition"
+              title="AI Search"
+            >
+              <Sparkles className="w-5 h-5 text-accent" />
+            </button>
+          )}
           <button className="text-foreground">
             <Bell className="w-6 h-6" />
           </button>
         </div>
+        {aiSearchMode && (
+          <div className="flex items-center gap-2 mb-2">
+            <div className="flex-1 bg-accent/5 rounded-lg p-2 border border-accent/20">
+              <p className="text-xs text-muted-foreground">
+                <Sparkles className="w-3 h-3 inline mr-1 text-accent" />
+                AI will understand your query and find relevant news in your preferred language
+              </p>
+            </div>
+            <button
+              onClick={handleAiSearch}
+              disabled={aiSearching || aiSearchQuery.length < 2}
+              className="px-4 py-2 bg-accent text-white rounded-lg text-sm font-semibold hover:bg-accent/90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {aiSearching ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Searching...
+                </>
+              ) : (
+                'Search'
+              )}
+            </button>
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold text-white">KNEW</h1>
           <span className="text-xs text-muted-foreground">Global News Platform</span>
@@ -414,21 +527,14 @@ const Index = () => {
           {availableLanguages.length > 0 && (
             <div className="px-4 mt-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-white">Available Languages</h2>
+                <h2 className="text-2xl font-bold text-white">Languages</h2>
                 <p className="text-sm text-muted-foreground">
                   {filteredNews.length} {filteredNews.length === 1 ? 'article' : 'articles'}
                 </p>
               </div>
 
-              <ScrollArea className="w-full">
+              <ScrollArea className="w-full whitespace-nowrap">
                 <div className="flex gap-3 pb-4">
-                  <LanguagePill
-                    code="all"
-                    name="All Languages"
-                    count={news.length}
-                    isActive={selectedLanguage === 'all'}
-                    onClick={() => setSelectedLanguage('all')}
-                  />
                   {availableLanguages.map((lang) => (
                     <LanguagePill
                       key={lang.code}
