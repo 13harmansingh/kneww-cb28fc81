@@ -3,6 +3,7 @@ export interface Country {
   name: string;
   coordinates: [number, number]; // [longitude, latitude]
   hasStates?: boolean;
+  stateType?: 'us-states' | 'canada-provinces' | 'australia-states' | 'india-states';
   region: string;
 }
 
@@ -25,8 +26,8 @@ export const REGIONS: Region[] = [
 
 export const COUNTRIES: Country[] = [
   // North America
-  { code: "US", name: "United States", coordinates: [-95.7129, 37.0902], hasStates: true, region: "north-america" },
-  { code: "CA", name: "Canada", coordinates: [-106.3468, 56.1304], region: "north-america" },
+  { code: "US", name: "United States", coordinates: [-95.7129, 37.0902], hasStates: true, stateType: 'us-states', region: "north-america" },
+  { code: "CA", name: "Canada", coordinates: [-106.3468, 56.1304], hasStates: true, stateType: 'canada-provinces', region: "north-america" },
   { code: "MX", name: "Mexico", coordinates: [-102.5528, 23.6345], region: "north-america" },
   
   // Europe
@@ -52,7 +53,7 @@ export const COUNTRIES: Country[] = [
   
   // Asia
   { code: "CN", name: "China", coordinates: [104.1954, 35.8617], region: "asia" },
-  { code: "IN", name: "India", coordinates: [78.9629, 20.5937], region: "asia" },
+  { code: "IN", name: "India", coordinates: [78.9629, 20.5937], hasStates: true, stateType: 'india-states', region: "asia" },
   { code: "JP", name: "Japan", coordinates: [138.2529, 36.2048], region: "asia" },
   { code: "KR", name: "South Korea", coordinates: [127.7669, 35.9078], region: "asia" },
   { code: "ID", name: "Indonesia", coordinates: [113.9213, -0.7893], region: "asia" },
@@ -85,7 +86,7 @@ export const COUNTRIES: Country[] = [
   { code: "PE", name: "Peru", coordinates: [-75.0152, -9.1900], region: "south-america" },
   
   // Oceania
-  { code: "AU", name: "Australia", coordinates: [133.7751, -25.2744], region: "oceania" },
+  { code: "AU", name: "Australia", coordinates: [133.7751, -25.2744], hasStates: true, stateType: 'australia-states', region: "oceania" },
   { code: "NZ", name: "New Zealand", coordinates: [174.8860, -40.9006], region: "oceania" },
 ];
 

@@ -9,7 +9,7 @@ const corsHeaders = {
 // Rate limiting map (user_id -> array of timestamps)
 const rateLimitMap = new Map<string, number[]>();
 const RATE_LIMIT_WINDOW = 60000; // 1 minute
-const MAX_REQUESTS = 10; // 10 requests per minute
+const MAX_REQUESTS = 5; // Reduced from 10 to 5 to be safer
 
 interface FetchNewsRequest {
   state?: string;
@@ -163,7 +163,7 @@ serve(async (req) => {
       apiUrl.searchParams.append('source-country', source_country);
     }
     
-    apiUrl.searchParams.append('number', '100');
+    apiUrl.searchParams.append('number', '50'); // Reduced from 100 to avoid rate limits
     apiUrl.searchParams.append('sort', 'publish-time');
     apiUrl.searchParams.append('sort-direction', 'DESC');
 
