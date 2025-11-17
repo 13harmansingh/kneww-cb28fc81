@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useNewsCache } from "./useNewsCache";
 
 export interface Claim {
   text: string;
@@ -57,6 +58,7 @@ export const useNews = (
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const { getCachedNews, setCachedNews } = useNewsCache();
 
   const fetchNews = useCallback(async (attempt = 0) => {
     if (!state) return;
@@ -64,6 +66,17 @@ export const useNews = (
     // Check authentication first
     if (!session) {
       setError("Please log in to view news articles");
+      return;
+    }
+
+    // Check cache first
+    const cached = getCachedNews(state, category, language, sourceCountry, sourceCountries);
+    if (cached && attempt === 0) {
+      console.log('Loading from cache');
+      setNews(cached.news);
+      setAvailableLanguages(cached.available_languages);
+      setDefaultLanguage(cached.default_language);
+      setLoading(false);
       return;
     }
 
@@ -118,6 +131,9 @@ export const useNews = (
         setAvailableLanguages(data.available_languages || []);
         setDefaultLanguage(data.default_language || 'en');
         setRetryCount(0); // Reset retry count on success
+        
+        // Cache the initial results
+        setCachedNews(state, category, language, sourceCountry, articlesWithAnalysis, data.available_languages || [], data.default_language || 'en', sourceCountries);
 
         // Analyze each article with AI
         articlesWithAnalysis.forEach(async (article: NewsArticle, index: number) => {
@@ -134,19 +150,25 @@ export const useNews = (
             });
 
             if (!analysisError && analysisData) {
-              setNews(prev => prev.map((a, i) => 
-                i === index 
-                  ? { 
-                      ...a, 
-                      bias: analysisData.bias,
-                      summary: analysisData.summary,
-                      ownership: analysisData.ownership,
-                      sentiment: analysisData.sentiment,
-                      claims: analysisData.claims,
-                      analysisLoading: false
-                    }
-                  : a
-              ));
+              setNews(prev => {
+                const updated = prev.map((a, i) => 
+                  i === index 
+                    ? { 
+                        ...a, 
+                        bias: analysisData.bias,
+                        summary: analysisData.summary,
+                        ownership: analysisData.ownership,
+                        sentiment: analysisData.sentiment,
+                        claims: analysisData.claims,
+                        analysisLoading: false
+                      }
+                    : a
+                );
+                
+                // Update cache with analyzed article
+                setCachedNews(state, category, language, sourceCountry, updated, availableLanguages, defaultLanguage, sourceCountries);
+                return updated;
+              });
             }
           } catch (err) {
             console.error('Error analyzing article:', err);
