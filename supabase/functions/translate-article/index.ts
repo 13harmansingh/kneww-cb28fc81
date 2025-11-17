@@ -14,6 +14,8 @@ interface TranslateRequest {
   title: string;
   text?: string;
   summary?: string;
+  bias?: string;
+  ownership?: string;
   targetLanguage: string;
 }
 
@@ -90,7 +92,7 @@ serve(async (req) => {
       });
     }
 
-    const { title, text, summary, targetLanguage } = requestData;
+    const { title, text, summary, bias, ownership, targetLanguage } = requestData;
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {
@@ -106,6 +108,16 @@ serve(async (req) => {
       'zh': 'Chinese',
       'ja': 'Japanese',
       'ko': 'Korean',
+      'ar': 'Arabic',
+      'ru': 'Russian',
+      'it': 'Italian',
+      'nl': 'Dutch',
+      'pl': 'Polish',
+      'tr': 'Turkish',
+      'sv': 'Swedish',
+      'da': 'Danish',
+      'no': 'Norwegian',
+      'fi': 'Finnish',
     };
 
     const targetLangName = languageNames[targetLanguage] || targetLanguage;
@@ -114,6 +126,8 @@ serve(async (req) => {
       title,
       ...(text && { text }),
       ...(summary && { summary }),
+      ...(bias && { bias }),
+      ...(ownership && { ownership }),
     };
 
     const prompt = `Translate the following news article content to ${targetLangName}. 
@@ -126,7 +140,9 @@ Return format:
 {
   "title": "translated title",
   ${text ? '"text": "translated text",' : ''}
-  ${summary ? '"summary": "translated summary"' : ''}
+  ${summary ? '"summary": "translated summary",' : ''}
+  ${bias ? '"bias": "translated bias",' : ''}
+  ${ownership ? '"ownership": "translated ownership"' : ''}
 }`;
 
     console.log('Translating to:', targetLangName, 'for user:', user.id);

@@ -35,6 +35,7 @@ const Index = () => {
   const [selectedLanguage, setSelectedLanguage] = useState("all");
   const [userLanguage, setUserLanguage] = useState("en");
   const [translating, setTranslating] = useState<Record<string, boolean>>({});
+  const [translatedNews, setTranslatedNews] = useState<Record<string, Partial<NewsArticle>>>({});
   const [aiSearchMode, setAiSearchMode] = useState(false);
   const [aiSearchQuery, setAiSearchQuery] = useState("");
   const [aiSearching, setAiSearching] = useState(false);
@@ -60,13 +61,16 @@ const Index = () => {
     sourceCountryCodes
   );
 
-  // Filter news by selected language on client side
+  // Filter news by selected language on client side and apply translations
   const filteredNews = useMemo(() => {
-    if (selectedLanguage === 'all') {
-      return news;
-    }
-    return news.filter(article => article.language === selectedLanguage);
-  }, [news, selectedLanguage]);
+    let articles = selectedLanguage === 'all' ? news : news.filter(article => article.language === selectedLanguage);
+    
+    // Apply translations if available
+    return articles.map(article => {
+      const translation = translatedNews[article.id];
+      return translation ? { ...article, ...translation } : article;
+    });
+  }, [news, selectedLanguage, translatedNews]);
 
   useEffect(() => {
     const country = searchParams.get("country");
@@ -254,7 +258,9 @@ const Index = () => {
           title: article.title,
           text: article.text,
           summary: article.summary,
-          target_language: userLanguage,
+          bias: article.bias,
+          ownership: article.ownership,
+          targetLanguage: userLanguage,
         },
         headers: {
           Authorization: `Bearer ${session?.access_token}`,
@@ -265,9 +271,19 @@ const Index = () => {
 
       if (data) {
         toast.success(`Article translated to ${userLanguage.toUpperCase()}`);
-        // Update the article in the news array
-        // You might want to store translated versions separately
-        console.log('Translation:', data);
+        
+        // Store the translated version
+        setTranslatedNews(prev => ({
+          ...prev,
+          [articleId]: {
+            title: data.title || article.title,
+            text: data.text || article.text,
+            summary: data.summary || article.summary,
+            bias: data.bias || article.bias,
+            ownership: data.ownership || article.ownership,
+            language: userLanguage // Mark as translated to user's language
+          }
+        }));
       }
     } catch (err) {
       console.error('Translation error:', err);
@@ -334,84 +350,38 @@ const Index = () => {
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur px-4 pt-6 pb-4">
         <div className="flex items-center gap-3 mb-3">
           <div className="flex-1 relative">
-            {aiSearchMode ? (
-              <>
-                <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-accent" />
-                <input
-                  type="text"
-                  placeholder="Ask anything... (e.g., 'Trump buying Canada news')"
-                  value={aiSearchQuery}
-                  onChange={(e) => setAiSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAiSearch()}
-                  className="w-full bg-accent/10 border-2 border-accent rounded-full py-3 pl-12 pr-24 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-                  autoFocus
-                />
-                <button
-                  onClick={() => {
-                    setAiSearchMode(false);
-                    setAiSearchQuery("");
-                  }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  Cancel
-                </button>
-              </>
-            ) : (
-              <>
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder={
-                    selectedState 
-                      ? "Search news..." 
-                      : selectedCountry 
-                      ? "Search states..." 
-                      : selectedRegion
-                      ? "Search countries..."
-                      : "Search regions..."
-                  }
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-secondary border border-border rounded-full py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-                />
-              </>
-            )}
+            <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-accent" />
+            <input
+              type="text"
+              placeholder="Ask anything... (e.g., 'Trump buying Canada news')"
+              value={aiSearchQuery}
+              onChange={(e) => setAiSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAiSearch()}
+              className="w-full bg-accent/10 border-2 border-accent rounded-full py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+            />
           </div>
-          {selectedState && !aiSearchMode && (
-            <button 
-              onClick={() => setAiSearchMode(true)}
-              className="p-2 rounded-full bg-accent/20 hover:bg-accent/30 transition"
-              title="AI Search"
-            >
-              <Sparkles className="w-5 h-5 text-accent" />
-            </button>
-          )}
+          <button 
+            onClick={handleAiSearch}
+            disabled={aiSearching || aiSearchQuery.length < 2}
+            className="p-3 rounded-full bg-accent hover:bg-accent/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            title="AI Search"
+          >
+            {aiSearching ? (
+              <Loader2 className="w-5 h-5 text-white animate-spin" />
+            ) : (
+              <Search className="w-5 h-5 text-white" />
+            )}
+          </button>
           <button className="text-foreground">
             <Bell className="w-6 h-6" />
           </button>
         </div>
-        {aiSearchMode && (
-          <div className="flex items-center gap-2 mb-2">
-            <div className="flex-1 bg-accent/5 rounded-lg p-2 border border-accent/20">
-              <p className="text-xs text-muted-foreground">
-                <Sparkles className="w-3 h-3 inline mr-1 text-accent" />
-                AI will understand your query and find relevant news in your preferred language
-              </p>
-            </div>
-            <button
-              onClick={handleAiSearch}
-              disabled={aiSearching || aiSearchQuery.length < 2}
-              className="px-4 py-2 bg-accent text-white rounded-lg text-sm font-semibold hover:bg-accent/90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {aiSearching ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Searching...
-                </>
-              ) : (
-                'Search'
-              )}
-            </button>
+        {aiSearching && (
+          <div className="bg-accent/5 rounded-lg p-2 border border-accent/20 mb-2">
+            <p className="text-xs text-muted-foreground">
+              <Sparkles className="w-3 h-3 inline mr-1 text-accent" />
+              AI is understanding your query and finding relevant news worldwide...
+            </p>
           </div>
         )}
         <div className="flex items-center gap-2">
@@ -569,20 +539,18 @@ const Index = () => {
                 </p>
               </div>
 
-              <ScrollArea className="w-full whitespace-nowrap">
-                <div className="flex gap-3 pb-4">
-                  {availableLanguages.map((lang) => (
-                    <LanguagePill
-                      key={lang.code}
-                      code={lang.code}
-                      name={lang.name}
-                      count={lang.count}
-                      isActive={selectedLanguage === lang.code}
-                      onClick={() => setSelectedLanguage(lang.code)}
-                    />
-                  ))}
-                </div>
-              </ScrollArea>
+              <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+                {availableLanguages.map((lang) => (
+                  <LanguagePill
+                    key={lang.code}
+                    code={lang.code}
+                    name={lang.name}
+                    count={lang.count}
+                    isActive={selectedLanguage === lang.code}
+                    onClick={() => setSelectedLanguage(lang.code)}
+                  />
+                ))}
+              </div>
             </div>
           )}
 
