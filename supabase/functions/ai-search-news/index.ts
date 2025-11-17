@@ -28,6 +28,7 @@ serve(async (req) => {
     console.log('AI Search query:', query, 'Language:', language);
 
     // Use AI to extract search parameters from natural language
+    // Focus on entities, topics, and keywords - NOT location unless explicitly mentioned
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -39,19 +40,26 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a news search query parser. Extract key search terms, locations, topics, and entities from user queries.
+            content: `You are a news search query parser. Extract entities, topics, and keywords from user queries to search worldwide news.
+
+IMPORTANT: Do NOT add locations unless the user explicitly mentions them. The search is global by default.
+
 Return a JSON object with:
-- searchText: main keywords to search (required)
-- locations: array of countries/states/cities mentioned
+- searchText: main entities, topics, and keywords to search (required) - focus on WHAT not WHERE
+- entities: array of people, organizations, events mentioned
 - categories: array of categories (politics, business, technology, sports, entertainment, health, science)
 - timeframe: recent/today/this_week if mentioned
+- locations: ONLY include if explicitly mentioned by user
 
-Example:
+Examples:
 User: "trump buying canada"
-Response: {"searchText":"Trump Canada acquisition","locations":["Canada","US"],"categories":["politics","business"],"timeframe":"recent"}
+Response: {"searchText":"Trump Canada acquisition","entities":["Donald Trump","Canada"],"categories":["politics","business"],"timeframe":"recent","locations":[]}
 
-User: "latest tech news from japan"
-Response: {"searchText":"technology news","locations":["Japan"],"categories":["technology"],"timeframe":"recent"}`
+User: "ai technology breakthroughs"
+Response: {"searchText":"artificial intelligence breakthroughs technology","entities":["AI"],"categories":["technology","science"],"timeframe":"recent","locations":[]}
+
+User: "sports news from india"
+Response: {"searchText":"sports news","entities":[],"categories":["sports"],"locations":["India"],"timeframe":"recent"}`
           },
           {
             role: 'user',

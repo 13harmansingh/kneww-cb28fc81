@@ -212,18 +212,11 @@ const Index = () => {
 
     setAiSearching(true);
     try {
-      // Build context for AI search
-      const context = {
-        selectedRegion: selectedRegion ? REGIONS.find(r => r.id === selectedRegion)?.name : null,
-        selectedCountry: selectedCountryName,
-        selectedState,
-      };
-
+      // AI search is global by default - searches worldwide by entities and topics
       const { data, error } = await supabase.functions.invoke('ai-search-news', {
         body: { 
           query: aiSearchQuery, 
-          language: userLanguage,
-          context // Pass context to AI
+          language: userLanguage
         }
       });
 
@@ -234,21 +227,8 @@ const Index = () => {
       // Use the parsed search text for news fetching
       setSearchQuery(data.searchText || aiSearchQuery);
       
-      // If AI suggested specific locations, override current selection
-      if (data.locations && data.locations.length > 0 && !selectedState && !selectedCountry && !selectedRegion) {
-        // Global search mode - locations will be handled by fetch-news
-        toast.success(`Searching globally: ${data.searchText || aiSearchQuery}`);
-      } else {
-        // Context-aware search
-        const contextMsg = selectedState 
-          ? `in ${selectedState}` 
-          : selectedCountry 
-          ? `in ${selectedCountryName}` 
-          : selectedRegion 
-          ? `in ${REGIONS.find(r => r.id === selectedRegion)?.name}`
-          : 'worldwide';
-        toast.success(`Searching ${contextMsg}: ${data.searchText || aiSearchQuery}`);
-      }
+      // AI search is always global unless user explicitly mentioned location
+      toast.success(`Searching worldwide: ${data.searchText || aiSearchQuery}`);
       
       setAiSearchMode(false);
       setAiSearchQuery("");

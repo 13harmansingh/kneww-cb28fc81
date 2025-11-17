@@ -14,9 +14,27 @@ interface NewsCardProps {
   size?: "large" | "small";
   url?: string;
   onRefresh?: () => void;
+  bias?: string;
+  summary?: string;
+  ownership?: string;
+  sentiment?: string;
+  claims?: any[];
 }
 
-export const NewsCard = ({ id, title, image, gradient, size = "large", url, onRefresh }: NewsCardProps) => {
+export const NewsCard = ({ 
+  id, 
+  title, 
+  image, 
+  gradient, 
+  size = "large", 
+  url, 
+  onRefresh,
+  bias,
+  summary,
+  ownership,
+  sentiment,
+  claims
+}: NewsCardProps) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
@@ -72,6 +90,11 @@ export const NewsCard = ({ id, title, image, gradient, size = "large", url, onRe
             article_title: title,
             article_url: url || id,
             article_image: image,
+            bias: bias || null,
+            summary: summary || null,
+            ownership: ownership || null,
+            sentiment: sentiment || null,
+            claims: claims ? JSON.parse(JSON.stringify(claims)) : null,
           });
         
         if (error) throw error;

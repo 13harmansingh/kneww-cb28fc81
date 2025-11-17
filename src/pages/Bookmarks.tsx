@@ -12,6 +12,11 @@ interface Bookmark {
   article_title: string;
   article_url: string;
   article_image: string;
+  bias?: string | null;
+  summary?: string | null;
+  ownership?: string | null;
+  sentiment?: string | null;
+  claims?: any;
 }
 
 export default function Bookmarks() {
@@ -77,6 +82,11 @@ export default function Bookmarks() {
                 title={bookmark.article_title}
                 image={bookmark.article_image}
                 url={bookmark.article_url}
+                bias={bookmark.bias || undefined}
+                summary={bookmark.summary || undefined}
+                ownership={bookmark.ownership || undefined}
+                sentiment={bookmark.sentiment || undefined}
+                claims={bookmark.claims ? (Array.isArray(bookmark.claims) ? bookmark.claims : []) : undefined}
                 onRefresh={fetchBookmarks}
               />
             ))}

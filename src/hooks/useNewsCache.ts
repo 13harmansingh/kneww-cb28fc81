@@ -15,12 +15,24 @@ const newsCache = new Map<string, CachedNewsData>();
 export const useNewsCache = () => {
   const [cache] = useState(newsCache);
 
-  const getCacheKey = useCallback((country: string, category: string) => {
-    return `${country}-${category}`;
+  const getCacheKey = useCallback((
+    state: string,
+    category: string,
+    language: string = 'all',
+    sourceCountry: string = 'us',
+    sourceCountries?: string
+  ) => {
+    return `${state}-${category}-${language}-${sourceCountry}-${sourceCountries || 'none'}`;
   }, []);
 
-  const getCached = useCallback((country: string, category: string): CachedNewsData | null => {
-    const key = getCacheKey(country, category);
+  const getCachedNews = useCallback((
+    state: string,
+    category: string,
+    language: string = 'all',
+    sourceCountry: string = 'us',
+    sourceCountries?: string
+  ): CachedNewsData | null => {
+    const key = getCacheKey(state, category, language, sourceCountry, sourceCountries);
     const cached = cache.get(key);
     
     if (!cached) return null;
@@ -34,14 +46,22 @@ export const useNewsCache = () => {
     return cached;
   }, [cache, getCacheKey]);
 
-  const setCache = useCallback((
-    country: string,
+  const setCachedNews = useCallback((
+    state: string,
     category: string,
-    data: Omit<CachedNewsData, 'timestamp'>
+    language: string,
+    sourceCountry: string,
+    news: NewsArticle[],
+    available_languages: Array<{ code: string; name: string; count: number }>,
+    default_language: string,
+    sourceCountries?: string
   ) => {
-    const key = getCacheKey(country, category);
+    const key = getCacheKey(state, category, language, sourceCountry, sourceCountries);
     cache.set(key, {
-      ...data,
+      news,
+      available_languages,
+      default_language,
+      status: 'success',
       timestamp: Date.now(),
     });
   }, [cache, getCacheKey]);
@@ -50,5 +70,5 @@ export const useNewsCache = () => {
     cache.clear();
   }, [cache]);
 
-  return { getCached, setCache, clearCache };
+  return { getCachedNews, setCachedNews, clearCache };
 };
