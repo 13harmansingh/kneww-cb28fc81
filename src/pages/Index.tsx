@@ -78,18 +78,24 @@ const Index = () => {
     const country = searchParams.get("country");
     const countryName = searchParams.get("countryName");
     if (country && countryName) {
-      // Find and set the region for this country
+      // Set country and country name regardless of whether it's in our list
+      setSelectedCountry(country);
+      setSelectedCountryName(countryName);
+      
+      // Try to find and set the region for this country
       const countryData = COUNTRIES.find(c => c.code === country);
       if (countryData) {
         setSelectedRegion(countryData.region);
-        setSelectedCountry(country);
-        setSelectedCountryName(countryName);
-        
-        // Clear AI search params to show location-based news
-        setAiSearchParams(undefined);
-        
-        toast.success(`Loading news for ${countryName}`);
+      } else {
+        // Country not in our list, but still show news for it
+        // Default to a general region or keep existing selection
+        setSelectedRegion(null);
       }
+      
+      // Clear AI search params to show location-based news
+      setAiSearchParams(undefined);
+      
+      toast.success(`Loading news for ${countryName}`);
     }
   }, [searchParams]);
 
