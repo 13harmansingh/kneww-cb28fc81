@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNewsCache } from "./useNewsCache";
@@ -27,15 +27,20 @@ export interface NewsArticle {
   analysisLoading?: boolean;
 }
 
-const MAX_RETRIES = 3;
-const INITIAL_DELAY = 1000; // 1 second
+const MAX_RETRIES = 2;
+const INITIAL_DELAY = 2000; // 2 seconds
+const MIN_REQUEST_INTERVAL = 1500; // Minimum 1.5s between requests
 
 const isTransientError = (error: any): boolean => {
-  // Network errors, timeouts, 5xx errors are transient
+  // Only network errors, timeouts, and 5xx errors are transient
+  // DO NOT retry 429 (rate limit) - that makes it worse!
   if (error?.message?.includes('network') || error?.message?.includes('timeout')) return true;
   if (error?.status >= 500 && error?.status < 600) return true;
-  if (error?.status === 429) return true; // Rate limit
   return false;
+};
+
+const isRateLimitError = (error: any): boolean => {
+  return error?.status === 429 || error?.message?.includes('429') || error?.message?.includes('Too Many Requests');
 };
 
 export interface AvailableLanguage {
@@ -43,6 +48,10 @@ export interface AvailableLanguage {
   name: string;
   count: number;
 }
+
+// Global state to track in-flight requests and last request time
+const inFlightRequests = new Map<string, Promise<any>>();
+let lastRequestTime = 0;
 
 export const useNews = (
   state: string | null | undefined,
@@ -58,8 +67,15 @@ export const useNews = (
   const [defaultLanguage, setDefaultLanguage] = useState<string>('en');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
-  const { getCachedNews, setCachedNews } = useNewsCache();
+  const { getCachedNews, setCachedNews, getCachedNewsAnyLanguage } = useNewsCache();
+  const mountedRef = useRef(true);
+
+  const getRequestKey = useCallback(() => {
+    if (aiSearchParams) {
+      return `ai-${aiSearchParams.searchText}-${aiSearchParams.entities?.join(',')}`;
+    }
+    return `${state}-${category}-${sourceCountry || 'us'}-${sourceCountries || 'none'}`;
+  }, [state, category, sourceCountry, sourceCountries, aiSearchParams]);
 
   const fetchNews = useCallback(async (attempt = 0) => {
     if (!state && !aiSearchParams) return;
@@ -67,6 +83,25 @@ export const useNews = (
     // Check authentication first
     if (!session) {
       setError("Please log in to view news articles");
+      return;
+    }
+
+    const requestKey = getRequestKey();
+
+    // Check if this exact request is already in-flight
+    if (inFlightRequests.has(requestKey)) {
+      console.log('Request already in-flight, waiting for it...');
+      try {
+        const result = await inFlightRequests.get(requestKey);
+        if (mountedRef.current) {
+          setNews(result.news);
+          setAvailableLanguages(result.availableLanguages);
+          setDefaultLanguage(result.defaultLanguage);
+          setLoading(false);
+        }
+      } catch (err) {
+        // Will be handled by the original request
+      }
       return;
     }
 
@@ -79,6 +114,15 @@ export const useNews = (
       setDefaultLanguage(cached.default_language);
       setLoading(false);
       return;
+    }
+
+    // Enforce minimum time between requests
+    const now = Date.now();
+    const timeSinceLastRequest = now - lastRequestTime;
+    if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+      const delay = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+      console.log(`Throttling request, waiting ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
 
     setLoading(true);
@@ -110,6 +154,25 @@ export const useNews = (
       });
 
       if (fetchError) {
+        // Handle rate limit errors specially - don't retry, use cache
+        if (isRateLimitError(fetchError)) {
+          console.warn('Rate limit hit, attempting to use cached data...');
+          
+          // Try to get cached data for any language for this location
+          const anyCached = !aiSearchParams ? getCachedNewsAnyLanguage(state, category, sourceCountry || 'us', sourceCountries) : null;
+          
+          if (anyCached) {
+            setNews(anyCached.news);
+            setAvailableLanguages(anyCached.available_languages);
+            setDefaultLanguage(anyCached.default_language);
+            setLoading(false);
+            toast.warning('Using cached news due to rate limit. Try again in a minute.');
+            return;
+          }
+          
+          throw new Error('Rate limit exceeded. Please wait a minute and try again.');
+        }
+        
         // Check if error is transient and we should retry
         if (isTransientError(fetchError) && attempt < MAX_RETRIES) {
           const delay = INITIAL_DELAY * Math.pow(2, attempt);
@@ -133,7 +196,6 @@ export const useNews = (
         setNews(articlesWithAnalysis);
         setAvailableLanguages(data.available_languages || []);
         setDefaultLanguage(data.default_language || 'en');
-        setRetryCount(0); // Reset retry count on success
         
         // Cache the initial results
         setCachedNews(state, category, language, sourceCountry, articlesWithAnalysis, data.available_languages || [], data.default_language || 'en', sourceCountries);
@@ -193,7 +255,6 @@ export const useNews = (
       }
     } catch (error) {
       console.error("Error fetching news:", error);
-      setRetryCount(attempt);
       setError(
         error instanceof Error 
           ? error.message 
@@ -203,14 +264,20 @@ export const useNews = (
     } finally {
       setLoading(false);
     }
-  }, [state, category, session, language, sourceCountry, sourceCountries]);
-
-  useEffect(() => {
-    fetchNews();
-  }, [fetchNews]);
+  }, [state, category, session, language, sourceCountry, sourceCountries, aiSearchParams, getCachedNews, setCachedNews, getCachedNewsAnyLanguage, getRequestKey]);
 
   const retry = useCallback(() => {
+    setError(null);
     fetchNews(0);
+  }, [fetchNews]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    fetchNews();
+    
+    return () => {
+      mountedRef.current = false;
+    };
   }, [fetchNews]);
 
   return { news, availableLanguages, defaultLanguage, loading, error, retry };
