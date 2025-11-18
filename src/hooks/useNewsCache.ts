@@ -66,9 +66,30 @@ export const useNewsCache = () => {
     });
   }, [cache, getCacheKey]);
 
+  const getCachedNewsAnyLanguage = useCallback((
+    state: string,
+    category: string,
+    sourceCountry: string = 'us',
+    sourceCountries?: string
+  ): CachedNewsData | null => {
+    // Try to find any cached data for this location, regardless of language
+    const baseKey = `${state}-${category}`;
+    
+    for (const [key, cachedData] of cache.entries()) {
+      if (key.startsWith(baseKey)) {
+        // Check if cache is still valid
+        if (Date.now() - cachedData.timestamp <= CACHE_DURATION) {
+          return cachedData;
+        }
+      }
+    }
+    
+    return null;
+  }, [cache]);
+
   const clearCache = useCallback(() => {
     cache.clear();
   }, [cache]);
 
-  return { getCachedNews, setCachedNews, clearCache };
+  return { getCachedNews, setCachedNews, getCachedNewsAnyLanguage, clearCache };
 };
