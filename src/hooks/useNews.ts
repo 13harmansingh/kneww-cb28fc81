@@ -45,12 +45,13 @@ export interface AvailableLanguage {
 }
 
 export const useNews = (
-  state: string | null,
+  state: string | null | undefined,
   category: string,
   session: any,
   language: string = 'all',
-  sourceCountry: string = 'us',
-  sourceCountries?: string
+  sourceCountry?: string,
+  sourceCountries?: string,
+  aiSearchParams?: { searchText?: string; entities?: string[] }
 ) => {
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [availableLanguages, setAvailableLanguages] = useState<AvailableLanguage[]>([]);
@@ -61,7 +62,7 @@ export const useNews = (
   const { getCachedNews, setCachedNews } = useNewsCache();
 
   const fetchNews = useCallback(async (attempt = 0) => {
-    if (!state) return;
+    if (!state && !aiSearchParams) return;
     
     // Check authentication first
     if (!session) {
@@ -69,8 +70,8 @@ export const useNews = (
       return;
     }
 
-    // Check cache first
-    const cached = getCachedNews(state, category, language, sourceCountry, sourceCountries);
+    // Check cache first (skip for AI searches)
+    const cached = !aiSearchParams ? getCachedNews(state, category, language, sourceCountry || 'us', sourceCountries) : null;
     if (cached && attempt === 0) {
       console.log('Loading from cache');
       setNews(cached.news);
@@ -85,7 +86,7 @@ export const useNews = (
     
     try {
       // Save search history
-      if (session?.user) {
+      if (session?.user && state) {
         await supabase.from('search_history').insert({
           user_id: session.user.id,
           state,
@@ -95,11 +96,13 @@ export const useNews = (
 
       const { data, error: fetchError } = await supabase.functions.invoke("fetch-news", {
         body: {
-          state,
+          state: aiSearchParams ? undefined : state,
           category,
           language: language === 'all' ? undefined : language,
-          source_country: sourceCountry,
+          source_country: sourceCountry || 'us',
           source_countries: sourceCountries,
+          searchText: aiSearchParams?.searchText,
+          entities: aiSearchParams?.entities?.join(',')
         },
         headers: {
           Authorization: `Bearer ${session.access_token}`,

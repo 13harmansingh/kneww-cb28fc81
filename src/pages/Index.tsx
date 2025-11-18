@@ -39,6 +39,7 @@ const Index = () => {
   const [aiSearchMode, setAiSearchMode] = useState(false);
   const [aiSearchQuery, setAiSearchQuery] = useState("");
   const [aiSearching, setAiSearching] = useState(false);
+  const [aiSearchParams, setAiSearchParams] = useState<{ searchText?: string; entities?: string[] } | undefined>(undefined);
   const navigate = useNavigate();
 
   const { user, session, loading: authLoading } = useAuth();
@@ -53,12 +54,13 @@ const Index = () => {
     : undefined;
   
   const { news, availableLanguages, defaultLanguage, loading, error, retry } = useNews(
-    location,
+    aiSearchParams ? undefined : location,
     selectedCategory,
     session,
     selectedLanguage,
-    sourceCountryCode,
-    sourceCountryCodes
+    aiSearchParams ? undefined : sourceCountryCode,
+    aiSearchParams ? undefined : sourceCountryCodes,
+    aiSearchParams
   );
 
   // Filter news by selected language on client side and apply translations
@@ -171,6 +173,7 @@ const Index = () => {
     setSelectedCategory("all");
     setSelectedLanguage('all');
     setSelectedForCompare([]);
+    setAiSearchParams(undefined);
     navigate("/");
   };
 
@@ -181,6 +184,7 @@ const Index = () => {
     setSelectedCategory("all");
     setSelectedLanguage('all');
     setSelectedForCompare([]);
+    setAiSearchParams(undefined);
   };
 
   const handleBackToStates = () => {
@@ -188,6 +192,7 @@ const Index = () => {
     setSelectedCategory("all");
     setSelectedLanguage('all');
     setSelectedForCompare([]);
+    setAiSearchParams(undefined);
   };
 
   // Fetch user's preferred language from profile
@@ -228,19 +233,29 @@ const Index = () => {
 
       console.log('AI Search result:', data);
       
-      // Use the parsed search text for news fetching
-      setSearchQuery(data.searchText || aiSearchQuery);
+      // Set AI search parameters to trigger news fetching with entities
+      setAiSearchParams({
+        searchText: data.searchText || aiSearchQuery,
+        entities: data.entities || []
+      });
+      
+      // Clear location-based selections for global AI search
+      setSelectedRegion(null);
+      setSelectedCountry(null);
+      setSelectedCountryName(null);
+      setSelectedState(null);
       
       // AI search is always global unless user explicitly mentioned location
       toast.success(`Searching worldwide: ${data.searchText || aiSearchQuery}`);
       
-      setAiSearchMode(false);
       setAiSearchQuery("");
     } catch (error) {
       console.error('AI Search error:', error);
       toast.error("Search failed. Using your query directly.");
-      setSearchQuery(aiSearchQuery);
-      setAiSearchMode(false);
+      setAiSearchParams({
+        searchText: aiSearchQuery,
+        entities: []
+      });
       setAiSearchQuery("");
     } finally {
       setAiSearching(false);

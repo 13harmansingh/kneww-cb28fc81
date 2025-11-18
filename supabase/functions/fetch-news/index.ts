@@ -17,6 +17,8 @@ interface FetchNewsRequest {
   language?: string; // Single language code or empty for all
   source_country?: string;
   source_countries?: string; // Comma-separated for continent/multi-country
+  searchText?: string; // AI search text
+  entities?: string; // Comma-separated entities from AI search
 }
 
 function validateInput(data: any): data is FetchNewsRequest {
@@ -131,20 +133,27 @@ serve(async (req) => {
       });
     }
 
-    const { state, category, language, source_country = 'us', source_countries } = requestData;
+    const { state, category, language, source_country = 'us', source_countries, searchText, entities } = requestData;
     const WORLDNEWS_API_KEY = Deno.env.get('WORLDNEWS_API_KEY');
 
     if (!WORLDNEWS_API_KEY) {
       throw new Error('WORLDNEWS_API_KEY not configured');
     }
 
-    console.log('Fetching news for:', { state, category, language, source_country, source_countries });
+    console.log('Fetching news for:', { state, category, language, source_country, source_countries, searchText, entities });
 
     // Build the API URL with parameters
     const apiUrl = new URL('https://api.worldnewsapi.com/search-news');
     
-    if (state) {
-      apiUrl.searchParams.append('text', state);
+    // Use searchText from AI search if available, otherwise use state
+    const textQuery = searchText || state;
+    if (textQuery) {
+      apiUrl.searchParams.append('text', textQuery);
+    }
+    
+    // Add entities from AI search if available
+    if (entities) {
+      apiUrl.searchParams.append('entities', entities);
     }
     
     if (category && category !== 'all') {
