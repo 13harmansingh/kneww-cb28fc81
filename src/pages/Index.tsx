@@ -78,12 +78,17 @@ const Index = () => {
     const country = searchParams.get("country");
     const countryName = searchParams.get("countryName");
     if (country && countryName) {
-      setSelectedCountry(country);
-      setSelectedCountryName(countryName);
       // Find and set the region for this country
       const countryData = COUNTRIES.find(c => c.code === country);
       if (countryData) {
         setSelectedRegion(countryData.region);
+        setSelectedCountry(country);
+        setSelectedCountryName(countryName);
+        
+        // Clear AI search params to show location-based news
+        setAiSearchParams(undefined);
+        
+        toast.success(`Loading news for ${countryName}`);
       }
     }
   }, [searchParams]);

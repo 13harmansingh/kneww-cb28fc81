@@ -151,8 +151,8 @@ serve(async (req) => {
       apiUrl.searchParams.append('text', textQuery);
     }
     
-    // Add entities from AI search if available
-    if (entities) {
+    // Add entities from AI search if available (only if non-empty)
+    if (entities && entities.trim()) {
       apiUrl.searchParams.append('entities', entities);
     }
     

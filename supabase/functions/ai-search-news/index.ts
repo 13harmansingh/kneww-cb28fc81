@@ -52,11 +52,20 @@ Return a JSON object with:
 - locations: ONLY include if explicitly mentioned by user
 
 Examples:
+User: "trump"
+Response: {"searchText":"Donald Trump","entities":["Donald Trump"],"categories":["politics"],"timeframe":"recent","locations":[]}
+
+User: "elon musk"
+Response: {"searchText":"Elon Musk","entities":["Elon Musk"],"categories":["business","technology"],"timeframe":"recent","locations":[]}
+
+User: "tesla spacex"
+Response: {"searchText":"Tesla SpaceX","entities":["Tesla","SpaceX","Elon Musk"],"categories":["business","technology"],"timeframe":"recent","locations":[]}
+
 User: "trump buying canada"
 Response: {"searchText":"Trump Canada acquisition","entities":["Donald Trump","Canada"],"categories":["politics","business"],"timeframe":"recent","locations":[]}
 
 User: "ai technology breakthroughs"
-Response: {"searchText":"artificial intelligence breakthroughs technology","entities":["AI"],"categories":["technology","science"],"timeframe":"recent","locations":[]}
+Response: {"searchText":"artificial intelligence breakthroughs","entities":["AI","artificial intelligence"],"categories":["technology","science"],"timeframe":"recent","locations":[]}
 
 User: "sports news from india"
 Response: {"searchText":"sports news","entities":[],"categories":["sports"],"locations":["India"],"timeframe":"recent"}`
