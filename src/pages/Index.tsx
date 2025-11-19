@@ -20,8 +20,8 @@ import { useNews, NewsArticle } from "@/hooks/useNews";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
 import { useAuth } from "@/hooks/useAuth";
+import { usePageState } from "@/hooks/usePageState";
 
 const Index = () => {
   const [searchParams] = useSearchParams();
@@ -40,7 +40,26 @@ const Index = () => {
   const [aiSearchQuery, setAiSearchQuery] = useState("");
   const [aiSearching, setAiSearching] = useState(false);
   const [aiSearchParams, setAiSearchParams] = useState<{ searchText?: string; entities?: string[] } | undefined>(undefined);
+  const [stateRestored, setStateRestored] = useState(false);
   const navigate = useNavigate();
+
+  // Page state persistence hook
+  const { getStoredState, restoreScrollPosition, setIsRestoring } = usePageState(
+    'index-page',
+    {},
+    [
+      selectedRegion,
+      selectedCountry,
+      selectedCountryName,
+      selectedState,
+      selectedCategory,
+      selectedLanguage,
+      aiSearchMode,
+      aiSearchQuery,
+      aiSearchParams,
+      translatedNews
+    ]
+  );
 
   const { user, session, loading: authLoading } = useAuth();
   const categories = ["All", "Politics", "Sports", "Technology", "Entertainment"];
@@ -117,6 +136,53 @@ const Index = () => {
     };
     fetchUserLanguage();
   }, [user]);
+
+  // Restore page state on mount (before fetching news)
+  useEffect(() => {
+    const storedState = getStoredState();
+    if (storedState && !stateRestored && !searchParams.get("country")) {
+      setIsRestoring(true);
+      
+      // Restore all state with type safety
+      const state = storedState as any;
+      if (state.dep_0 !== undefined) setSelectedRegion(state.dep_0);
+      if (state.dep_1 !== undefined) setSelectedCountry(state.dep_1);
+      if (state.dep_2 !== undefined) setSelectedCountryName(state.dep_2);
+      if (state.dep_3 !== undefined) setSelectedState(state.dep_3);
+      if (state.dep_4 !== undefined) setSelectedCategory(state.dep_4);
+      if (state.dep_5 !== undefined) setSelectedLanguage(state.dep_5);
+      if (state.dep_6 !== undefined) setAiSearchMode(state.dep_6);
+      if (state.dep_7 !== undefined) setAiSearchQuery(state.dep_7);
+      if (state.dep_8 !== undefined) setAiSearchParams(state.dep_8);
+      if (state.dep_9 !== undefined) setTranslatedNews(state.dep_9);
+      
+      setStateRestored(true);
+      
+      // Restore scroll after a short delay to ensure content is rendered
+      setTimeout(() => {
+        setIsRestoring(false);
+        if (state.scrollPosition) {
+          restoreScrollPosition(state.scrollPosition);
+        }
+      }, 200);
+    }
+  }, [getStoredState, stateRestored, searchParams, setIsRestoring, restoreScrollPosition]);
+
+  // Restore scroll position after news loads
+  useEffect(() => {
+    if (stateRestored && !loading && filteredNews.length > 0) {
+      const storedState = getStoredState();
+      if (storedState) {
+        const state = storedState as any;
+        if (state.scrollPosition) {
+          // Additional scroll restoration after content loads
+          setTimeout(() => {
+            restoreScrollPosition(state.scrollPosition);
+          }, 300);
+        }
+      }
+    }
+  }, [stateRestored, loading, filteredNews.length, getStoredState, restoreScrollPosition]);
 
   const filteredRegions = REGIONS.filter((region) =>
     region.name.toLowerCase().includes(searchQuery.toLowerCase())
