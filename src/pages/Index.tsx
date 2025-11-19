@@ -1,4 +1,4 @@
-import { Search, Bell, ArrowRight, MapPin, Scale, Bookmark, Globe, Languages, Sparkles, Loader2, ChevronLeft } from "lucide-react";
+import { Search, Bell, ArrowRight, MapPin, Scale, Bookmark, Globe, Languages, Sparkles, Loader2, ChevronLeft, CheckCircle2 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
@@ -416,7 +416,317 @@ const Index = () => {
         </div>
       </div>
 
-      {!selectedRegion ? (
+      {aiSearchParams ? (
+        /* AI Search Results View */
+        <>
+          {/* AI Search Header */}
+          <div className="px-4 mt-6">
+            <button
+              onClick={() => setAiSearchParams(undefined)}
+              className="flex items-center gap-2 text-accent mb-4 hover:underline"
+            >
+              <ArrowRight className="w-4 h-4 rotate-180" />
+              Clear Search
+            </button>
+            
+            <div className="flex items-center gap-4 mb-6">
+              <Sparkles className="w-24 h-24 text-accent" />
+              <div>
+                <h2 className="text-3xl font-bold text-white">
+                  AI Search Results
+                </h2>
+                <p className="text-muted-foreground">
+                  Showing worldwide news for: {aiSearchParams.searchText}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Explore Categories */}
+          <div className="px-4 mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-white">Categories</h2>
+            </div>
+
+            <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+              {categories.map((category) => (
+                <CategoryPill
+                  key={category}
+                  label={category}
+                  isActive={selectedCategory === category.toLowerCase()}
+                  onClick={() => setSelectedCategory(category.toLowerCase())}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Dynamic Language Selector - Only show if we have languages */}
+          {availableLanguages.length > 0 && (
+            <div className="px-4 mt-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-white">Languages</h2>
+                <p className="text-sm text-muted-foreground">
+                  {filteredNews.length} {filteredNews.length === 1 ? 'article' : 'articles'}
+                </p>
+              </div>
+
+              <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+                {availableLanguages.map((lang) => (
+                  <LanguagePill
+                    key={lang.code}
+                    code={lang.code}
+                    name={lang.name}
+                    count={lang.count}
+                    isActive={selectedLanguage === lang.code}
+                    onClick={() => setSelectedLanguage(lang.code)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Compare Bar */}
+          {selectedForCompare.length > 0 && (
+            <div className="fixed bottom-24 left-0 right-0 z-20 px-4">
+              <div className="bg-accent/90 backdrop-blur rounded-2xl p-4 border border-accent shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Scale className="w-5 h-5 text-white" />
+                    <span className="text-white font-semibold">
+                      {selectedForCompare.length} selected
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setSelectedForCompare([])}
+                      className="px-3 py-2 bg-white/20 text-white rounded-lg text-sm font-semibold hover:bg-white/30 transition"
+                    >
+                      Clear
+                    </button>
+                    {selectedForCompare.length >= 2 && (
+                      <button
+                        onClick={handleCompare}
+                        className="px-4 py-2 bg-white text-accent rounded-lg text-sm font-semibold hover:bg-white/90 transition"
+                      >
+                        Compare
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* News Feed */}
+          <div className="px-4 mt-6">
+            {error ? (
+              <div className="text-center py-12">
+                <div className="max-w-md mx-auto bg-destructive/10 border border-destructive/20 rounded-xl p-6">
+                  <div className="text-destructive text-4xl mb-3">⚠️</div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Failed to Load News</h3>
+                  <p className="text-sm text-muted-foreground mb-4">{error}</p>
+                  <button
+                    onClick={retry}
+                    className="px-6 py-2 bg-accent text-white rounded-lg font-semibold hover:bg-accent/90 transition"
+                  >
+                    Retry
+                  </button>
+                </div>
+              </div>
+            ) : loading ? (
+              <div className="text-center py-12">
+                <div className="inline-block w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+                <p className="mt-4 text-muted-foreground">Loading news...</p>
+              </div>
+            ) : filteredNews.length > 0 ? (
+              <div className="grid grid-cols-1 gap-6">
+                {filteredNews.map((article) => {
+                  const isSelected = selectedForCompare.find(a => a.id === article.id);
+                  return (
+                    <div 
+                      key={article.id} 
+                      className={`rounded-2xl overflow-hidden border ${
+                        isSelected ? 'border-accent ring-2 ring-accent' : 'border-border'
+                      } bg-card transition-all`}
+                    >
+                      {article.image && (
+                        <img
+                          src={article.image}
+                          alt={article.title}
+                          className="w-full h-48 object-cover"
+                        />
+                      )}
+                      <div className="p-4 space-y-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <h3 className="text-lg font-semibold text-white mb-2 flex-1">{article.title}</h3>
+                          <div className="flex items-center gap-2">
+                            {article.language && article.language !== userLanguage && (
+                              <button
+                                onClick={() => translateArticle(article.id, article)}
+                                disabled={translating[article.id]}
+                                className="flex-shrink-0 p-2 rounded-lg bg-secondary/50 hover:bg-secondary transition disabled:opacity-50"
+                                title={`Translate to ${userLanguage.toUpperCase()}`}
+                              >
+                                {translating[article.id] ? (
+                                  <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                  <Languages className="w-4 h-4 text-accent" />
+                                )}
+                              </button>
+                            )}
+                            <ArticleBookmarkButton article={article} />
+                            <button
+                              onClick={() => navigate('/compare', { state: { article } })}
+                              className="flex-shrink-0 px-3 py-1 rounded-lg text-xs font-semibold bg-accent/20 text-accent hover:bg-accent/30 transition"
+                            >
+                              Compare Sources
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {/* Article Metadata */}
+                        <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                          {article.language && (
+                            <div className="flex items-center gap-1">
+                              <span className="font-medium">Language:</span>
+                              <span className="uppercase">{article.language}</span>
+                            </div>
+                          )}
+                          {article.author && (
+                            <div className="flex items-center gap-1">
+                              <span className="font-medium">Author:</span>
+                              <span>{article.author}</span>
+                            </div>
+                          )}
+                          {article.publish_date && (
+                            <div className="flex items-center gap-1">
+                              <span className="font-medium">Published:</span>
+                              <span>{new Date(article.publish_date).toLocaleDateString()}</span>
+                            </div>
+                          )}
+                          {article.url && (
+                            <a 
+                              href={article.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-accent hover:underline"
+                            >
+                              Read original →
+                            </a>
+                          )}
+                        </div>
+                        
+                        {/* Sentiment Badge */}
+                        <div>
+                          <SentimentBadge sentiment={article.sentiment} loading={article.analysisLoading} />
+                        </div>
+                        
+                        {/* AI Analysis Section */}
+                        <div className="space-y-3 bg-secondary/50 rounded-xl p-3 border border-accent/20">
+                        <div className="flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-accent" />
+                            <h4 className="font-semibold text-sm text-foreground">AI Analysis</h4>
+                          </div>
+                          
+                          {article.analysisLoading ? (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                              <span>Analyzing article...</span>
+                            </div>
+                          ) : (
+                            <>
+                              {article.bias && (
+                                <div>
+                                  <span className="text-xs font-medium text-muted-foreground">Political Bias:</span>
+                                  <p className="text-sm text-foreground mt-1">{article.bias}</p>
+                                </div>
+                              )}
+                              
+                              {article.summary && (
+                                <div>
+                                  <span className="text-xs font-medium text-muted-foreground">Summary:</span>
+                                  <p className="text-sm text-foreground mt-1">{article.summary}</p>
+                                </div>
+                              )}
+                              
+                              {article.ownership && (
+                                <div>
+                                  <span className="text-xs font-medium text-muted-foreground">Media Ownership:</span>
+                                  <p className="text-sm text-foreground mt-1">{article.ownership}</p>
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+
+                        {/* Claims Section */}
+                        {article.claims && article.claims.length > 0 && (
+                          <div className="space-y-2 bg-secondary/30 rounded-xl p-3 border border-accent/10">
+                            <div className="flex items-center gap-2 mb-2">
+                              <CheckCircle2 className="w-4 h-4 text-accent" />
+                              <h4 className="font-semibold text-sm text-foreground">Fact Check</h4>
+                            </div>
+                            {article.claims.map((claim, idx) => (
+                              <div key={idx} className="text-sm space-y-1 pb-2 border-b border-border/50 last:border-0 last:pb-0">
+                                <p className="text-foreground italic">"{claim.text}"</p>
+                                <div className="flex items-center gap-2">
+                                  <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
+                                    claim.verification === 'verified' 
+                                      ? 'bg-green-500/20 text-green-400' 
+                                      : claim.verification === 'disputed'
+                                      ? 'bg-red-500/20 text-red-400'
+                                      : 'bg-yellow-500/20 text-yellow-400'
+                                  }`}>
+                                    {claim.verification}
+                                  </span>
+                                </div>
+                                <p className="text-muted-foreground text-xs">{claim.explanation}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Selection Checkbox */}
+                        <div className="flex items-center gap-2 pt-2">
+                          <input
+                            type="checkbox"
+                            id={`compare-${article.id}`}
+                            checked={!!isSelected}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                if (selectedForCompare.length < 5) {
+                                  setSelectedForCompare([...selectedForCompare, article]);
+                                } else {
+                                  toast.error("You can compare up to 5 articles at once");
+                                }
+                              } else {
+                                setSelectedForCompare(selectedForCompare.filter(a => a.id !== article.id));
+                              }
+                            }}
+                            className="w-4 h-4 rounded border-accent text-accent focus:ring-accent"
+                          />
+                          <label 
+                            htmlFor={`compare-${article.id}`}
+                            className="text-xs text-muted-foreground cursor-pointer"
+                          >
+                            Select for comparison
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-muted-foreground text-4xl mb-3">📰</div>
+                <h3 className="text-lg font-semibold text-foreground mb-2">No articles found</h3>
+                <p className="text-sm text-muted-foreground">Try adjusting your search or language filters</p>
+              </div>
+            )}
+          </div>
+        </>
+      ) : !selectedRegion ? (
         /* Region Selection View */
         <div className="px-4 mt-6">
           <div className="flex items-center gap-2 mb-6">
