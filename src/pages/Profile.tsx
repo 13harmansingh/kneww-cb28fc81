@@ -8,7 +8,6 @@ import { BottomNav } from "@/components/BottomNav";
 
 interface Profile {
   id: string;
-  email: string;
   display_name: string | null;
   avatar_url: string | null;
   principal_language: string | null;
@@ -73,7 +72,6 @@ export default function Profile() {
           .from("profiles")
           .insert({
             id: user?.id,
-            email: user?.email,
             display_name: null,
           })
           .select()
@@ -184,7 +182,7 @@ export default function Profile() {
               Email
             </label>
             <div className="bg-secondary/50 rounded-lg p-3 border border-border">
-              <p className="text-foreground">{profile.email}</p>
+              <p className="text-foreground">{user?.email}</p>
             </div>
           </div>
 
