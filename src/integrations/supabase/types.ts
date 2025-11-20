@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_analysis_cache: {
+        Row: {
+          analysis: Json
+          article_hash: string
+          article_url: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          model_version: string
+        }
+        Insert: {
+          analysis: Json
+          article_hash: string
+          article_url: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          model_version?: string
+        }
+        Update: {
+          analysis?: Json
+          article_hash?: string
+          article_url?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          model_version?: string
+        }
+        Relationships: []
+      }
       bookmarks: {
         Row: {
           article_id: string
@@ -110,12 +140,39 @@ export type Database = {
         }
         Relationships: []
       }
+      telemetry_logs: {
+        Row: {
+          created_at: string | null
+          endpoint: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          endpoint?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cleanup_old_telemetry_logs: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

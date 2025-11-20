@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useAuth } from "./useAuth";
 import { useNewsCache } from "./useNewsCache";
+import { useRequestDedupe } from "./useRequestDedupe";
 
 export interface Claim {
   text: string;
@@ -49,8 +50,7 @@ export interface AvailableLanguage {
   count: number;
 }
 
-// Global state to track in-flight requests and last request time
-const inFlightRequests = new Map<string, Promise<any>>();
+// Global state to track last request time for throttling
 let lastRequestTime = 0;
 
 export const useNews = (
@@ -69,6 +69,7 @@ export const useNews = (
   const [error, setError] = useState<string | null>(null);
   const { getCachedNews, setCachedNews, getCachedNewsAnyLanguage } = useNewsCache();
   const mountedRef = useRef(true);
+  const { executeRequest, cancelAll } = useRequestDedupe();
 
   const getRequestKey = useCallback(() => {
     if (aiSearchParams) {
@@ -88,33 +89,9 @@ export const useNews = (
 
     const requestKey = getRequestKey();
 
-    // Check if this exact request is already in-flight
-    if (inFlightRequests.has(requestKey)) {
-      console.log('Request already in-flight, waiting for it...');
+    // Use request deduplication
+    return executeRequest(requestKey, async (signal) => {
       try {
-        const result = await inFlightRequests.get(requestKey);
-        if (mountedRef.current) {
-          setNews(result.news);
-          setAvailableLanguages(result.availableLanguages);
-          setDefaultLanguage(result.defaultLanguage);
-          setLoading(false);
-        }
-      } catch (err) {
-        // Will be handled by the original request
-      }
-      return;
-    }
-
-    // Check cache first (skip for AI searches)
-    const cached = !aiSearchParams ? getCachedNews(state, category, language, sourceCountry || 'us', sourceCountries) : null;
-    if (cached && attempt === 0) {
-      console.log('Loading from cache');
-      setNews(cached.news);
-      setAvailableLanguages(cached.available_languages);
-      setDefaultLanguage(cached.default_language);
-      setLoading(false);
-      return;
-    }
 
     // Enforce minimum time between requests
     const now = Date.now();
@@ -153,7 +130,8 @@ export const useNews = (
         },
       });
 
-      if (fetchError) {
+        if (fetchError) {
+          if (signal.aborted) return;
         // Handle rate limit errors specially - don't retry, use cache
         if (isRateLimitError(fetchError)) {
           console.warn('Rate limit hit, attempting to use cached data...');
