@@ -1,15 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
+import { validateAuth, getClientIP } from '../_shared/auth.ts';
+import { applyRateLimit } from '../_shared/rateLimit.ts';
+import { logEvent, TelemetryEvents } from '../_shared/telemetry.ts';
+import { getCachedAnalysis, setCachedAnalysis } from '../_shared/cache.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-// Rate limiting map (user_id -> array of timestamps)
-const rateLimitMap = new Map<string, number[]>();
-const RATE_LIMIT_WINDOW = 60000; // 1 minute
-const MAX_REQUESTS = 20; // 20 requests per minute (higher as this is called per article)
 
 interface AnalyzeNewsRequest {
   title: string;
@@ -44,58 +42,40 @@ function validateInput(data: any): data is AnalyzeNewsRequest {
   return true;
 }
 
-function checkRateLimit(userId: string): boolean {
-  const now = Date.now();
-  const userRequests = rateLimitMap.get(userId) || [];
-  
-  // Filter out old requests outside the time window
-  const recentRequests = userRequests.filter(time => now - time < RATE_LIMIT_WINDOW);
-  
-  if (recentRequests.length >= MAX_REQUESTS) {
-    return false;
-  }
-  
-  // Add current request
-  recentRequests.push(now);
-  rateLimitMap.set(userId, recentRequests);
-  
-  return true;
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const startTime = Date.now();
+  const clientIP = getClientIP(req);
+
   try {
-    // Get authorization header
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      throw new Error('Missing authorization header');
-    }
-
-    const jwt = authHeader.replace(/^Bearer\s+/i, '').trim();
-
-    // Initialize Supabase client to verify user
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    // Verify user using JWT explicitly
-    const { data: { user }, error: authError } = await supabase.auth.getUser(jwt);
+    // Validate authentication
+    const { user, error: authError } = await validateAuth(req);
     if (authError || !user) {
-      console.error('Auth error:', authError);
+      await logEvent({
+        eventType: TelemetryEvents.AUTH_FAILURE,
+        endpoint: 'analyze-news',
+        metadata: { ip: clientIP, error: authError },
+      });
+
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Rate limiting
-    if (!checkRateLimit(user.id)) {
-      console.log('Rate limit exceeded for user:', user.id);
+    // Apply rate limiting
+    const rateLimitResult = applyRateLimit(user.id, clientIP, 'analyze-news');
+    if (!rateLimitResult.allowed) {
+      await logEvent({
+        eventType: TelemetryEvents.RATE_LIMIT,
+        userId: user.id,
+        endpoint: 'analyze-news',
+        metadata: { ip: clientIP },
+      });
+
       return new Response(JSON.stringify({ 
         error: 'Rate limit exceeded',
         bias: 'Unknown',
@@ -119,6 +99,33 @@ serve(async (req) => {
     }
 
     const { title, text, url } = requestData;
+
+    // Check cache first
+    const cachedAnalysis = await getCachedAnalysis(url);
+    if (cachedAnalysis) {
+      console.log(`[${user.id}] Cache HIT for article:`, title);
+      
+      await logEvent({
+        eventType: TelemetryEvents.CACHE_HIT,
+        userId: user.id,
+        endpoint: 'analyze-news',
+        metadata: { url, duration: Date.now() - startTime },
+      });
+
+      return new Response(
+        JSON.stringify(cachedAnalysis),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`[${user.id}] Cache MISS - analyzing article:`, title);
+    
+    await logEvent({
+      eventType: TelemetryEvents.CACHE_MISS,
+      userId: user.id,
+      endpoint: 'analyze-news',
+      metadata: { url },
+    });
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {
@@ -209,16 +216,42 @@ Respond in JSON format only:
     
     const analysis = JSON.parse(content);
     
-    console.log('Analysis complete:', analysis);
+    const duration = Date.now() - startTime;
+    console.log(`[${user.id}] Analysis complete:`, analysis);
+
+    // Cache the analysis for future requests
+    await setCachedAnalysis(url, analysis);
+
+    // Log telemetry
+    await logEvent({
+      eventType: TelemetryEvents.AI_ANALYSIS,
+      userId: user.id,
+      endpoint: 'analyze-news',
+      metadata: {
+        url,
+        duration,
+        tokensUsed: data.usage?.total_tokens || 0,
+        claimsCount: analysis.claims?.length || 0,
+      },
+    });
 
     return new Response(JSON.stringify(analysis), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Error in analyze-news function:', error);
+    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
+    await logEvent({
+      eventType: 'error.unhandled',
+      endpoint: 'analyze-news',
+      metadata: { error: errorMessage },
+    });
+
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: errorMessage,
         bias: 'Unknown',
         summary: 'Analysis unavailable',
         ownership: 'Unknown',

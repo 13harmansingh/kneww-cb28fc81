@@ -1,14 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
+import { validateAuth, getClientIP } from '../_shared/auth.ts';
+import { applyRateLimit } from '../_shared/rateLimit.ts';
+import { logEvent, TelemetryEvents } from '../_shared/telemetry.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-const rateLimitMap = new Map<string, number[]>();
-const RATE_LIMIT_WINDOW = 60000;
-const MAX_REQUESTS = 10;
 
 interface FetchRelatedNewsRequest {
   topic: string;
@@ -40,51 +38,41 @@ function validateInput(data: any): data is FetchRelatedNewsRequest {
   return true;
 }
 
-function checkRateLimit(userId: string): boolean {
-  const now = Date.now();
-  const userRequests = rateLimitMap.get(userId) || [];
-  const recentRequests = userRequests.filter(time => now - time < RATE_LIMIT_WINDOW);
-  
-  if (recentRequests.length >= MAX_REQUESTS) {
-    return false;
-  }
-  
-  recentRequests.push(now);
-  rateLimitMap.set(userId, recentRequests);
-  return true;
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const startTime = Date.now();
+  const clientIP = getClientIP(req);
+
   try {
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      throw new Error('Missing authorization header');
-    }
-
-    const jwt = authHeader.replace(/^Bearer\s+/i, '').trim();
-
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(jwt);
+    // Validate authentication
+    const { user, error: authError } = await validateAuth(req);
     if (authError || !user) {
-      console.error('Auth error:', authError);
+      await logEvent({
+        eventType: TelemetryEvents.AUTH_FAILURE,
+        endpoint: 'fetch-related-news',
+        metadata: { ip: clientIP, error: authError },
+      });
+
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    if (!checkRateLimit(user.id)) {
-      console.log('Rate limit exceeded for user:', user.id);
-      return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }), {
+    // Apply rate limiting
+    const rateLimitResult = applyRateLimit(user.id, clientIP, 'fetch-related-news');
+    if (!rateLimitResult.allowed) {
+      await logEvent({
+        eventType: TelemetryEvents.RATE_LIMIT,
+        userId: user.id,
+        endpoint: 'fetch-related-news',
+        metadata: { ip: clientIP },
+      });
+
+      return new Response(JSON.stringify({ error: rateLimitResult.error }), {
         status: 429,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
