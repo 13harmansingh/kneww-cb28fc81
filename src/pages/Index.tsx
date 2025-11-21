@@ -387,12 +387,12 @@ const Index = () => {
     return <div className="min-h-screen bg-background flex items-center justify-center px-4 pb-24">
         <div className="text-center max-w-md">
           <div className="text-6xl mb-6">🔒</div>
-          <h2 className="text-2xl font-bold text-white mb-3">Please sign in        </h2>
+          <h2 className="text-2xl font-bold text-white mb-3">KNEW        </h2>
           <p className="text-muted-foreground mb-6">
-            to view news articles and explore global news coverage.
+            News articles and explore global news coverage.
           </p>
           <button onClick={() => navigate("/login")} className="px-6 py-3 bg-accent text-white rounded-lg font-semibold hover:bg-accent/90 transition">
-            Go to Login
+            ​Sign in  
           </button>
         </div>
         <BottomNav />
