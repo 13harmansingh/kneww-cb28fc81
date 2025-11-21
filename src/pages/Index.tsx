@@ -1,4 +1,4 @@
-import { Search, Bell, ArrowRight, MapPin, Scale, Bookmark, Globe, Languages, Sparkles, Loader2, ChevronLeft, CheckCircle2 } from "lucide-react";
+import { Search, Bell, ArrowRight, MapPin, Scale, Bookmark, Globe, Languages, Sparkles, Loader2, ChevronLeft, CheckCircle2, Flag } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
@@ -404,7 +404,7 @@ const Index = () => {
         <div className="flex items-center gap-3 mb-3">
           <div className="flex-1 relative">
             <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-accent" />
-            <input type="text" placeholder="Ask anything... (e.g., 'Trump buying Canada news')" value={aiSearchQuery} onChange={e => setAiSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAiSearch()} className="w-full bg-accent/10 border-2 border-accent rounded-full py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent" />
+            <input type="text" value={aiSearchQuery} onChange={e => setAiSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAiSearch()} className="w-full bg-accent/10 border-2 border-accent rounded-full py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent" placeholder="Ask anything... " />
           </div>
           <button onClick={handleAiSearch} disabled={aiSearching || aiSearchQuery.length < 2} className="p-3 rounded-full bg-accent hover:bg-accent/90 transition disabled:opacity-50 disabled:cursor-not-allowed" title="AI Search">
             {aiSearching ? <Loader2 className="w-5 h-5 text-white animate-spin" /> : <Search className="w-5 h-5 text-white" />}
@@ -629,7 +629,7 @@ const Index = () => {
         </>) : !selectedRegion ? (/* Region Selection View */
     <div className="px-4 mt-6">
           <div className="flex items-center gap-2 mb-6">
-            <Globe className="w-8 h-8 text-accent" />
+            <Flag className="w-8 h-8 text-accent" />
             <div>
               <h2 className="text-3xl font-bold text-white">Select Your Region</h2>
               <p className="text-muted-foreground">Choose a region to explore countries</p>
