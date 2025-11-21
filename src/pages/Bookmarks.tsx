@@ -5,6 +5,7 @@ import { NewsCard } from "@/components/NewsCard";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
+import { NewsCardSkeleton } from "@/components/skeletons/NewsCardSkeleton";
 
 interface Bookmark {
   id: string;
@@ -55,8 +56,16 @@ export default function Bookmarks() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center pb-20">
-        <Loader2 className="w-8 h-8 text-accent animate-spin" />
+      <div className="min-h-screen bg-background pb-24 px-4">
+        <div className="max-w-7xl mx-auto pt-8">
+          <h1 className="text-3xl font-bold text-white mb-6">My Bookmarks</h1>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <NewsCardSkeleton key={i} />
+            ))}
+          </div>
+        </div>
+        <BottomNav />
       </div>
     );
   }

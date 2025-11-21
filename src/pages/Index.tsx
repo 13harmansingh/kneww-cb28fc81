@@ -10,6 +10,7 @@ import { CountryMapCard } from "@/components/CountryMapCard";
 import { ContinentMapCard } from "@/components/ContinentMapCard";
 import { SentimentBadge } from "@/components/SentimentBadge";
 import { ArticleBookmarkButton } from "@/components/ArticleBookmarkButton";
+import { NewsCardSkeleton } from "@/components/skeletons/NewsCardSkeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { US_STATES } from "@/data/usStates";
 import { CANADA_PROVINCES } from "@/data/canadaProvinces";
@@ -1005,9 +1006,10 @@ const Index = () => {
                 </div>
               </div>
             ) : loading ? (
-              <div className="text-center py-12">
-                <div className="inline-block w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
-                <p className="mt-4 text-muted-foreground">Loading news...</p>
+              <div className="grid grid-cols-1 gap-6">
+                {[...Array(3)].map((_, i) => (
+                  <NewsCardSkeleton key={i} />
+                ))}
               </div>
             ) : filteredNews.length > 0 ? (
               <div className="grid grid-cols-1 gap-6">

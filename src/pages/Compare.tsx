@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { NewsCardSkeleton } from "@/components/skeletons/NewsCardSkeleton";
 
 export default function Compare() {
   const navigate = useNavigate();
@@ -177,8 +178,27 @@ export default function Compare() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 text-accent animate-spin" />
+        <div className="px-4 mt-6 space-y-6">
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/30 animate-pulse">
+              <div className="h-6 bg-muted rounded w-20 mx-auto" />
+            </div>
+            <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/30 animate-pulse">
+              <div className="h-6 bg-muted rounded w-20 mx-auto" />
+            </div>
+            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 animate-pulse">
+              <div className="h-6 bg-muted rounded w-20 mx-auto" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {[...Array(3)].map((_, colIdx) => (
+              <div key={colIdx} className="space-y-4">
+                {[...Array(2)].map((_, i) => (
+                  <NewsCardSkeleton key={i} />
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
         <div className="px-4 mt-6 space-y-6">
