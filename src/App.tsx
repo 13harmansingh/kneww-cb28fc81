@@ -10,6 +10,7 @@ import Bookmarks from "./pages/Bookmarks";
 import Compare from "./pages/Compare";
 import Profile from "./pages/Profile";
 import Explore from "./pages/Explore";
+import Telemetry from "./pages/Telemetry";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/compare" element={<Compare />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/explore" element={<Explore />} />
+          <Route path="/admin/telemetry" element={<Telemetry />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
