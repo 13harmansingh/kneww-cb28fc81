@@ -91,158 +91,153 @@ export const useNews = (
 
     // Use request deduplication
     return executeRequest(requestKey, async (signal) => {
-      try {
+      if (signal.aborted) return;
 
-    // Enforce minimum time between requests
-    const now = Date.now();
-    const timeSinceLastRequest = now - lastRequestTime;
-    if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-      const delay = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
-      console.log(`Throttling request, waiting ${delay}ms...`);
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-
-    setLoading(true);
-    setError(null);
-    
-    try {
-      // Save search history
-      if (session?.user && state) {
-        await supabase.from('search_history').insert({
-          user_id: session.user.id,
-          state,
-          category
-        });
+      // Enforce minimum time between requests
+      const now = Date.now();
+      const timeSinceLastRequest = now - lastRequestTime;
+      if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+        const delay = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+        console.log(`Throttling request, waiting ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
 
-      const { data, error: fetchError } = await supabase.functions.invoke("fetch-news", {
-        body: {
-          state: aiSearchParams ? undefined : state,
-          category,
-          language: language === 'all' ? undefined : language,
-          source_country: sourceCountry || 'us',
-          source_countries: sourceCountries,
-          searchText: aiSearchParams?.searchText,
-          entities: aiSearchParams?.entities?.join(',')
-        },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      lastRequestTime = Date.now();
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // Save search history
+        if (session?.user && state) {
+          await supabase.from('search_history').insert({
+            user_id: session.user.id,
+            state,
+            category
+          });
+        }
+
+        const { data, error: fetchError } = await supabase.functions.invoke("fetch-news", {
+          body: {
+            state: aiSearchParams ? undefined : state,
+            category,
+            language: language === 'all' ? undefined : language,
+            source_country: sourceCountry || 'us',
+            source_countries: sourceCountries,
+            searchText: aiSearchParams?.searchText,
+            entities: aiSearchParams?.entities?.join(',')
+          },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
 
         if (fetchError) {
           if (signal.aborted) return;
-        // Handle rate limit errors specially - don't retry, use cache
-        if (isRateLimitError(fetchError)) {
-          console.warn('Rate limit hit, attempting to use cached data...');
           
-          // Try to get cached data for any language for this location
-          const anyCached = !aiSearchParams ? getCachedNewsAnyLanguage(state, category, sourceCountry || 'us', sourceCountries) : null;
-          
-          if (anyCached) {
-            setNews(anyCached.news);
-            setAvailableLanguages(anyCached.available_languages);
-            setDefaultLanguage(anyCached.default_language);
-            setLoading(false);
-            toast.warning('Using cached news due to rate limit. Try again in a minute.');
-            return;
-          }
-          
-          throw new Error('Rate limit exceeded. Please wait a minute and try again.');
-        }
-        
-        // Check if error is transient and we should retry
-        if (isTransientError(fetchError) && attempt < MAX_RETRIES) {
-          const delay = INITIAL_DELAY * Math.pow(2, attempt);
-          console.log(`Retrying in ${delay}ms... (attempt ${attempt + 1}/${MAX_RETRIES})`);
-          setTimeout(() => fetchNews(attempt + 1), delay);
-          return;
-        }
-        throw fetchError;
-      }
-
-      if (data?.news) {
-        const articlesWithAnalysis = data.news.map((article: NewsArticle) => ({
-          ...article,
-          analysisLoading: true,
-          bias: 'Analyzing...',
-          summary: 'AI analysis in progress...',
-          ownership: 'Analyzing...',
-          sentiment: 'neutral' as const,
-          claims: []
-        }));
-        setNews(articlesWithAnalysis);
-        setAvailableLanguages(data.available_languages || []);
-        setDefaultLanguage(data.default_language || 'en');
-        
-        // Cache the initial results
-        setCachedNews(state, category, language, sourceCountry, articlesWithAnalysis, data.available_languages || [], data.default_language || 'en', sourceCountries);
-
-        // Analyze each article with AI
-        articlesWithAnalysis.forEach(async (article: NewsArticle, index: number) => {
-          try {
-            const { data: analysisData, error: analysisError } = await supabase.functions.invoke('analyze-news', {
-              body: { 
-                title: article.title,
-                text: article.text,
-                url: article.url
-              },
-              headers: {
-                Authorization: `Bearer ${session.access_token}`,
-              },
-            });
-
-            if (!analysisError && analysisData) {
-              setNews(prev => {
-                const updated = prev.map((a, i) => 
-                  i === index 
-                    ? { 
-                        ...a, 
-                        bias: analysisData.bias,
-                        summary: analysisData.summary,
-                        ownership: analysisData.ownership,
-                        sentiment: analysisData.sentiment,
-                        claims: analysisData.claims,
-                        analysisLoading: false
-                      }
-                    : a
-                );
-                
-                // Update cache with analyzed article
-                setCachedNews(state, category, language, sourceCountry, updated, availableLanguages, defaultLanguage, sourceCountries);
-                return updated;
-              });
+          // Handle rate limit errors specially - don't retry, use cache
+          if (isRateLimitError(fetchError)) {
+            console.warn('Rate limit hit, attempting to use cached data...');
+            
+            // Try to get cached data for any language for this location
+            const anyCached = !aiSearchParams ? getCachedNewsAnyLanguage(state, category, sourceCountry || 'us', sourceCountries) : null;
+            
+            if (anyCached) {
+              setNews(anyCached.news);
+              setAvailableLanguages(anyCached.available_languages);
+              setDefaultLanguage(anyCached.default_language);
+              setLoading(false);
+              return;
             }
-          } catch (err) {
-            console.error('Error analyzing article:', err);
-            setNews(prev => prev.map((a, i) => 
-              i === index 
-                ? { 
-                    ...a, 
-                    bias: 'Unknown',
-                    summary: a.text?.substring(0, 200) || 'No summary available',
-                    ownership: 'Unknown',
-                    sentiment: 'neutral' as const,
-                    claims: [],
-                    analysisLoading: false
-                  }
-                  : a
-            ));
+            
+            throw new Error('Rate limit exceeded. Please wait a minute and try again.');
           }
-        });
+          
+          throw fetchError;
+        }
+
+        if (data?.news) {
+          const articlesWithAnalysis = data.news.map((article: NewsArticle) => ({
+            ...article,
+            analysisLoading: true,
+            bias: 'Analyzing...',
+            summary: 'AI analysis in progress...',
+            ownership: 'Analyzing...',
+            sentiment: 'neutral' as const,
+            claims: []
+          }));
+          setNews(articlesWithAnalysis);
+          setAvailableLanguages(data.available_languages || []);
+          setDefaultLanguage(data.default_language || 'en');
+          
+          // Cache the initial results
+          setCachedNews(state, category, language, sourceCountry, articlesWithAnalysis, data.available_languages || [], data.default_language || 'en', sourceCountries);
+
+          // Analyze each article with AI
+          articlesWithAnalysis.forEach(async (article: NewsArticle, index: number) => {
+            try {
+              const { data: analysisData, error: analysisError } = await supabase.functions.invoke('analyze-news', {
+                body: { 
+                  title: article.title,
+                  text: article.text,
+                  url: article.url
+                },
+                headers: {
+                  Authorization: `Bearer ${session.access_token}`,
+                },
+              });
+
+              if (!analysisError && analysisData) {
+                setNews(prev => {
+                  const updated = prev.map((a, i) => 
+                    i === index 
+                      ? { 
+                          ...a, 
+                          bias: analysisData.bias,
+                          summary: analysisData.summary,
+                          ownership: analysisData.ownership,
+                          sentiment: analysisData.sentiment,
+                          claims: analysisData.claims,
+                          analysisLoading: false
+                        }
+                      : a
+                  );
+                  
+                  // Update cache with analyzed article
+                  setCachedNews(state, category, language, sourceCountry, updated, availableLanguages, defaultLanguage, sourceCountries);
+                  return updated;
+                });
+              }
+            } catch (err) {
+              console.error('Error analyzing article:', err);
+              setNews(prev => prev.map((a, i) => 
+                i === index 
+                  ? { 
+                      ...a, 
+                      bias: 'Unknown',
+                      summary: a.text?.substring(0, 200) || 'No summary available',
+                      ownership: 'Unknown',
+                      sentiment: 'neutral' as const,
+                      claims: [],
+                      analysisLoading: false
+                    }
+                    : a
+              ));
+            }
+          });
+        }
+      } catch (error) {
+        if (signal.aborted) return;
+        console.error("Error fetching news:", error);
+        setError(
+          error instanceof Error 
+            ? error.message 
+            : "Could not load news articles. Please check your connection and try again."
+        );
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching news:", error);
-      setError(
-        error instanceof Error 
-          ? error.message 
-          : "Could not load news articles. Please check your connection and try again."
-      );
-      toast.error("Failed to load news articles");
-    } finally {
-      setLoading(false);
-    }
-  }, [state, category, session, language, sourceCountry, sourceCountries, aiSearchParams, getCachedNews, setCachedNews, getCachedNewsAnyLanguage, getRequestKey]);
+    });
+  }, [state, category, session, language, sourceCountry, sourceCountries, aiSearchParams, getCachedNews, setCachedNews, getCachedNewsAnyLanguage, getRequestKey, executeRequest]);
 
   const retry = useCallback(() => {
     setError(null);
