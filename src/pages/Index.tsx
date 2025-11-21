@@ -406,7 +406,7 @@ const Index = () => {
             <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-accent" />
             <input type="text" value={aiSearchQuery} onChange={e => setAiSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAiSearch()} className="w-full bg-accent/10 border-2 border-accent rounded-full py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent" placeholder="Ask anything... " />
           </div>
-          <button onClick={handleAiSearch} disabled={aiSearching || aiSearchQuery.length < 2} className="p-3 rounded-full bg-accent hover:bg-accent/90 transition disabled:opacity-50 disabled:cursor-not-allowed" title="AI Search">
+          <button onClick={handleAiSearch} disabled={aiSearching || aiSearchQuery.length < 2} title="AI Search" className="p-3 rounded-full transition disabled:cursor-not-allowed bg-[sidebar-accent-foreground] bg-transparent text-slate-50 opacity-100">
             {aiSearching ? <Loader2 className="w-5 h-5 text-white animate-spin" /> : <Search className="w-5 h-5 text-white" />}
           </button>
           <button className="text-foreground">
@@ -721,9 +721,7 @@ const Index = () => {
           {availableLanguages.length > 0 && <div className="px-4 mt-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold text-white">Languages</h2>
-                <p className="text-sm text-muted-foreground">
-                  {filteredNews.length} {filteredNews.length === 1 ? 'article' : 'articles'}
-                </p>
+                
               </div>
 
               <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">

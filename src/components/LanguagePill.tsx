@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils";
-
 interface LanguagePillProps {
   code: string;
   name: string;
@@ -7,25 +6,15 @@ interface LanguagePillProps {
   isActive?: boolean;
   onClick?: () => void;
 }
-
-export const LanguagePill = ({ code, name, count, isActive, onClick }: LanguagePillProps) => {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "px-4 py-2 rounded-full border text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2",
-        isActive
-          ? "bg-accent text-accent-foreground border-accent shadow-lg"
-          : "bg-card/50 text-muted-foreground border-border/50 hover:bg-accent/20 hover:border-accent/50"
-      )}
-    >
+export const LanguagePill = ({
+  code,
+  name,
+  count,
+  isActive,
+  onClick
+}: LanguagePillProps) => {
+  return <button onClick={onClick} className={cn("px-4 py-2 rounded-full border text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2", isActive ? "bg-accent text-accent-foreground border-accent shadow-lg" : "bg-card/50 text-muted-foreground border-border/50 hover:bg-accent/20 hover:border-accent/50")}>
       <span>{name}</span>
-      <span className={cn(
-        "px-2 py-0.5 rounded-full text-xs font-bold",
-        isActive ? "bg-accent-foreground/20" : "bg-muted"
-      )}>
-        {count}
-      </span>
-    </button>
-  );
+      
+    </button>;
 };
