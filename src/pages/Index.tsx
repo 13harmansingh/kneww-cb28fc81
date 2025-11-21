@@ -685,8 +685,8 @@ const Index = () => {
     <>
           {/* Location Header */}
           <div className="px-4 mt-6">
-            <button onClick={selectedState ? handleBackToStates : handleBackToCountries} className="flex items-center gap-2 text-accent mb-4 hover:underline">
-              <ArrowRight className="w-4 h-4 rotate-180" />
+            <button onClick={selectedState ? handleBackToStates : handleBackToCountries} className="flex items-center gap-2 mb-4 hover:underline font-extrabold text-xl text-slate-50">
+              
               {selectedState ? "Back to States" : `Back to ${REGIONS.find(r => r.id === selectedRegion)?.name}`}
             </button>
             
