@@ -89,9 +89,40 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          read: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          read?: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          read?: boolean | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
+          banned: boolean | null
           created_at: string | null
           display_name: string | null
           id: string
@@ -100,6 +131,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          banned?: boolean | null
           created_at?: string | null
           display_name?: string | null
           id: string
@@ -108,6 +140,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          banned?: boolean | null
           created_at?: string | null
           display_name?: string | null
           id?: string
@@ -167,15 +200,88 @@ export type Database = {
         }
         Relationships: []
       }
+      user_preferences: {
+        Row: {
+          auto_translate: boolean | null
+          created_at: string | null
+          dark_mode: boolean | null
+          default_language: string | null
+          id: string
+          preferred_categories: string[] | null
+          show_ai_analysis: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          auto_translate?: boolean | null
+          created_at?: string | null
+          dark_mode?: boolean | null
+          default_language?: string | null
+          id?: string
+          preferred_categories?: string[] | null
+          show_ai_analysis?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          auto_translate?: boolean | null
+          created_at?: string | null
+          dark_mode?: boolean | null
+          default_language?: string | null
+          id?: string
+          preferred_categories?: string[] | null
+          show_ai_analysis?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       cleanup_old_telemetry_logs: { Args: never; Returns: undefined }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      send_notification: {
+        Args: {
+          _description: string
+          _title: string
+          _type: string
+          _user_id: string
+        }
+        Returns: string
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user" | "editor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -302,6 +408,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user", "editor"],
+    },
   },
 } as const

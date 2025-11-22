@@ -11,6 +11,9 @@ import Compare from "./pages/Compare";
 import Profile from "./pages/Profile";
 import Explore from "./pages/Explore";
 import Telemetry from "./pages/Telemetry";
+import AdminUsers from "./pages/AdminUsers";
+import Settings from "./pages/Settings";
+import Banned from "./pages/Banned";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,7 +32,10 @@ const App = () => (
           <Route path="/compare" element={<Compare />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/explore" element={<Explore />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/banned" element={<Banned />} />
           <Route path="/admin/telemetry" element={<Telemetry />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
