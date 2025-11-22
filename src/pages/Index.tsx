@@ -2,6 +2,7 @@ import { Search, Bell, ArrowRight, MapPin, Scale, Bookmark, Globe, Languages, Sp
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
+import { NotificationBell } from "@/components/NotificationBell";
 import { NewsCard } from "@/components/NewsCard";
 import { CategoryPill } from "@/components/CategoryPill";
 import { LanguagePill } from "@/components/LanguagePill";
@@ -22,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { usePageState } from "@/hooks/usePageState";
 const Index = () => {
   const [searchParams] = useSearchParams();
@@ -57,6 +59,7 @@ const Index = () => {
     session,
     loading: authLoading
   } = useAuth();
+  const { isBanned, loading: roleLoading } = useUserRole();
   const categories = ["All", "Politics", "Sports", "Technology", "Entertainment"];
   const location = selectedState || selectedCountryName || selectedRegion;
   const sourceCountryCode = selectedCountry || undefined;
@@ -409,9 +412,7 @@ const Index = () => {
           <button onClick={handleAiSearch} disabled={aiSearching || aiSearchQuery.length < 2} title="AI Search" className="p-3 rounded-full transition disabled:cursor-not-allowed bg-[sidebar-accent-foreground] bg-transparent text-slate-50 opacity-100">
             {aiSearching ? <Loader2 className="w-5 h-5 text-white animate-spin" /> : <Search className="w-5 h-5 text-white" />}
           </button>
-          <button className="text-foreground">
-            <Bell className="w-6 h-6" />
-          </button>
+          <NotificationBell />
         </div>
         {aiSearching && <div className="bg-accent/5 rounded-lg p-2 border border-accent/20 mb-2">
             <p className="text-xs text-muted-foreground">
