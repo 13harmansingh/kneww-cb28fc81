@@ -269,9 +269,7 @@ export const useNews = (
     setCachedNews, 
     getCachedNewsAnyLanguage, 
     getRequestKey, 
-    executeRequest,
-    availableLanguages,
-    defaultLanguage
+    executeRequest
   ]);
 
   const retry = useCallback(() => {
