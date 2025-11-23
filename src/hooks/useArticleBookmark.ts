@@ -23,11 +23,12 @@ export const useArticleBookmark = (article: NewsArticle) => {
         .from("bookmarks")
         .select("id")
         .eq("article_url", article.url || article.id)
-        .single();
+        .maybeSingle();
       
       setIsBookmarked(!!data);
     } catch (error) {
       // Not bookmarked
+      setIsBookmarked(false);
     }
   };
 
