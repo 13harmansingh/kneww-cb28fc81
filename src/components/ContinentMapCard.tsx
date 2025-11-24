@@ -36,30 +36,37 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
       "middle-east": 4,
     };
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: "mapbox://styles/mapbox/dark-v11",
-      center: region.coordinates,
-      zoom: zoomLevels[region.id] || 3,
-      interactive: false,
-      attributionControl: false,
-    });
+    // Add a small delay before initializing map to prevent rapid re-renders
+    const timeoutId = setTimeout(() => {
+      if (!mapContainer.current) return;
 
-    map.current.on("style.load", () => {
-      map.current?.setFog({
-        color: "rgb(25, 25, 40)",
-        "high-color": "rgb(50, 50, 80)",
-        "horizon-blend": 0.2,
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: "mapbox://styles/mapbox/dark-v11",
+        center: region.coordinates,
+        zoom: zoomLevels[region.id] || 3,
+        interactive: false,
+        attributionControl: false,
+        preserveDrawingBuffer: true, // Helps with mobile performance
       });
-    });
+
+      map.current.on("style.load", () => {
+        map.current?.setFog({
+          color: "rgb(25, 25, 40)",
+          "high-color": "rgb(50, 50, 80)",
+          "horizon-blend": 0.2,
+        });
+      });
+    }, 100);
 
     return () => {
+      clearTimeout(timeoutId);
       if (map.current) {
         map.current.remove();
         map.current = null;
       }
     };
-  }, [region]);
+  }, [region.id, region.coordinates]);
 
   return (
     <div
