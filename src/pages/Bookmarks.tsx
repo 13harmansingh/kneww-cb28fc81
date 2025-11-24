@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { NewsCard } from "@/components/NewsCard";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { NewsCardSkeleton } from "@/components/skeletons/NewsCardSkeleton";
@@ -21,10 +21,14 @@ interface Bookmark {
 }
 
 export default function Bookmarks() {
+  const location = useLocation();
   const { user, loading: authLoading } = useAuth();
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  // Guard: ensure router context exists
+  if (!location) return null;
 
   useEffect(() => {
     if (!authLoading && !user) {

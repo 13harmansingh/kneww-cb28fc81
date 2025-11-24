@@ -2,11 +2,15 @@ import { useEffect } from "react";
 import { Ban, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function Banned() {
+  const location = useLocation();
   const { signOut } = useAuth();
   const navigate = useNavigate();
+
+  // Guard: ensure router context exists
+  if (!location) return null;
 
   const handleSignOut = async () => {
     await signOut();

@@ -1,16 +1,20 @@
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePreferences } from "@/hooks/usePreferences";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Loader2, Save } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
 export default function Settings() {
+  const location = useLocation();
   const { user, loading: authLoading } = useAuth();
   const { preferences, loading, saving, updatePreference } = usePreferences();
   const navigate = useNavigate();
+
+  // Guard: ensure router context exists
+  if (!location) return null;
 
   const languages = [
     { code: "en", name: "English" },
