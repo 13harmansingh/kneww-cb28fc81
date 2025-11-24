@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Region } from "@/data/countries";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const MAPBOX_TOKEN = "pk.eyJ1IjoicjR3Y2xvIiwiYSI6ImNtOHFwNmhzbzBsdXcyanNjcmhjdm9hOGsifQ.7XhOgtfnTOl8qKZZNgMMLw";
 
@@ -13,9 +14,11 @@ interface ContinentMapCardProps {
 export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
-    if (!mapContainer.current) return;
+    // Skip map initialization on mobile to prevent crashes
+    if (isMobile || !mapContainer.current) return;
 
     // Clean up existing map
     if (map.current) {
@@ -66,14 +69,20 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
         map.current = null;
       }
     };
-  }, [region.id, region.coordinates]);
+  }, [region.id, region.coordinates, isMobile]);
 
   return (
     <div
       onClick={onClick}
       className="bg-card border border-border rounded-2xl overflow-hidden cursor-pointer hover:border-accent transition-all group"
     >
-      <div ref={mapContainer} className="h-56 w-full" />
+      {isMobile ? (
+        <div className="h-56 w-full bg-gradient-to-br from-accent/20 via-primary/10 to-background flex items-center justify-center">
+          <span className="text-6xl">{region.icon}</span>
+        </div>
+      ) : (
+        <div ref={mapContainer} className="h-56 w-full" />
+      )}
       <div className="p-6">
         <div className="flex items-center gap-3 mb-2">
           <span className="text-4xl">{region.icon}</span>
