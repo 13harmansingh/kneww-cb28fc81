@@ -146,7 +146,7 @@ const Index = () => {
     }
   }, [searchParams]);
 
-  // Fetch user's principal language
+  // Fetch user's principal language and sync with global store
   useEffect(() => {
     const fetchUserLanguage = async () => {
       if (user) {
@@ -156,11 +156,12 @@ const Index = () => {
         if (data?.principal_language) {
           setUserLanguage(data.principal_language);
           setSelectedLanguage(data.principal_language);
+          setGlobalSelectedLanguage(data.principal_language);
         }
       }
     };
     fetchUserLanguage();
-  }, [user]);
+  }, [user, setGlobalSelectedLanguage]);
 
   // Sync local state with global state on changes
   useEffect(() => {
@@ -491,9 +492,15 @@ const Index = () => {
                   name="All Languages" 
                   count={news.length} 
                   isActive={selectedLanguage === 'all'} 
-                  onClick={() => setSelectedLanguage('all')} 
+                  onClick={() => {
+                    setSelectedLanguage('all');
+                    setGlobalSelectedLanguage('all');
+                  }} 
                 />
-                {availableLanguages.map(lang => <LanguagePill key={lang.code} code={lang.code} name={lang.name} count={lang.count} isActive={selectedLanguage === lang.code} onClick={() => setSelectedLanguage(lang.code)} />)}
+                {availableLanguages.map(lang => <LanguagePill key={lang.code} code={lang.code} name={lang.name} count={lang.count} isActive={selectedLanguage === lang.code} onClick={() => {
+                  setSelectedLanguage(lang.code);
+                  setGlobalSelectedLanguage(lang.code);
+                }} />)}
               </div>
             </div>}
 
@@ -761,9 +768,15 @@ const Index = () => {
                   name="All Languages" 
                   count={news.length} 
                   isActive={selectedLanguage === 'all'} 
-                  onClick={() => setSelectedLanguage('all')} 
+                  onClick={() => {
+                    setSelectedLanguage('all');
+                    setGlobalSelectedLanguage('all');
+                  }} 
                 />
-                {availableLanguages.map(lang => <LanguagePill key={lang.code} code={lang.code} name={lang.name} count={lang.count} isActive={selectedLanguage === lang.code} onClick={() => setSelectedLanguage(lang.code)} />)}
+                {availableLanguages.map(lang => <LanguagePill key={lang.code} code={lang.code} name={lang.name} count={lang.count} isActive={selectedLanguage === lang.code} onClick={() => {
+                  setSelectedLanguage(lang.code);
+                  setGlobalSelectedLanguage(lang.code);
+                }} />)}
               </div>
             </div>}
 

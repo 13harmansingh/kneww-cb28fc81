@@ -3,12 +3,14 @@ import { useAuth } from './useAuth';
 import { useRequestDedupe } from './useRequestDedupe';
 import { translateArticle } from '@/api/translation';
 import { NewsArticle } from '@/config/types';
+import { useAppState } from '@/stores/appState';
 
 export function useTranslate() {
   const [translating, setTranslating] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
   const { session } = useAuth();
   const { executeRequest, cancelAll } = useRequestDedupe();
+  const { getCachedTranslation, setCachedTranslation } = useAppState();
 
   const translate = useCallback(async (
     article: NewsArticle,
@@ -16,6 +18,23 @@ export function useTranslate() {
   ): Promise<NewsArticle | null> => {
     if (!session) return null;
 
+    // Check cache first
+    const cached = getCachedTranslation(article.id, targetLanguage);
+    if (cached) {
+      console.log(`✅ Translation cache HIT for article ${article.id} (${targetLanguage})`);
+      return {
+        ...article,
+        title: cached.title || article.title,
+        text: cached.text || article.text,
+        summary: cached.summary || article.summary,
+        bias: cached.bias || article.bias,
+        ownership: cached.ownership || article.ownership,
+        claims: cached.claims || article.claims,
+        language: cached.language,
+      };
+    }
+
+    console.log(`❌ Translation cache MISS for article ${article.id} (${targetLanguage})`);
     setTranslating(prev => ({ ...prev, [article.id]: true }));
     setError(null);
 
@@ -43,14 +62,30 @@ export function useTranslate() {
           throw new Error('No translation data returned');
         }
 
-        return {
+        const translatedArticle = {
           ...article,
           title: response.data.title,
           text: response.data.text,
           summary: response.data.summary || article.summary,
           bias: response.data.bias || article.bias,
           ownership: response.data.ownership || article.ownership,
+          language: targetLanguage,
         };
+
+        // Cache the translation
+        setCachedTranslation(article.id, targetLanguage, {
+          title: translatedArticle.title,
+          text: translatedArticle.text,
+          summary: translatedArticle.summary,
+          bias: translatedArticle.bias,
+          ownership: translatedArticle.ownership,
+          claims: translatedArticle.claims,
+          language: targetLanguage,
+        });
+
+        console.log(`📦 Cached translation for article ${article.id} (${targetLanguage})`);
+
+        return translatedArticle;
       });
 
       return result;
@@ -61,7 +96,7 @@ export function useTranslate() {
     } finally {
       setTranslating(prev => ({ ...prev, [article.id]: false }));
     }
-  }, [session, executeRequest]);
+  }, [session, executeRequest, getCachedTranslation, setCachedTranslation]);
 
   return {
     translate,
