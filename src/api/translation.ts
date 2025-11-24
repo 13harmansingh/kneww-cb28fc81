@@ -12,7 +12,6 @@ interface TranslateArticleParams {
   summary?: string;
   bias?: string;
   ownership?: string;
-  claims?: Array<{ text: string; verification: string; explanation: string }>;
   targetLanguage: string;
 }
 

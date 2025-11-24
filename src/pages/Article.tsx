@@ -59,7 +59,7 @@ export default function Article() {
 
   return (
     <div className="min-h-screen bg-background pb-6">
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur pt-[max(0.5rem,env(safe-area-inset-top))] border-b border-border">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
         <div className="flex items-center justify-between p-4">
           <button 
             onClick={() => navigate(-1)} 

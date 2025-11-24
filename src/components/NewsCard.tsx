@@ -239,79 +239,8 @@ export const NewsCard = ({
               <div className="w-full h-full bg-gradient-to-br from-teal-400 via-cyan-500 to-blue-500" />
             )}
           </div>
-          <div className="mt-3 space-y-3">
+          <div className="mt-3 space-y-2">
             <h3 className="text-white font-medium line-clamp-3 leading-snug">{title}</h3>
-            
-            {/* AI Analysis Section */}
-            {(isAnalyzing || bias || summary || sentiment || (claims && claims.length > 0)) && (
-              <div className="space-y-2 pt-2 border-t border-border/20">
-                {isAnalyzing ? (
-                  <div className="space-y-2 animate-pulse">
-                    <div className="h-4 bg-muted/20 rounded w-3/4" />
-                    <div className="h-3 bg-muted/20 rounded w-full" />
-                    <div className="h-3 bg-muted/20 rounded w-5/6" />
-                  </div>
-                ) : (
-                  <>
-                    {/* Bias Badge */}
-                    {bias && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">Bias:</span>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary">
-                          {bias}
-                        </span>
-                      </div>
-                    )}
-                    
-                    {/* Sentiment Badge */}
-                    {sentiment && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">Sentiment:</span>
-                        <span className={cn(
-                          "text-xs px-2 py-0.5 rounded-full",
-                          sentiment === 'positive' && "bg-green-500/20 text-green-400",
-                          sentiment === 'negative' && "bg-red-500/20 text-red-400",
-                          sentiment === 'neutral' && "bg-gray-500/20 text-gray-400"
-                        )}>
-                          {sentiment}
-                        </span>
-                      </div>
-                    )}
-                    
-                    {/* Summary */}
-                    {summary && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {summary}
-                      </p>
-                    )}
-                    
-                    {/* Fact Check Claims */}
-                    {claims && claims.length > 0 && (
-                      <div className="space-y-1">
-                        <span className="text-xs text-muted-foreground">Fact Checks:</span>
-                        {claims.slice(0, 2).map((claim: any, idx: number) => (
-                          <div key={idx} className="flex items-start gap-1.5">
-                            <span className={cn(
-                              "text-xs mt-0.5 flex-shrink-0",
-                              claim.verification === 'verified' && "text-green-400",
-                              claim.verification === 'false' && "text-red-400",
-                              claim.verification === 'unverified' && "text-yellow-400"
-                            )}>
-                              {claim.verification === 'verified' ? '✓' : 
-                               claim.verification === 'false' ? '✗' : '?'}
-                            </span>
-                            <span className="text-xs text-muted-foreground line-clamp-1">
-                              {claim.text}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            )}
-            
             <div className="flex items-center justify-between">
               <span className="text-accent text-sm">Read more</span>
               <button 

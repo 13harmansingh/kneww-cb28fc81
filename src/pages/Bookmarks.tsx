@@ -89,7 +89,7 @@ export default function Bookmarks() {
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Fixed Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-4 border-b border-border/50">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur px-4 pt-6 pb-4 border-b border-border/50">
         <h1 className="text-3xl font-bold text-white">My Bookmarks</h1>
       </div>
       

@@ -72,7 +72,6 @@ export interface TranslationResponse {
   summary?: string;
   bias?: string;
   ownership?: string;
-  claims?: Array<{ text: string; verification: string; explanation: string }>;
 }
 
 export interface AISearchResponse {
