@@ -1,6 +1,13 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 const MODEL_VERSION = 'gemini_2.5_flash_v1';
+const NEWS_CACHE_TTL = 10 * 60 * 1000; // 10 minutes in milliseconds
+
+// In-memory cache for WorldNews API responses (shared across all users)
+const newsCache = new Map<string, {
+  data: any;
+  expiresAt: number;
+}>();
 
 // Simple hash function for article URLs
 function hashString(str: string): string {
@@ -81,5 +88,60 @@ export async function setCachedAnalysis(
   } catch (error) {
     console.error('Cache write error:', error);
     // Don't throw - cache failures shouldn't break the main flow
+  }
+}
+
+// WorldNews API Response Caching
+export interface NewsQueryParams {
+  textQuery?: string;
+  entities?: string;
+  category?: string;
+  language?: string;
+  source_country?: string;
+  source_countries?: string;
+}
+
+export function generateNewsCacheKey(params: NewsQueryParams): string {
+  // Create a deterministic key from query parameters
+  const parts = [
+    params.textQuery || '',
+    params.entities || '',
+    params.category || 'all',
+    params.language || 'all',
+    params.source_countries || params.source_country || 'us',
+  ];
+  return hashString(parts.join('|'));
+}
+
+export function getCachedNewsResponse(cacheKey: string): any | null {
+  const cached = newsCache.get(cacheKey);
+  
+  if (!cached) {
+    return null;
+  }
+  
+  // Check if expired
+  if (Date.now() > cached.expiresAt) {
+    newsCache.delete(cacheKey);
+    return null;
+  }
+  
+  return cached.data;
+}
+
+export function setCachedNewsResponse(cacheKey: string, data: any): void {
+  newsCache.set(cacheKey, {
+    data,
+    expiresAt: Date.now() + NEWS_CACHE_TTL,
+  });
+  
+  // Cleanup old entries periodically (keep cache size manageable)
+  if (newsCache.size > 100) {
+    const now = Date.now();
+    for (const [key, value] of newsCache.entries()) {
+      if (now > value.expiresAt) {
+        newsCache.delete(key);
+      }
+    }
   }
 }

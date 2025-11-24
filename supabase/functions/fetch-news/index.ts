@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateAuth, getClientIP } from '../_shared/auth.ts';
 import { applyRateLimit } from '../_shared/rateLimit.ts';
 import { logEvent, TelemetryEvents } from '../_shared/telemetry.ts';
+import { generateNewsCacheKey, getCachedNewsResponse, setCachedNewsResponse } from '../_shared/cache.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -119,13 +120,44 @@ serve(async (req) => {
       throw new Error('WORLDNEWS_API_KEY not configured');
     }
 
+    const textQuery = searchText || state;
     console.log('Fetching news for:', { state, category, language, source_country, source_countries, searchText, entities });
+
+    // Generate cache key for this request
+    const cacheKey = generateNewsCacheKey({
+      textQuery,
+      entities,
+      category,
+      language,
+      source_country,
+      source_countries,
+    });
+
+    // Check cache first
+    const cachedResponse = getCachedNewsResponse(cacheKey);
+    if (cachedResponse) {
+      console.log('✅ Cache HIT - Returning cached news response');
+      
+      await logEvent({
+        eventType: TelemetryEvents.CACHE_HIT,
+        userId: user.id,
+        endpoint: 'fetch-news',
+        metadata: { 
+          cacheKey,
+          articleCount: cachedResponse.news?.length || 0,
+        },
+      });
+
+      return new Response(JSON.stringify(cachedResponse), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('❌ Cache MISS - Fetching from WorldNews API');
 
     // Build the API URL with parameters
     const apiUrl = new URL('https://api.worldnewsapi.com/search-news');
     
-    // Use searchText from AI search if available, otherwise use state
-    const textQuery = searchText || state;
     if (textQuery) {
       apiUrl.searchParams.append('text', textQuery);
     }
@@ -256,6 +288,21 @@ serve(async (req) => {
       news: prioritizedArticles,
       status: articles.length === 0 ? 'empty' : available_languages.length > 0 ? 'success' : 'partial',
     };
+
+    // Cache the response for 10 minutes (shared across all users)
+    setCachedNewsResponse(cacheKey, responseData);
+    console.log('📦 Cached news response for 10 minutes');
+
+    await logEvent({
+      eventType: TelemetryEvents.CACHE_MISS,
+      userId: user.id,
+      endpoint: 'fetch-news',
+      metadata: { 
+        cacheKey,
+        articleCount: articles.length,
+        cached: true,
+      },
+    });
 
     return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
