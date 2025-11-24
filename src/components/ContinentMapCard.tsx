@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Region } from "@/data/countries";
@@ -13,9 +13,32 @@ interface ContinentMapCardProps {
 export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     if (!mapContainer.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+            observer.disconnect();
+          }
+        });
+      },
+      { rootMargin: "100px" }
+    );
+
+    observer.observe(mapContainer.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mapContainer.current || !isVisible) return;
 
     // Clean up existing map
     if (map.current) {
@@ -66,14 +89,14 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
         map.current = null;
       }
     };
-  }, [region.id, region.coordinates]);
+  }, [region.id, region.coordinates, isVisible]);
 
   return (
     <div
       onClick={onClick}
       className="bg-card border border-border rounded-2xl overflow-hidden cursor-pointer hover:border-accent transition-all group"
     >
-      <div ref={mapContainer} className="h-56 w-full" />
+      <div ref={mapContainer} className="h-56 w-full bg-muted/20" />
       <div className="p-6">
         <div className="flex items-center gap-3 mb-2">
           <span className="text-4xl">{region.icon}</span>

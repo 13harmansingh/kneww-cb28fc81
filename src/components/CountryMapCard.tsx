@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Country } from "@/data/countries";
@@ -13,9 +13,32 @@ interface CountryMapCardProps {
 export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     if (!mapContainer.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+            observer.disconnect();
+          }
+        });
+      },
+      { rootMargin: "100px" }
+    );
+
+    observer.observe(mapContainer.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mapContainer.current || !isVisible) return;
 
     // Clean up existing map
     if (map.current) {
@@ -46,14 +69,14 @@ export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
         map.current = null;
       }
     };
-  }, [country.code]);
+  }, [country.code, isVisible]);
 
   return (
     <div
       onClick={onClick}
       className="bg-card border border-border rounded-2xl overflow-hidden cursor-pointer hover:border-accent transition-all group"
     >
-      <div ref={mapContainer} className="h-48 w-full" />
+      <div ref={mapContainer} className="h-48 w-full bg-muted/20" />
       <div className="p-4">
         <h3 className="text-lg font-semibold text-white group-hover:text-accent transition">
           {country.name}
