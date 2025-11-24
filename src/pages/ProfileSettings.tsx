@@ -9,6 +9,8 @@ import { BottomNav } from "@/components/BottomNav";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { SwipeIndicator } from "@/components/SwipeIndicator";
+import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 
 interface Profile {
   id: string;
@@ -30,6 +32,11 @@ export default function ProfileSettings() {
 
   // Guard: ensure router context exists
   if (!location) return null;
+
+  // Swipe navigation
+  const { swipeProgress, swipeDirection } = useSwipeNavigation({
+    enabled: true,
+  });
 
   const languages = [
     { code: "en", name: "English" },
@@ -356,6 +363,9 @@ export default function ProfileSettings() {
           </button>
         </div>
       </div>
+
+      {/* Swipe Navigation Indicator */}
+      <SwipeIndicator progress={swipeProgress} direction={swipeDirection} />
 
       <BottomNav />
     </div>

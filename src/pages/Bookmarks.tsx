@@ -6,6 +6,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { NewsCardSkeleton } from "@/components/skeletons/NewsCardSkeleton";
+import { SwipeIndicator } from "@/components/SwipeIndicator";
+import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 
 interface Bookmark {
   id: string;
@@ -29,6 +31,11 @@ export default function Bookmarks() {
 
   // Guard: ensure router context exists
   if (!location) return null;
+
+  // Swipe navigation
+  const { swipeProgress, swipeDirection } = useSwipeNavigation({
+    enabled: true,
+  });
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -112,6 +119,10 @@ export default function Bookmarks() {
           )}
         </div>
       </div>
+      
+      {/* Swipe Navigation Indicator */}
+      <SwipeIndicator progress={swipeProgress} direction={swipeDirection} />
+      
       <BottomNav />
     </div>
   );
