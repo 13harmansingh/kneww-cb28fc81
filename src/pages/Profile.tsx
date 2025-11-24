@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Loader2, Camera, User, Mail, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
@@ -14,6 +14,7 @@ interface Profile {
 }
 
 export default function Profile() {
+  const location = useLocation();
   const { user, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -22,6 +23,9 @@ export default function Profile() {
   const [principalLanguage, setPrincipalLanguage] = useState("en");
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
+
+  // Guard: ensure router context exists
+  if (!location) return null;
 
   const languages = [
     { code: "en", name: "English" },

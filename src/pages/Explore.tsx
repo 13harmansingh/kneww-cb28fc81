@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { BottomNav } from "@/components/BottomNav";
@@ -8,10 +8,14 @@ import { toast } from "sonner";
 const MAPBOX_TOKEN = "pk.eyJ1IjoicjR3Y2xvIiwiYSI6ImNtOHFwNmhzbzBsdXcyanNjcmhjdm9hOGsifQ.7XhOgtfnTOl8qKZZNgMMLw";
 
 const Explore = () => {
+  const location = useLocation();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Guard: ensure router context exists
+  if (!location) return null;
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;

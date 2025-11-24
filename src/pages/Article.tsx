@@ -1,9 +1,13 @@
 import { ArrowLeft, Bookmark, MoreVertical } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 export default function Article() {
+  const location = useLocation();
   const navigate = useNavigate();
   const { id } = useParams();
+
+  // Guard: ensure router context exists
+  if (!location) return null;
 
   return (
     <div className="min-h-screen bg-background pb-6">

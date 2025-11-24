@@ -3,7 +3,7 @@
  */
 
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useGlobalApiStatus } from '@/stores/globalApiStatus';
 import { toast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -11,8 +11,12 @@ import { ERROR_MESSAGES } from '@/config/constants';
 import { Button } from '@/components/ui/button';
 
 export function GlobalAPIStatus() {
+  const location = useLocation();
   const navigate = useNavigate();
   const { isRateLimited, authError, serverError, loading, reset } = useGlobalApiStatus();
+
+  // Guard: ensure router context exists
+  if (!location) return null;
 
   // Handle rate limit
   useEffect(() => {

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 interface NewsCardProps {
   id: string;
@@ -35,10 +35,14 @@ export const NewsCard = ({
   sentiment,
   claims
 }: NewsCardProps) => {
+  const location = useLocation();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Guard: ensure router context exists
+  if (!location) return null;
 
   useEffect(() => {
     if (user && url) {

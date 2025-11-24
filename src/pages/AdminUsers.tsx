@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole, AppRole } from "@/hooks/useUserRole";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Shield, Ban, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -25,11 +25,15 @@ interface UserWithRole {
 }
 
 export default function AdminUsers() {
+  const location = useLocation();
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, loading: roleLoading } = useUserRole();
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  // Guard: ensure router context exists
+  if (!location) return null;
 
   useEffect(() => {
     if (!authLoading && !roleLoading && (!user || !isAdmin)) {

@@ -8,10 +8,13 @@ import { toast } from "sonner";
 import { NewsCardSkeleton } from "@/components/skeletons/NewsCardSkeleton";
 
 export default function Compare() {
-  const navigate = useNavigate();
   const location = useLocation();
+  const navigate = useNavigate();
   const article = location.state?.article as NewsArticle | undefined;
   const { session } = useAuth();
+  
+  // Guard: ensure router context exists
+  if (!location) return null;
   
   const [relatedArticles, setRelatedArticles] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(false);

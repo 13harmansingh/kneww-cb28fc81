@@ -1,6 +1,6 @@
 import { Search, Bell, ArrowRight, MapPin, Scale, Bookmark, Globe, Languages, Sparkles, Loader2, ChevronLeft, CheckCircle2, Flag } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { NotificationBell } from "@/components/NotificationBell";
 import { NewsCard } from "@/components/NewsCard";
@@ -26,6 +26,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { usePageState } from "@/hooks/usePageState";
 const Index = () => {
+  const routerLocation = useLocation();
   const [searchParams] = useSearchParams();
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
@@ -47,6 +48,9 @@ const Index = () => {
   } | undefined>(undefined);
   const [stateRestored, setStateRestored] = useState(false);
   const navigate = useNavigate();
+
+  // Guard: ensure router context exists
+  if (!routerLocation) return null;
 
   // Page state persistence hook
   const {

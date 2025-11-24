@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Loader2 } from "lucide-react";
@@ -10,9 +10,13 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps) => {
+  const location = useLocation();
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isBanned, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
+
+  // Guard: ensure router context exists
+  if (!location) return null;
 
   useEffect(() => {
     if (authLoading || roleLoading) return;
