@@ -113,7 +113,22 @@ export const NewsCard = ({
   };
 
   return (
-    <Link to={`/article/${id}`}>
+    <Link 
+      to={`/article/${id}`}
+      state={{ 
+        article: {
+          id,
+          title,
+          image,
+          url,
+          bias,
+          summary,
+          ownership,
+          sentiment,
+          claims
+        }
+      }}
+    >
       <div className={cn(
         "flex-shrink-0 rounded-2xl overflow-hidden",
         size === "large" ? "w-80" : "w-60"
