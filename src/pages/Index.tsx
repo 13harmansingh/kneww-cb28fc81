@@ -52,12 +52,12 @@ const Index = () => {
   // Guard: ensure router context exists
   if (!routerLocation) return null;
 
-  // Page state persistence hook
+  // Page state persistence hook - exclude translatedNews to prevent infinite loops
   const {
     getStoredState,
     restoreScrollPosition,
     setIsRestoring
-  } = usePageState('index-page', {}, [selectedRegion, selectedCountry, selectedCountryName, selectedState, selectedCategory, selectedLanguage, aiSearchMode, aiSearchQuery, aiSearchParams, translatedNews]);
+  } = usePageState('index-page', {}, [selectedRegion, selectedCountry, selectedCountryName, selectedState, selectedCategory, selectedLanguage, aiSearchMode, aiSearchQuery, aiSearchParams]);
   const {
     user,
     session,
@@ -138,7 +138,7 @@ const Index = () => {
     if (storedState && !stateRestored && !searchParams.get("country")) {
       setIsRestoring(true);
 
-      // Restore all state with type safety
+      // Restore all state with type safety (excluding translatedNews to prevent loops)
       const state = storedState as any;
       if (state.dep_0 !== undefined) setSelectedRegion(state.dep_0);
       if (state.dep_1 !== undefined) setSelectedCountry(state.dep_1);
@@ -149,34 +149,18 @@ const Index = () => {
       if (state.dep_6 !== undefined) setAiSearchMode(state.dep_6);
       if (state.dep_7 !== undefined) setAiSearchQuery(state.dep_7);
       if (state.dep_8 !== undefined) setAiSearchParams(state.dep_8);
-      if (state.dep_9 !== undefined) setTranslatedNews(state.dep_9);
       setStateRestored(true);
 
-      // Restore scroll after a short delay to ensure content is rendered
+      // Restore scroll after content renders
       setTimeout(() => {
         setIsRestoring(false);
         if (state.scrollPosition) {
           restoreScrollPosition(state.scrollPosition);
         }
-      }, 200);
+      }, 300);
     }
   }, [getStoredState, stateRestored, searchParams, setIsRestoring, restoreScrollPosition]);
 
-  // Restore scroll position after news loads
-  useEffect(() => {
-    if (stateRestored && !loading && filteredNews.length > 0) {
-      const storedState = getStoredState();
-      if (storedState) {
-        const state = storedState as any;
-        if (state.scrollPosition) {
-          // Additional scroll restoration after content loads
-          setTimeout(() => {
-            restoreScrollPosition(state.scrollPosition);
-          }, 300);
-        }
-      }
-    }
-  }, [stateRestored, loading, filteredNews.length, getStoredState, restoreScrollPosition]);
   const filteredRegions = REGIONS.filter(region => region.name.toLowerCase().includes(searchQuery.toLowerCase()));
   const filteredCountries = selectedRegion ? getCountriesByRegion(selectedRegion).filter(country => country.name.toLowerCase().includes(searchQuery.toLowerCase())) : [];
 
