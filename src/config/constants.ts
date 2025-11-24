@@ -52,4 +52,5 @@ export const EDGE_FUNCTIONS = {
   TRANSLATE_ARTICLE: 'translate-article',
   AI_SEARCH_NEWS: 'ai-search-news',
   FETCH_RELATED_NEWS: 'fetch-related-news',
+  ADMIN_GET_USERS: 'admin-get-users',
 } as const;

@@ -2,6 +2,26 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 import { AuthResult } from './auth.ts';
 import { logEvent, TelemetryEvents } from './telemetry.ts';
 
+export type AppRole = 'admin' | 'user' | 'editor';
+
+export async function requireRole(
+  supabaseClient: any,
+  userId: string,
+  requiredRole: AppRole
+): Promise<string | null> {
+  const { data, error } = await supabaseClient
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', userId)
+    .single();
+
+  if (error || !data || data.role !== requiredRole) {
+    return `Required role: ${requiredRole}`;
+  }
+
+  return null;
+}
+
 export async function requireAdmin(authResult: AuthResult, endpoint: string): Promise<boolean> {
   if (!authResult.user) {
     await logEvent({

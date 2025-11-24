@@ -15,6 +15,7 @@ const endpointLimits: Record<string, RateLimitConfig> = {
   'translate-article': { userLimit: 20, ipLimit: 40, windowMs: 60000 },
   'ai-search-news': { userLimit: 8, ipLimit: 20, windowMs: 60000 },
   'fetch-related-news': { userLimit: 10, ipLimit: 25, windowMs: 60000 },
+  'admin-get-users': { userLimit: 10, ipLimit: 10, windowMs: 60000 },
 };
 
 function checkLimit(
