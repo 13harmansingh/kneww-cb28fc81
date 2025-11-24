@@ -14,6 +14,7 @@ interface TranslateRequest {
   summary?: string;
   bias?: string;
   ownership?: string;
+  claims?: Array<{ text: string; verification: string; explanation: string }>;
   targetLanguage: string;
 }
 
@@ -81,7 +82,7 @@ serve(async (req) => {
       });
     }
 
-    const { title, text, summary, bias, ownership, targetLanguage } = requestData;
+    const { title, text, summary, bias, ownership, claims, targetLanguage } = requestData;
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {
@@ -117,10 +118,16 @@ serve(async (req) => {
       ...(summary && { summary }),
       ...(bias && { bias }),
       ...(ownership && { ownership }),
+      ...(claims && { claims }),
     };
 
     const prompt = `Translate the following news article content to ${targetLangName}. 
 Maintain the original meaning and tone. Return ONLY valid JSON with the same structure, translating the values.
+
+IMPORTANT for claims array:
+- Translate the "text" field (the claim statement)
+- Translate the "explanation" field (the explanation of verification)
+- Keep the "verification" field UNCHANGED (verified/false/unverified)
 
 Content to translate:
 ${JSON.stringify(contentToTranslate, null, 2)}
@@ -131,7 +138,8 @@ Return format:
   ${text ? '"text": "translated text",' : ''}
   ${summary ? '"summary": "translated summary",' : ''}
   ${bias ? '"bias": "translated bias",' : ''}
-  ${ownership ? '"ownership": "translated ownership"' : ''}
+  ${ownership ? '"ownership": "translated ownership",' : ''}
+  ${claims ? '"claims": [{"text": "translated claim", "verification": "verified", "explanation": "translated explanation"}]' : ''}
 }`;
 
     console.log('Translating to:', targetLangName, 'for user:', user.id);

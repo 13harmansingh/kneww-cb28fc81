@@ -33,6 +33,7 @@ export const useLazyAnalysis = (
   const performAnalysis = useCallback(async () => {
     if (!articleText || !articleUrl || hasStartedRef.current) return;
     
+    console.log(`📊 [useLazyAnalysis] Article ${articleId} entered viewport - starting analysis`);
     hasStartedRef.current = true;
 
     // Check memory cache
@@ -60,13 +61,16 @@ export const useLazyAnalysis = (
         .single();
 
       if (cacheData?.analysis) {
+        console.log(`✅ [useLazyAnalysis] Cache HIT for article ${articleId}`);
         const result = cacheData.analysis as AnalysisResult;
         analysisCache.set(articleUrl, result);
         setAnalysis(result);
         return;
       }
+      
+      console.log(`❌ [useLazyAnalysis] Cache MISS for article ${articleId} - will analyze`);
     } catch (error) {
-      // Cache miss, continue to analysis
+      console.log(`⚠️ [useLazyAnalysis] Cache check failed for article ${articleId}:`, error);
     }
 
     // Start analysis
@@ -81,7 +85,7 @@ export const useLazyAnalysis = (
         });
 
         if (response.error) {
-          console.error('Analysis error:', response.error);
+          console.error(`❌ [useLazyAnalysis] Analysis error for ${articleId}:`, response.error);
           return { analyzing: false };
         }
 
@@ -93,6 +97,12 @@ export const useLazyAnalysis = (
           claims: response.data?.claims,
           analyzing: false,
         };
+
+        console.log(`✅ [useLazyAnalysis] Analysis complete for ${articleId}:`, {
+          bias: result.bias,
+          sentiment: result.sentiment,
+          claimsCount: result.claims?.length || 0
+        });
 
         analysisCache.set(articleUrl, result);
         return result;

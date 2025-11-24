@@ -49,6 +49,7 @@ export function useTranslate() {
             summary: article.summary,
             bias: article.bias,
             ownership: article.ownership,
+            claims: article.claims,
             targetLanguage,
           },
           { signal }
@@ -69,6 +70,7 @@ export function useTranslate() {
           summary: response.data.summary || article.summary,
           bias: response.data.bias || article.bias,
           ownership: response.data.ownership || article.ownership,
+          claims: response.data.claims || article.claims,
           language: targetLanguage,
         };
 
