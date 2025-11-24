@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { SwipeIndicator } from "@/components/SwipeIndicator";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 interface Profile {
   id: string;
@@ -32,6 +33,9 @@ export default function ProfileSettings() {
 
   // Guard: ensure router context exists
   if (!location) return null;
+
+  // Scroll position restoration
+  useScrollRestoration({ pageKey: 'profile-settings-page', enabled: true });
 
   // Swipe navigation
   const { swipeProgress, swipeDirection } = useSwipeNavigation({

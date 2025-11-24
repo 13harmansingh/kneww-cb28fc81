@@ -4,6 +4,7 @@ import { useArticleBookmark } from "@/hooks/useArticleBookmark";
 import { SentimentBadge } from "@/components/SentimentBadge";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 interface ArticleData {
   id: string;
@@ -24,6 +25,9 @@ export default function Article() {
 
   // Guard: ensure router context exists
   if (!location) return null;
+
+  // Scroll position restoration
+  useScrollRestoration({ pageKey: `article-${articleData?.id || 'unknown'}`, enabled: !!articleData });
 
   if (!articleData) {
     return (

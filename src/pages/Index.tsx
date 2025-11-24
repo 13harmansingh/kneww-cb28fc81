@@ -26,18 +26,35 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
-import { usePageState } from "@/hooks/usePageState";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { useAppState } from "@/stores/appState";
+
 const Index = () => {
   const routerLocation = useLocation();
   const [searchParams] = useSearchParams();
-  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const navigate = useNavigate();
+  
+  // Global app state with persistence
+  const {
+    selectedRegion: globalSelectedRegion,
+    selectedCountry: globalSelectedCountry,
+    selectedState: globalSelectedState,
+    selectedLanguage: globalSelectedLanguage,
+    setSelectedRegion: setGlobalSelectedRegion,
+    setSelectedCountry: setGlobalSelectedCountry,
+    setSelectedState: setGlobalSelectedState,
+    setSelectedLanguage: setGlobalSelectedLanguage,
+  } = useAppState();
+  
+  // Local state (mirrors global state for component logic)
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(globalSelectedRegion);
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(globalSelectedCountry);
   const [selectedCountryName, setSelectedCountryName] = useState<string | null>(null);
-  const [selectedState, setSelectedState] = useState<string | null>(null);
+  const [selectedState, setSelectedState] = useState<string | null>(globalSelectedState);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedForCompare, setSelectedForCompare] = useState<NewsArticle[]>([]);
-  const [selectedLanguage, setSelectedLanguage] = useState("all");
+  const [selectedLanguage, setSelectedLanguage] = useState(globalSelectedLanguage);
   const [userLanguage, setUserLanguage] = useState("en");
   const [translating, setTranslating] = useState<Record<string, boolean>>({});
   const [translatedNews, setTranslatedNews] = useState<Record<string, Partial<NewsArticle>>>({});
@@ -48,18 +65,12 @@ const Index = () => {
     searchText?: string;
     entities?: string[];
   } | undefined>(undefined);
-  const [stateRestored, setStateRestored] = useState(false);
-  const navigate = useNavigate();
 
   // Guard: ensure router context exists
   if (!routerLocation) return null;
 
-  // Page state persistence hook - exclude translatedNews to prevent infinite loops
-  const {
-    getStoredState,
-    restoreScrollPosition,
-    setIsRestoring
-  } = usePageState('index-page', {}, [selectedRegion, selectedCountry, selectedCountryName, selectedState, selectedCategory, selectedLanguage, aiSearchMode, aiSearchQuery, aiSearchParams]);
+  // Scroll position restoration
+  useScrollRestoration({ pageKey: 'index-page', enabled: true });
   const {
     user,
     session,
@@ -151,34 +162,22 @@ const Index = () => {
     fetchUserLanguage();
   }, [user]);
 
-  // Restore page state on mount (before fetching news)
+  // Sync local state with global state on changes
   useEffect(() => {
-    const storedState = getStoredState();
-    if (storedState && !stateRestored && !searchParams.get("country")) {
-      setIsRestoring(true);
+    setGlobalSelectedRegion(selectedRegion);
+  }, [selectedRegion, setGlobalSelectedRegion]);
 
-      // Restore all state with type safety (excluding translatedNews to prevent loops)
-      const state = storedState as any;
-      if (state.dep_0 !== undefined) setSelectedRegion(state.dep_0);
-      if (state.dep_1 !== undefined) setSelectedCountry(state.dep_1);
-      if (state.dep_2 !== undefined) setSelectedCountryName(state.dep_2);
-      if (state.dep_3 !== undefined) setSelectedState(state.dep_3);
-      if (state.dep_4 !== undefined) setSelectedCategory(state.dep_4);
-      if (state.dep_5 !== undefined) setSelectedLanguage(state.dep_5);
-      if (state.dep_6 !== undefined) setAiSearchMode(state.dep_6);
-      if (state.dep_7 !== undefined) setAiSearchQuery(state.dep_7);
-      if (state.dep_8 !== undefined) setAiSearchParams(state.dep_8);
-      setStateRestored(true);
+  useEffect(() => {
+    setGlobalSelectedCountry(selectedCountry);
+  }, [selectedCountry, setGlobalSelectedCountry]);
 
-      // Restore scroll after content renders
-      setTimeout(() => {
-        setIsRestoring(false);
-        if (state.scrollPosition) {
-          restoreScrollPosition(state.scrollPosition);
-        }
-      }, 300);
-    }
-  }, [getStoredState, stateRestored, searchParams, setIsRestoring, restoreScrollPosition]);
+  useEffect(() => {
+    setGlobalSelectedState(selectedState);
+  }, [selectedState, setGlobalSelectedState]);
+
+  useEffect(() => {
+    setGlobalSelectedLanguage(selectedLanguage);
+  }, [selectedLanguage, setGlobalSelectedLanguage]);
 
   const filteredRegions = REGIONS.filter(region => region.name.toLowerCase().includes(searchQuery.toLowerCase()));
   const filteredCountries = selectedRegion ? getCountriesByRegion(selectedRegion).filter(country => country.name.toLowerCase().includes(searchQuery.toLowerCase())) : [];

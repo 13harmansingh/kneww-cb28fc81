@@ -6,6 +6,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { NewsCardSkeleton } from "@/components/skeletons/NewsCardSkeleton";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { useAppState } from "@/stores/appState";
 import { SwipeIndicator } from "@/components/SwipeIndicator";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 
@@ -31,6 +33,9 @@ export default function Bookmarks() {
 
   // Guard: ensure router context exists
   if (!location) return null;
+
+  // Scroll position restoration
+  useScrollRestoration({ pageKey: 'bookmarks-page', enabled: true });
 
   // Swipe navigation
   const { swipeProgress, swipeDirection } = useSwipeNavigation({
