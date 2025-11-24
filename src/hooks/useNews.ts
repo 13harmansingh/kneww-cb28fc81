@@ -162,81 +162,17 @@ export const useNews = (
           if (signal.aborted) return;
 
           if (data?.news) {
-            const articlesWithAnalysis = data.news.map((article: NewsArticle) => ({
-              ...article,
-              analysisLoading: true,
-              bias: 'Analyzing...',
-              summary: 'AI analysis in progress...',
-              ownership: 'Analyzing...',
-              sentiment: 'neutral' as const,
-              claims: []
-            }));
+            // Return raw articles - AI analysis will be done lazily by NewsCard
+            const articles = data.news as NewsArticle[];
             
-            setNews(articlesWithAnalysis);
+            setNews(articles);
             setAvailableLanguages(data.available_languages || []);
             setDefaultLanguage(data.default_language || 'en');
             
-            // Cache the initial results
-            setCachedNews(debouncedState, debouncedCategory, debouncedLanguage, sourceCountry, articlesWithAnalysis, data.available_languages || [], data.default_language || 'en', sourceCountries);
-
-            // Analyze each article with AI
-            articlesWithAnalysis.forEach(async (article: NewsArticle, index: number) => {
-              if (signal.aborted) return;
-              
-              try {
-                const { data: analysisData, error: analysisError } = await supabase.functions.invoke('analyze-news', {
-                  body: { 
-                    title: article.title,
-                    text: article.text,
-                    url: article.url
-                  },
-                  headers: {
-                    Authorization: `Bearer ${session.access_token}`,
-                  },
-                });
-
-                if (signal.aborted) return;
-
-                if (!analysisError && analysisData) {
-                  setNews(prev => {
-                    const updated = prev.map((a, i) => 
-                      i === index 
-                        ? { 
-                            ...a, 
-                            bias: analysisData.bias,
-                            summary: analysisData.summary,
-                            ownership: analysisData.ownership,
-                            sentiment: analysisData.sentiment,
-                            claims: analysisData.claims,
-                            analysisLoading: false
-                          }
-                        : a
-                    );
-                    
-                    // Update cache with analyzed article
-                    setCachedNews(debouncedState, debouncedCategory, debouncedLanguage, sourceCountry, updated, availableLanguages, defaultLanguage, sourceCountries);
-                    return updated;
-                  });
-                }
-              } catch (err) {
-                if (signal.aborted) return;
-                
-                console.error('Error analyzing article:', err);
-                setNews(prev => prev.map((a, i) => 
-                  i === index 
-                    ? { 
-                        ...a, 
-                        bias: 'Unknown',
-                        summary: a.text?.substring(0, 200) || 'No summary available',
-                        ownership: 'Unknown',
-                        sentiment: 'neutral' as const,
-                        claims: [],
-                        analysisLoading: false
-                      }
-                      : a
-                ));
-              }
-            });
+            // Cache the results
+            setCachedNews(debouncedState, debouncedCategory, debouncedLanguage, sourceCountry, articles, data.available_languages || [], data.default_language || 'en', sourceCountries);
+            
+            console.log(`✅ Fetched ${articles.length} articles - AI analysis will load lazily as you scroll`);
           }
         } catch (error) {
           if (signal.aborted) return;
