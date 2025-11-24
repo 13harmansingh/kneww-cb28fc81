@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { useLongPress } from "@/hooks/useLongPress";
 import { QuickActionsMenu } from "@/components/QuickActionsMenu";
+import { useLazyAnalysis } from "@/hooks/useLazyAnalysis";
 
 interface NewsCardProps {
   id: string;
@@ -35,11 +36,11 @@ export const NewsCard = ({
   size = "large", 
   url, 
   onRefresh,
-  bias,
-  summary,
-  ownership,
-  sentiment,
-  claims,
+  bias: initialBias,
+  summary: initialSummary,
+  ownership: initialOwnership,
+  sentiment: initialSentiment,
+  claims: initialClaims,
   language,
   text,
   userLanguage,
@@ -53,6 +54,22 @@ export const NewsCard = ({
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Lazy AI analysis - only analyzes when card enters viewport
+  const { analysis, observe, isAnalyzing } = useLazyAnalysis(
+    id,
+    url || id,
+    title,
+    text,
+    true // enabled
+  );
+
+  // Use lazy analysis results if available, otherwise fall back to initial props
+  const bias = analysis.bias || initialBias;
+  const summary = analysis.summary || initialSummary;
+  const ownership = analysis.ownership || initialOwnership;
+  const sentiment = analysis.sentiment || initialSentiment;
+  const claims = analysis.claims || initialClaims;
 
   // Guard: ensure router context exists
   if (!location) return null;
@@ -200,6 +217,7 @@ export const NewsCard = ({
           }
         }}
         {...handlers}
+        ref={observe}
         className={cn(
           "block transition-transform",
           isLongPressing && "scale-95"
