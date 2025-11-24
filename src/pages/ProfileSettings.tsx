@@ -154,8 +154,9 @@ export default function ProfileSettings() {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <div className="max-w-2xl mx-auto px-4 pt-8">
-        <div className="flex items-center justify-between mb-8">
+      {/* Fixed Header */}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur px-4 pt-6 pb-4 border-b border-border/50">
+        <div className="flex items-center justify-between max-w-2xl mx-auto">
           <h1 className="text-3xl font-bold text-foreground">Profile & Settings</h1>
           {saving && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -164,7 +165,10 @@ export default function ProfileSettings() {
             </div>
           )}
         </div>
+      </div>
 
+      {/* Scrollable Content */}
+      <div className="max-w-2xl mx-auto px-4 pt-6">
         <div className="space-y-6">
           {/* Profile Section */}
           <div className="bg-card rounded-2xl border border-border p-6 space-y-6">

@@ -389,9 +389,19 @@ const Index = () => {
         <BottomNav />
       </div>;
   }
+  const handleBackNavigation = () => {
+    if (selectedState) {
+      handleBackToStates();
+    } else if (selectedCountry) {
+      handleBackToCountries();
+    } else if (selectedRegion || aiSearchParams) {
+      handleBackToRegions();
+    }
+  };
+
   return <div className="min-h-screen bg-background pb-24">
       {/* Header Search */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur px-4 pt-6 pb-4">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur px-4 pt-6 pb-4 border-b border-border/50">
         <div className="flex items-center gap-3 mb-3">
           <div className="flex-1 relative">
             <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-accent" />
@@ -408,8 +418,17 @@ const Index = () => {
               AI is understanding your query and finding relevant news worldwide...
             </p>
           </div>}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold text-white">KNEW</h1>
+          {(selectedState || selectedCountry || selectedRegion || aiSearchParams) && (
+            <button 
+              onClick={handleBackNavigation}
+              className="ml-auto p-2 rounded-full hover:bg-accent/20 transition"
+              title="Go Back"
+            >
+              <ChevronLeft className="w-5 h-5 text-accent" />
+            </button>
+          )}
           <span className="text-xs text-muted-foreground">Global News Platform</span>
         </div>
       </div>
@@ -457,6 +476,14 @@ const Index = () => {
               </div>
 
               <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+                <LanguagePill 
+                  key="all" 
+                  code="all" 
+                  name="All Languages" 
+                  count={news.length} 
+                  isActive={selectedLanguage === 'all'} 
+                  onClick={() => setSelectedLanguage('all')} 
+                />
                 {availableLanguages.map(lang => <LanguagePill key={lang.code} code={lang.code} name={lang.name} count={lang.count} isActive={selectedLanguage === lang.code} onClick={() => setSelectedLanguage(lang.code)} />)}
               </div>
             </div>}
@@ -710,10 +737,20 @@ const Index = () => {
           {availableLanguages.length > 0 && <div className="px-4 mt-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold text-white">Languages</h2>
-                
+                <p className="text-sm text-muted-foreground">
+                  {filteredNews.length} {filteredNews.length === 1 ? 'article' : 'articles'}
+                </p>
               </div>
 
               <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+                <LanguagePill 
+                  key="all" 
+                  code="all" 
+                  name="All Languages" 
+                  count={news.length} 
+                  isActive={selectedLanguage === 'all'} 
+                  onClick={() => setSelectedLanguage('all')} 
+                />
                 {availableLanguages.map(lang => <LanguagePill key={lang.code} code={lang.code} name={lang.name} count={lang.count} isActive={selectedLanguage === lang.code} onClick={() => setSelectedLanguage(lang.code)} />)}
               </div>
             </div>}
