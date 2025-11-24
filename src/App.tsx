@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -15,13 +16,19 @@ import AdminUsers from "./pages/AdminUsers";
 import Settings from "./pages/Settings";
 import Banned from "./pages/Banned";
 import NotFound from "./pages/NotFound";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { GlobalAPIStatus } from "./components/GlobalAPIStatus";
+import { OfflineBanner } from "./components/OfflineBanner";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <Toaster />
       <Sonner />
+      <GlobalAPIStatus />
+      <OfflineBanner />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />

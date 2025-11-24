@@ -252,6 +252,90 @@ export function useCustomHook(params: Params) {
         
         return response.data;
       });
+      
+      setData(result);
+    } catch (err: any) {
+      if (!err.message.includes('aborted')) {
+        setError(err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [params, executeRequest]);
+
+  useEffect(() => {
+    load();
+    return () => cancelAll();
+  }, [load, cancelAll]);
+
+  return { data, loading, error, reload: load, cancel: cancelAll };
+}
+```
+
+## Error Handling
+
+### Error Boundary
+- Catches React component errors at the top level
+- Displays user-friendly error UI with retry option
+- Logs errors to telemetry system automatically
+- Provides navigation back to home
+
+### API Error Handling
+```typescript
+// Automatic error detection in API client
+if (response.status === 'rate_limited') {
+  globalStore.setRateLimited(true);
+}
+if (response.status === 'auth_error') {
+  globalStore.setAuthError(true);
+}
+```
+
+### Network Errors
+- Offline detection with persistent banner
+- Automatic retry mechanism when connection restored
+- Graceful degradation with cached data fallback
+- User-friendly error messages with retry buttons
+
+### Empty States
+- Custom empty state component for no data scenarios
+- Clear call-to-action for user recovery
+- Contextual icons and messaging
+
+## Performance Optimization
+
+### Bundle Optimization
+- Code splitting by route (lazy loading)
+- Tree shaking of unused code
+- Minimal vendor bundle size
+
+### Runtime Performance
+- **Request Deduplication**: Prevents duplicate API calls
+- **Debouncing**: 500ms debounce on user input
+- **Memoization**: useMemo/useCallback for expensive computations
+- **Throttling**: Minimum 1.5s between news API requests
+
+### Loading Strategy
+- Skeleton screens for better perceived performance
+- Optimistic UI updates where appropriate
+- Prefetch on hover for article links (future)
+- Progressive loading of images
+
+### Caching Strategy
+- **Session Storage**: Page state restoration
+- **Local Storage**: User preferences
+- **Supabase Cache**: Persistent AI analysis cache (24h TTL)
+- **In-Memory**: Request deduplication cache
+
+### Web Vitals Monitoring
+- Automatic tracking of Core Web Vitals in development
+- LCP (Largest Contentful Paint) monitoring
+- FID (First Input Delay) tracking
+- CLS (Cumulative Layout Shift) detection
+        }
+        
+        return response.data;
+      });
 
       setData(result);
     } catch (err: any) {

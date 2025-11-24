@@ -8,6 +8,7 @@ import { useGlobalApiStatus } from '@/stores/globalApiStatus';
 import { toast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { ERROR_MESSAGES } from '@/config/constants';
+import { Button } from '@/components/ui/button';
 
 export function GlobalAPIStatus() {
   const navigate = useNavigate();
@@ -58,15 +59,16 @@ export function GlobalAPIStatus() {
         description: serverError,
         variant: 'destructive',
         action: (
-          <button
+          <Button
             onClick={() => {
               reset();
               window.location.reload();
             }}
-            className="text-sm font-medium"
+            variant="outline"
+            size="sm"
           >
             Retry
-          </button>
+          </Button>
         ),
       });
     }
