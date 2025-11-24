@@ -94,7 +94,7 @@ const Explore = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur px-4 pt-6 pb-4">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-4">
         <h1 className="text-3xl font-bold text-white mb-2">Explore World News</h1>
         <p className="text-muted-foreground">Click anywhere on the map to discover local news</p>
       </div>

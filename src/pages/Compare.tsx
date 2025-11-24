@@ -165,7 +165,7 @@ export default function Compare() {
 
   return (
     <div className="min-h-screen bg-background pb-6">
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur pt-[max(0.5rem,env(safe-area-inset-top))] border-b border-border">
         <div className="flex items-center gap-4 p-4">
           <button onClick={() => navigate(-1)} className="text-white">
             <ArrowLeft className="w-6 h-6" />
