@@ -1,4 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { validateAuth, getClientIP } from '../_shared/auth.ts';
+import { applyRateLimit } from '../_shared/rateLimit.ts';
+import { logEvent, TelemetryEvents } from '../_shared/telemetry.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,7 +13,41 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const startTime = Date.now();
+  const clientIP = getClientIP(req);
+
   try {
+    // Validate authentication
+    const { user, error: authError } = await validateAuth(req);
+    if (authError || !user) {
+      await logEvent({
+        eventType: TelemetryEvents.AUTH_FAILURE,
+        endpoint: 'ai-search-news',
+        metadata: { ip: clientIP, error: authError },
+      });
+
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Apply rate limiting
+    const rateLimitResult = applyRateLimit(user.id, clientIP, 'ai-search-news');
+    if (!rateLimitResult.allowed) {
+      await logEvent({
+        eventType: TelemetryEvents.RATE_LIMIT,
+        userId: user.id,
+        endpoint: 'ai-search-news',
+        metadata: { ip: clientIP },
+      });
+
+      return new Response(JSON.stringify({ error: rateLimitResult.error }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { query, language = 'en' } = await req.json();
 
     if (!query || typeof query !== 'string' || query.length < 2) {

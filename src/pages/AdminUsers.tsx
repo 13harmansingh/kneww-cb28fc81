@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getAdminUsers } from "@/api/admin";
 
 interface UserWithRole {
   id: string;
@@ -49,37 +50,14 @@ export default function AdminUsers() {
 
   const fetchUsers = async () => {
     try {
-      const { data: profilesData, error: profilesError } = await supabase
-        .from("profiles")
-        .select("id, display_name, banned, created_at");
-
-      if (profilesError) throw profilesError;
-
-      const { data: rolesData, error: rolesError } = await supabase
-        .from("user_roles")
-        .select("user_id, role");
-
-      if (rolesError) throw rolesError;
-
-      // Get user emails from auth (requires service role in production)
-      const userIds = profilesData?.map((p) => p.id) || [];
-      const usersWithDetails: UserWithRole[] = [];
-
-      for (const profile of profilesData || []) {
-        const roleData = rolesData?.find((r) => r.user_id === profile.id);
-        const { data: authData } = await supabase.auth.admin.getUserById(profile.id);
-
-        usersWithDetails.push({
-          id: profile.id,
-          email: authData?.user?.email || "Unknown",
-          display_name: profile.display_name,
-          role: (roleData?.role as AppRole) || "user",
-          banned: profile.banned || false,
-          created_at: profile.created_at,
-        });
+      // Use secure admin endpoint instead of client-side admin SDK
+      const response = await getAdminUsers();
+      
+      if (response.error) {
+        throw new Error(response.error.message);
       }
-
-      setUsers(usersWithDetails);
+      
+      setUsers(response.data?.users || []);
     } catch (error) {
       console.error("Error fetching users:", error);
       toast.error("Failed to load users");
