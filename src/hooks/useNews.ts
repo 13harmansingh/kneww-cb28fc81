@@ -58,6 +58,8 @@ export const useNews = (
   const [defaultLanguage, setDefaultLanguage] = useState<string>('en');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const { getCachedNews, setCachedNews, getCachedNewsAnyLanguage } = useNewsCache();
   const { executeRequest, cancelAll } = useRequestDedupe();
   
@@ -74,7 +76,7 @@ export const useNews = (
     return `${debouncedState}-${debouncedCategory}-${sourceCountry || 'us'}-${sourceCountries || 'none'}-${debouncedLanguage}`;
   }, [debouncedState, debouncedCategory, sourceCountry, sourceCountries, aiSearchParams, debouncedSearchText, debouncedLanguage]);
 
-  const fetchNews = useCallback(async () => {
+  const fetchNews = useCallback(async (pageNum: number = 1) => {
     if (!debouncedState && !aiSearchParams) return;
     
     // Check authentication first
@@ -83,7 +85,7 @@ export const useNews = (
       return;
     }
 
-    const requestKey = getRequestKey();
+    const requestKey = `${getRequestKey()}-page-${pageNum}`;
 
     try {
       // Use request deduplication with abort signal support
@@ -172,9 +174,11 @@ export const useNews = (
               claims: []
             }));
             
-            setNews(articlesWithAnalysis);
+            // Append or replace news based on page
+            setNews(prev => pageNum === 1 ? articlesWithAnalysis : [...prev, ...articlesWithAnalysis]);
             setAvailableLanguages(data.available_languages || []);
             setDefaultLanguage(data.default_language || 'en');
+            setHasMore(data.news.length > 0); // No more data if empty array
             
             // Cache the initial results
             setCachedNews(debouncedState, debouncedCategory, debouncedLanguage, sourceCountry, articlesWithAnalysis, data.available_languages || [], data.default_language || 'en', sourceCountries);
@@ -274,17 +278,28 @@ export const useNews = (
 
   const retry = useCallback(() => {
     setError(null);
-    fetchNews();
+    setPage(1);
+    fetchNews(1);
   }, [fetchNews]);
 
+  const loadMore = useCallback(() => {
+    if (!loading && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchNews(nextPage);
+    }
+  }, [loading, hasMore, page, fetchNews]);
+
   useEffect(() => {
-    fetchNews();
+    setPage(1);
+    setHasMore(true);
+    fetchNews(1);
     
     // Cancel all pending requests on unmount
     return () => {
       cancelAll();
     };
-  }, [fetchNews, cancelAll]);
+  }, [debouncedState, debouncedCategory, debouncedLanguage, sourceCountry, sourceCountries, aiSearchParams, cancelAll]);
 
-  return { news, availableLanguages, defaultLanguage, loading, error, retry };
+  return { news, availableLanguages, defaultLanguage, loading, error, retry, loadMore, hasMore };
 };

@@ -13,6 +13,9 @@ import { SentimentBadge } from "@/components/SentimentBadge";
 import { ArticleBookmarkButton } from "@/components/ArticleBookmarkButton";
 import { NewsCardSkeleton } from "@/components/skeletons/NewsCardSkeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SwipeIndicator } from "@/components/SwipeIndicator";
+import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { US_STATES } from "@/data/usStates";
 import { CANADA_PROVINCES } from "@/data/canadaProvinces";
 import { AUSTRALIA_STATES } from "@/data/australiaStates";
@@ -70,14 +73,40 @@ const Index = () => {
 
   // For continent-level, get all country codes
   const sourceCountryCodes = selectedRegion && !selectedCountry ? getCountriesByRegion(selectedRegion).map(c => c.code).join(',') : undefined;
+  
+  const handleBackNavigation = () => {
+    if (selectedState) {
+      handleBackToStates();
+    } else if (selectedCountry) {
+      handleBackToCountries();
+    } else if (selectedRegion || aiSearchParams) {
+      handleBackToRegions();
+    }
+  };
+
   const {
     news,
     availableLanguages,
     defaultLanguage,
     loading,
     error,
-    retry
+    retry,
+    loadMore,
+    hasMore
   } = useNews(aiSearchParams ? undefined : location, selectedCategory, session, selectedLanguage, aiSearchParams ? undefined : sourceCountryCode, aiSearchParams ? undefined : sourceCountryCodes, aiSearchParams);
+
+  // Swipe navigation
+  const { swipeProgress, swipeDirection } = useSwipeNavigation({
+    enabled: true,
+    onSwipeRight: handleBackNavigation,
+  });
+
+  // Infinite scroll
+  const sentinelRef = useInfiniteScroll({
+    onLoadMore: loadMore,
+    hasMore,
+    loading,
+  });
 
   // Filter news by selected language on client side and apply translations
   const filteredNews = useMemo(() => {
@@ -389,15 +418,6 @@ const Index = () => {
         <BottomNav />
       </div>;
   }
-  const handleBackNavigation = () => {
-    if (selectedState) {
-      handleBackToStates();
-    } else if (selectedCountry) {
-      handleBackToCountries();
-    } else if (selectedRegion || aiSearchParams) {
-      handleBackToRegions();
-    }
-  };
 
   return <div className="min-h-screen bg-background pb-24">
       {/* Header Search */}
@@ -641,7 +661,27 @@ const Index = () => {
                 <h3 className="text-lg font-semibold text-foreground mb-2">No articles found</h3>
                 <p className="text-sm text-muted-foreground">Try adjusting your search or language filters</p>
               </div>}
+            
+            {/* Infinite Scroll Sentinel */}
+            {!loading && hasMore && filteredNews.length > 0 && (
+              <div ref={sentinelRef} className="py-8 flex justify-center">
+                <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+            
+            {/* Load More Indicator */}
+            {loading && filteredNews.length > 0 && (
+              <div className="py-8 flex justify-center">
+                <div className="text-center">
+                  <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">Loading more articles...</p>
+                </div>
+              </div>
+            )}
           </div>
+          
+          {/* Swipe Navigation Indicator */}
+          <SwipeIndicator progress={swipeProgress} direction={swipeDirection} />
         </>) : !selectedRegion ? (/* Region Selection View */
     <div className="px-4 mt-6">
           <div className="flex items-center gap-2 mb-6">
@@ -901,7 +941,27 @@ const Index = () => {
                     <a href="/login" className="inline-block mt-4 px-4 py-2 bg-accent text-white rounded-lg">Log in</a>
                   </div> : <p className="text-muted-foreground">No news articles found for {selectedState || selectedCountryName}</p>}
               </div>}
+            
+            {/* Infinite Scroll Sentinel */}
+            {!loading && hasMore && filteredNews.length > 0 && (
+              <div ref={sentinelRef} className="py-8 flex justify-center">
+                <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+            
+            {/* Load More Indicator */}
+            {loading && filteredNews.length > 0 && (
+              <div className="py-8 flex justify-center">
+                <div className="text-center">
+                  <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">Loading more articles...</p>
+                </div>
+              </div>
+            )}
           </div>
+          
+          {/* Swipe Navigation Indicator */}
+          <SwipeIndicator progress={swipeProgress} direction={swipeDirection} />
         </>)}
 
       <BottomNav />
