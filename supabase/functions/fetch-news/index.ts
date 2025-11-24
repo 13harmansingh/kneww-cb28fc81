@@ -163,7 +163,50 @@ serve(async (req) => {
       },
     });
 
+    // Handle rate limit gracefully - don't throw, return special response
+    if (response.status === 429) {
+      console.warn('WorldNews API rate limit hit (429)');
+      
+      await logEvent({
+        eventType: TelemetryEvents.EXTERNAL_API_ERROR,
+        userId: user.id,
+        endpoint: 'fetch-news',
+        metadata: { 
+          ip: clientIP,
+          external_api: 'WorldNews',
+          status: 429,
+          message: 'Rate limit exceeded'
+        },
+      });
+
+      return new Response(
+        JSON.stringify({ 
+          error: 'RATE_LIMIT_EXCEEDED',
+          message: 'WorldNews API rate limit reached. Please try again in a few moments.',
+          rateLimited: true,
+          fallbackToCache: true
+        }),
+        { 
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    // Handle other non-ok responses
     if (!response.ok) {
+      await logEvent({
+        eventType: TelemetryEvents.EXTERNAL_API_ERROR,
+        userId: user.id,
+        endpoint: 'fetch-news',
+        metadata: { 
+          ip: clientIP,
+          external_api: 'WorldNews',
+          status: response.status,
+          statusText: response.statusText
+        },
+      });
+      
       throw new Error(`WorldNews API error: ${response.status} ${response.statusText}`);
     }
 
