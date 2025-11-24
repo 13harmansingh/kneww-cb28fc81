@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { SwipeIndicator } from "@/components/SwipeIndicator";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { useAppState } from "@/stores/appState";
 
 interface Profile {
   id: string;
@@ -30,6 +31,7 @@ export default function ProfileSettings() {
   const [displayName, setDisplayName] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
   const navigate = useNavigate();
+  const { setUserPrincipalLanguage, setSelectedLanguage } = useAppState();
 
   // Guard: ensure router context exists
   if (!location) return null;
@@ -292,7 +294,12 @@ export default function ProfileSettings() {
               <select
                 id="language"
                 value={preferences.default_language}
-                onChange={(e) => updatePreference("default_language", e.target.value)}
+                onChange={(e) => {
+                  const newLanguage = e.target.value;
+                  updatePreference("default_language", newLanguage);
+                  setUserPrincipalLanguage(newLanguage);
+                  setSelectedLanguage(newLanguage);
+                }}
                 className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
               >
                 {languages.map((lang) => (

@@ -7,6 +7,17 @@ interface ScrollPosition {
   timestamp: number;
 }
 
+interface TranslatedArticle {
+  title?: string;
+  text?: string;
+  summary?: string;
+  bias?: string;
+  ownership?: string;
+  claims?: any[];
+  language: string;
+  timestamp: number;
+}
+
 interface AppState {
   // Scroll positions per page
   scrollPositions: Record<string, ScrollPosition>;
@@ -18,6 +29,10 @@ interface AppState {
   
   // Language selection
   selectedLanguage: string;
+  userPrincipalLanguage: string;
+  
+  // Translation cache: articleId_targetLang -> translated content
+  translationCache: Record<string, TranslatedArticle>;
   
   // Actions
   setScrollPosition: (pageKey: string, x: number, y: number) => void;
@@ -28,11 +43,18 @@ interface AppState {
   setSelectedCountry: (country: string | null) => void;
   setSelectedState: (state: string | null) => void;
   setSelectedLanguage: (language: string) => void;
+  setUserPrincipalLanguage: (language: string) => void;
+  
+  // Translation cache actions
+  getCachedTranslation: (articleId: string, targetLanguage: string) => TranslatedArticle | null;
+  setCachedTranslation: (articleId: string, targetLanguage: string, translation: Omit<TranslatedArticle, 'timestamp'>) => void;
+  clearOldTranslations: () => void;
   
   clearLocationState: () => void;
 }
 
 const SCROLL_POSITION_TTL = 30 * 60 * 1000; // 30 minutes
+const TRANSLATION_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 export const useAppState = create<AppState>()(
   persist(
@@ -42,6 +64,8 @@ export const useAppState = create<AppState>()(
       selectedCountry: null,
       selectedState: null,
       selectedLanguage: 'all',
+      userPrincipalLanguage: 'en',
+      translationCache: {},
       
       setScrollPosition: (pageKey: string, x: number, y: number) => {
         set((state) => ({
@@ -100,6 +124,53 @@ export const useAppState = create<AppState>()(
         set({ selectedLanguage: language });
       },
       
+      setUserPrincipalLanguage: (language: string) => {
+        set({ userPrincipalLanguage: language });
+      },
+      
+      // Translation cache methods
+      getCachedTranslation: (articleId: string, targetLanguage: string) => {
+        const cacheKey = `${articleId}_${targetLanguage}`;
+        const cached = get().translationCache[cacheKey];
+        
+        if (!cached) return null;
+        
+        // Check if expired
+        if (Date.now() - cached.timestamp > TRANSLATION_CACHE_TTL) {
+          return null;
+        }
+        
+        return cached;
+      },
+      
+      setCachedTranslation: (articleId: string, targetLanguage: string, translation: Omit<TranslatedArticle, 'timestamp'>) => {
+        const cacheKey = `${articleId}_${targetLanguage}`;
+        set((state) => ({
+          translationCache: {
+            ...state.translationCache,
+            [cacheKey]: {
+              ...translation,
+              timestamp: Date.now(),
+            },
+          },
+        }));
+      },
+      
+      clearOldTranslations: () => {
+        const now = Date.now();
+        set((state) => {
+          const newCache: Record<string, TranslatedArticle> = {};
+          
+          Object.entries(state.translationCache).forEach(([key, translation]) => {
+            if (now - translation.timestamp <= TRANSLATION_CACHE_TTL) {
+              newCache[key] = translation;
+            }
+          });
+          
+          return { translationCache: newCache };
+        });
+      },
+      
       clearLocationState: () => {
         set({
           selectedRegion: null,
@@ -117,6 +188,8 @@ export const useAppState = create<AppState>()(
         selectedCountry: state.selectedCountry,
         selectedState: state.selectedState,
         selectedLanguage: state.selectedLanguage,
+        userPrincipalLanguage: state.userPrincipalLanguage,
+        translationCache: state.translationCache,
       }),
     }
   )
