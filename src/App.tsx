@@ -9,11 +9,10 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Bookmarks from "./pages/Bookmarks";
 import Compare from "./pages/Compare";
-import Profile from "./pages/Profile";
+import ProfileSettings from "./pages/ProfileSettings";
 import Explore from "./pages/Explore";
 import Telemetry from "./pages/Telemetry";
 import AdminUsers from "./pages/AdminUsers";
-import Settings from "./pages/Settings";
 import Banned from "./pages/Banned";
 import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -36,9 +35,9 @@ const App = () => (
         <Route path="/signup" element={<Signup />} />
         <Route path="/bookmarks" element={<Bookmarks />} />
         <Route path="/compare" element={<Compare />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile" element={<ProfileSettings />} />
+        <Route path="/settings" element={<ProfileSettings />} />
         <Route path="/explore" element={<Explore />} />
-        <Route path="/settings" element={<Settings />} />
         <Route path="/banned" element={<Banned />} />
         <Route path="/admin/telemetry" element={<Telemetry />} />
         <Route path="/admin/users" element={<AdminUsers />} />
