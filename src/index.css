@@ -48,8 +48,14 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Mobile safe area insets */
+  @supports (padding-top: env(safe-area-inset-top)) {
+    body {
+      padding-top: max(env(safe-area-inset-top), 12px);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
   }
 }
 
@@ -118,4 +124,21 @@ html {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+}
+
+/* Hide all Mapbox attribution and overlay elements */
+.mapboxgl-ctrl-logo,
+.mapboxgl-ctrl-attrib,
+.mapboxgl-ctrl-attrib-inner,
+.mapboxgl-ctrl-attrib-button,
+.mapboxgl-control-container,
+.mapboxgl-ctrl-bottom-left,
+.mapboxgl-ctrl-bottom-right,
+.mapboxgl-ctrl-top-left,
+.mapboxgl-ctrl-top-right,
+.mapboxgl-compact {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
 }
