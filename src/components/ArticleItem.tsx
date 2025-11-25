@@ -23,6 +23,7 @@ export const ArticleItem = ({
   onTranslate,
 }: ArticleItemProps) => {
   const navigate = useNavigate();
+  const [isExpanded, setIsExpanded] = useState(false);
   
   // On-demand AI analysis - triggers when user clicks
   const { analysis, triggerAnalysis, isAnalyzing, hasAnalysis } = useLazyAnalysis(
@@ -38,7 +39,6 @@ export const ArticleItem = ({
   const ownership = analysis.ownership || article.ownership;
   const sentiment = (analysis.sentiment || article.sentiment) as 'positive' | 'negative' | 'neutral' | undefined;
   const claims = analysis.claims || article.claims;
-  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleCardClick = () => {
     setIsExpanded(!isExpanded);
