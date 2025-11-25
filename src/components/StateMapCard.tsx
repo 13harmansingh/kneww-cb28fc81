@@ -9,6 +9,9 @@ interface StateMapCardProps {
 }
 
 export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
+  // Defensive check - return null if state is undefined
+  if (!state) return null;
+  
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [isVisible, setIsVisible] = useState(false);

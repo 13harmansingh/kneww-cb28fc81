@@ -135,10 +135,16 @@ const Index = () => {
       const countryData = COUNTRIES.find(c => c.code === country);
       if (countryData) {
         setSelectedRegion(countryData.region);
+        // Clear selectedState if new country doesn't have states
+        if (!countryData.hasStates) {
+          setSelectedState(null);
+        }
       } else {
         // Country not in our list, but still show news for it
         // Default to a general region or keep existing selection
         setSelectedRegion(null);
+        // Clear state for unknown countries
+        setSelectedState(null);
       }
 
       // Clear AI search params to show location-based news
@@ -727,9 +733,11 @@ const Index = () => {
             </button>
             
             <div className="flex items-center gap-4 mb-6">
-              {selectedState && <div className="w-24 h-24 rounded-xl overflow-hidden border-2 border-accent">
+              {selectedState && currentStates.find(s => s.name === selectedState) && (
+                <div className="w-24 h-24 rounded-xl overflow-hidden border-2 border-accent">
                   <StateMapCard state={currentStates.find(s => s.name === selectedState)!} onClick={() => {}} />
-                </div>}
+                </div>
+              )}
               {!selectedState && selectedCountryName && <Globe className="w-24 h-24 text-accent" />}
               <div>
                 <h2 className="text-3xl font-bold text-white">
