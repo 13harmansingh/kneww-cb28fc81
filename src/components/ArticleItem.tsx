@@ -37,11 +37,18 @@ export const ArticleItem = ({
   const sentiment = (analysis.sentiment || article.sentiment) as 'positive' | 'negative' | 'neutral' | undefined;
   const claims = analysis.claims || article.claims;
 
+  const handleCardClick = () => {
+    if (!hasAnalysis && !isAnalyzing) {
+      triggerAnalysis();
+    }
+  };
+
   return (
     <div
+      onClick={handleCardClick}
       className={`rounded-2xl overflow-hidden border ${
         isSelected ? 'border-accent ring-2 ring-accent' : 'border-border'
-      } bg-card transition-all`}
+      } bg-card transition-all ${!hasAnalysis && !isAnalyzing ? 'cursor-pointer hover:border-accent/50' : ''}`}
     >
       {article.image && (
         <img
@@ -58,7 +65,10 @@ export const ArticleItem = ({
           <div className="flex items-center gap-2">
             {article.language && article.language !== userLanguage && (
               <button
-                onClick={() => onTranslate(article.id, article)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTranslate(article.id, article);
+                }}
                 disabled={translating[article.id]}
                 className="flex-shrink-0 p-2 rounded-lg bg-secondary/50 hover:bg-secondary transition disabled:opacity-50"
                 title={`Translate to ${userLanguage.toUpperCase()}`}
@@ -72,11 +82,12 @@ export const ArticleItem = ({
             )}
             <ArticleBookmarkButton article={article} />
             <button
-              onClick={() =>
+              onClick={(e) => {
+                e.stopPropagation();
                 navigate('/compare', {
                   state: { article },
-                })
-              }
+                });
+              }}
               className="flex-shrink-0 px-3 py-1 rounded-lg text-xs font-semibold bg-accent/20 text-accent hover:bg-accent/30 transition"
             >
               Compare Sources
@@ -109,6 +120,7 @@ export const ArticleItem = ({
               href={article.url}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
               className="text-accent hover:underline"
             >
               Read original →
@@ -123,29 +135,14 @@ export const ArticleItem = ({
 
         {/* AI Analysis Section */}
         <div className="space-y-3 bg-secondary/50 rounded-xl p-3 border border-accent/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-              <span className="text-xs font-semibold text-accent uppercase">
-                AI Analysis
-              </span>
-            </div>
-            {!hasAnalysis && !isAnalyzing && (
-              <button
-                onClick={triggerAnalysis}
-                className="px-3 py-1 rounded-lg text-xs font-semibold bg-accent/20 text-accent hover:bg-accent/30 transition"
-              >
-                Analyze Now
-              </button>
-            )}
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+            <span className="text-xs font-semibold text-accent uppercase">
+              AI Analysis
+            </span>
           </div>
 
-          {!hasAnalysis && !isAnalyzing ? (
-            <p className="text-sm text-muted-foreground italic">
-              Click "Analyze Now" to see AI-powered bias detection, fact-checking, and summary
-            </p>
-          ) : (
-            <div className="space-y-2">
+          <div className="space-y-2">
             <div>
               <span className="text-xs text-muted-foreground font-medium">
                 Bias:
@@ -240,8 +237,7 @@ export const ArticleItem = ({
                 </div>
               </div>
             )}
-            </div>
-          )}
+          </div>
         </div>
 
         {article.url && (
@@ -249,6 +245,7 @@ export const ArticleItem = ({
             href={article.url}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
             className="text-accent text-sm hover:underline inline-block"
           >
             Read full article →
