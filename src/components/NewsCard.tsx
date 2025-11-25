@@ -55,13 +55,12 @@ export const NewsCard = ({
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Lazy AI analysis - only analyzes when card enters viewport
-  const { analysis, observe, isAnalyzing } = useLazyAnalysis(
+  // On-demand AI analysis - triggers when user clicks "Analyze Now"
+  const { analysis, triggerAnalysis, isAnalyzing, hasAnalysis } = useLazyAnalysis(
     id,
     url || id,
     title,
-    text,
-    true // enabled
+    text
   );
 
   // Use lazy analysis results if available, otherwise fall back to initial props
@@ -217,7 +216,6 @@ export const NewsCard = ({
           }
         }}
         {...handlers}
-        ref={observe}
         className={cn(
           "block transition-transform",
           isLongPressing && "scale-95"

@@ -18,19 +18,16 @@ export const useLazyAnalysis = (
   articleId: string,
   articleUrl: string,
   articleTitle: string,
-  articleText?: string,
-  enabled = true
+  articleText?: string
 ) => {
   const [analysis, setAnalysis] = useState<AnalysisResult>(() => {
     // Check memory cache first
     return analysisCache.get(articleUrl) || { analyzing: false };
   });
   
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const elementRef = useRef<HTMLElement | null>(null);
   const hasStartedRef = useRef(false);
 
-  const performAnalysis = useCallback(async () => {
+  const triggerAnalysis = useCallback(async () => {
     if (!articleText || !articleUrl || hasStartedRef.current) return;
     
     hasStartedRef.current = true;
@@ -109,39 +106,10 @@ export const useLazyAnalysis = (
     setAnalysis(result);
   }, [articleUrl, articleTitle, articleText]);
 
-  useEffect(() => {
-    if (!enabled || !articleText) return;
-
-    // Setup IntersectionObserver
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !hasStartedRef.current) {
-            performAnalysis();
-          }
-        });
-      },
-      {
-        rootMargin: '200px', // Start loading 200px before entering viewport
-        threshold: 0.1,
-      }
-    );
-
-    return () => {
-      observerRef.current?.disconnect();
-    };
-  }, [enabled, articleText, performAnalysis]);
-
-  const observe = useCallback((element: HTMLElement | null) => {
-    elementRef.current = element;
-    if (element && observerRef.current) {
-      observerRef.current.observe(element);
-    }
-  }, []);
-
   return {
     analysis,
-    observe,
+    triggerAnalysis,
     isAnalyzing: analysis.analyzing || false,
+    hasAnalysis: hasStartedRef.current || !!analysis.bias || !!analysis.summary,
   };
 };
