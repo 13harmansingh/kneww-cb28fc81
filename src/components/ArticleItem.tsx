@@ -22,16 +22,15 @@ export const ArticleItem = ({
 }: ArticleItemProps) => {
   const navigate = useNavigate();
   
-  // Lazy AI analysis - only analyzes when scrolled into viewport
-  const { analysis, observe, isAnalyzing } = useLazyAnalysis(
+  // On-demand AI analysis - triggers when user clicks
+  const { analysis, triggerAnalysis, isAnalyzing, hasAnalysis } = useLazyAnalysis(
     article.id,
     article.url || article.id,
     article.title,
-    article.text,
-    true
+    article.text
   );
 
-  // Use lazy analysis results, falling back to article props
+  // Use analysis results, falling back to article props
   const bias = analysis.bias || article.bias;
   const summary = analysis.summary || article.summary;
   const ownership = analysis.ownership || article.ownership;
@@ -40,7 +39,6 @@ export const ArticleItem = ({
 
   return (
     <div
-      ref={observe}
       className={`rounded-2xl overflow-hidden border ${
         isSelected ? 'border-accent ring-2 ring-accent' : 'border-border'
       } bg-card transition-all`}
@@ -125,14 +123,29 @@ export const ArticleItem = ({
 
         {/* AI Analysis Section */}
         <div className="space-y-3 bg-secondary/50 rounded-xl p-3 border border-accent/20">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-            <span className="text-xs font-semibold text-accent uppercase">
-              AI Analysis
-            </span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+              <span className="text-xs font-semibold text-accent uppercase">
+                AI Analysis
+              </span>
+            </div>
+            {!hasAnalysis && !isAnalyzing && (
+              <button
+                onClick={triggerAnalysis}
+                className="px-3 py-1 rounded-lg text-xs font-semibold bg-accent/20 text-accent hover:bg-accent/30 transition"
+              >
+                Analyze Now
+              </button>
+            )}
           </div>
 
-          <div className="space-y-2">
+          {!hasAnalysis && !isAnalyzing ? (
+            <p className="text-sm text-muted-foreground italic">
+              Click "Analyze Now" to see AI-powered bias detection, fact-checking, and summary
+            </p>
+          ) : (
+            <div className="space-y-2">
             <div>
               <span className="text-xs text-muted-foreground font-medium">
                 Bias:
@@ -227,7 +240,8 @@ export const ArticleItem = ({
                 </div>
               </div>
             )}
-          </div>
+            </div>
+          )}
         </div>
 
         {article.url && (
