@@ -218,13 +218,7 @@ const Index = () => {
     setSelectedCountry(countryCode);
     setSelectedCountryName(countryName);
     setSelectedLanguage('all'); // Reset language when changing country
-
-    // Check if country has states
-    const country = COUNTRIES.find(c => c.code === countryCode);
-    if (country?.hasStates) {
-      // Don't fetch news yet, let user select state
-      return;
-    }
+    // Fetch news immediately for the country, even if it has states
   };
   const handleStateSelect = (stateName: string) => {
     setSelectedState(stateName);
