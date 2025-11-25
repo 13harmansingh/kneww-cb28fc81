@@ -1,4 +1,6 @@
-import { Languages } from "lucide-react";
+import { useState } from "react";
+import { Languages, ChevronDown, ChevronUp } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { SentimentBadge } from "@/components/SentimentBadge";
 import { ArticleBookmarkButton } from "@/components/ArticleBookmarkButton";
@@ -36,8 +38,10 @@ export const ArticleItem = ({
   const ownership = analysis.ownership || article.ownership;
   const sentiment = (analysis.sentiment || article.sentiment) as 'positive' | 'negative' | 'neutral' | undefined;
   const claims = analysis.claims || article.claims;
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleCardClick = () => {
+    setIsExpanded(!isExpanded);
     if (!hasAnalysis && !isAnalyzing) {
       triggerAnalysis();
     }
@@ -48,7 +52,7 @@ export const ArticleItem = ({
       onClick={handleCardClick}
       className={`rounded-2xl overflow-hidden border ${
         isSelected ? 'border-accent ring-2 ring-accent' : 'border-border'
-      } bg-card transition-all ${!hasAnalysis && !isAnalyzing ? 'cursor-pointer hover:border-accent/50' : ''}`}
+      } bg-card transition-all cursor-pointer hover:border-accent/50`}
     >
       {article.image && (
         <img
@@ -128,117 +132,136 @@ export const ArticleItem = ({
           )}
         </div>
 
-        {/* Sentiment Badge */}
-        <div>
-          <SentimentBadge sentiment={sentiment} loading={isAnalyzing} />
-        </div>
-
-        {/* AI Analysis Section */}
-        <div className="space-y-3 bg-secondary/50 rounded-xl p-3 border border-accent/20">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-            <span className="text-xs font-semibold text-accent uppercase">
-              AI Analysis
-            </span>
+        {/* Expand/Collapse Indicator */}
+        {!isExpanded && (
+          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground py-3 border-t border-border/50">
+            <ChevronDown className="w-4 h-4" />
+            <span>Tap to analyze with AI</span>
           </div>
+        )}
 
-          <div className="space-y-2">
-            <div>
-              <span className="text-xs text-muted-foreground font-medium">
-                Bias:
-              </span>
-              <p
-                className={`text-sm font-semibold ${
-                  bias?.includes('Left')
-                    ? 'text-blue-400'
-                    : bias?.includes('Right')
-                    ? 'text-red-400'
-                    : bias?.includes('Center')
-                    ? 'text-green-400'
-                    : 'text-muted-foreground'
-                }`}
-              >
-                {isAnalyzing ? (
-                  <span className="inline-block w-16 h-4 bg-muted animate-pulse rounded" />
-                ) : (
-                  bias || 'Unknown'
-                )}
-              </p>
-            </div>
+        {/* AI Analysis Section - Expandable */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="border-t border-border/50 pt-4 space-y-4">
+                {/* AI Analysis Section */}
+                <div className="space-y-3 bg-secondary/50 rounded-xl p-3 border border-accent/20">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+                    <span className="text-xs font-semibold text-accent uppercase">
+                      AI Analysis
+                    </span>
+                  </div>
 
-            <div>
-              <span className="text-xs text-muted-foreground font-medium">
-                Summary:
-              </span>
-              <p className="text-sm text-foreground">
-                {isAnalyzing ? (
-                  <span className="space-y-1">
-                    <span className="block w-full h-3 bg-muted animate-pulse rounded" />
-                    <span className="block w-3/4 h-3 bg-muted animate-pulse rounded" />
-                  </span>
-                ) : (
-                  summary || 'No summary available'
-                )}
-              </p>
-            </div>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="text-xs text-muted-foreground font-medium">
+                        Bias:
+                      </span>
+                      {isAnalyzing ? (
+                        <div className="h-4 bg-muted rounded animate-pulse mt-1" />
+                      ) : (
+                        <p className="text-sm text-foreground mt-1">
+                          {bias || "Not analyzed yet"}
+                        </p>
+                      )}
+                    </div>
 
-            <div>
-              <span className="text-xs text-muted-foreground font-medium">
-                Media Ownership:
-              </span>
-              <p className="text-sm text-foreground">
-                {isAnalyzing ? (
-                  <span className="inline-block w-24 h-4 bg-muted animate-pulse rounded" />
-                ) : (
-                  ownership || 'Unknown'
-                )}
-              </p>
-            </div>
+                    <div>
+                      <span className="text-xs text-muted-foreground font-medium">
+                        Summary:
+                      </span>
+                      {isAnalyzing ? (
+                        <div className="space-y-2 mt-1">
+                          <div className="h-4 bg-muted rounded animate-pulse" />
+                          <div className="h-4 bg-muted rounded animate-pulse w-5/6" />
+                        </div>
+                      ) : (
+                        <p className="text-sm text-foreground mt-1">
+                          {summary || "Not analyzed yet"}
+                        </p>
+                      )}
+                    </div>
 
-            {/* Fact-Checking Section */}
-            {claims && claims.length > 0 && (
-              <div>
-                <span className="text-xs text-muted-foreground font-medium">
-                  Fact Check:
-                </span>
-                <div className="mt-2 space-y-2">
-                  {claims.map((claim, i) => (
-                    <div
-                      key={i}
-                      className="text-xs bg-background/50 rounded-lg p-2"
-                    >
-                      <div className="flex items-start gap-2">
-                        <span
-                          className={`font-bold ${
-                            claim.verification === 'verified'
-                              ? 'text-green-400'
-                              : claim.verification === 'disputed'
-                              ? 'text-red-400'
-                              : 'text-yellow-400'
-                          }`}
-                        >
-                          {claim.verification === 'verified'
-                            ? '✓'
-                            : claim.verification === 'disputed'
-                            ? '✗'
-                            : '?'}
+                    <div>
+                      <span className="text-xs text-muted-foreground font-medium">
+                        Media Ownership:
+                      </span>
+                      {isAnalyzing ? (
+                        <div className="h-4 bg-muted rounded animate-pulse mt-1" />
+                      ) : (
+                        <p className="text-sm text-foreground mt-1">
+                          {ownership || "Not analyzed yet"}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <span className="text-xs text-muted-foreground font-medium">
+                        Sentiment:
+                      </span>
+                      {isAnalyzing ? (
+                        <div className="h-6 bg-muted rounded animate-pulse mt-1" />
+                      ) : (
+                        <div className="mt-1">
+                          <SentimentBadge sentiment={sentiment} loading={isAnalyzing} />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Claims Section */}
+                    {claims && claims.length > 0 && (
+                      <div className="space-y-2 pt-2 border-t border-border/30">
+                        <span className="text-xs text-muted-foreground font-medium">
+                          Fact Check:
                         </span>
-                        <div className="flex-1">
-                          <p className="text-foreground font-medium">
-                            {claim.text}
-                          </p>
-                          <p className="text-muted-foreground mt-1">
-                            {claim.explanation}
-                          </p>
+                        <div className="space-y-2">
+                          {claims.map((claim: any, idx: number) => (
+                            <div
+                              key={idx}
+                              className="text-sm space-y-1 pb-2 border-b border-border/30 last:border-0 last:pb-0"
+                            >
+                              <p className="text-foreground italic">"{claim.text}"</p>
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className={`text-xs font-semibold px-2 py-0.5 rounded ${
+                                    claim.verification === "verified"
+                                      ? "bg-green-500/20 text-green-400"
+                                      : claim.verification === "disputed"
+                                      ? "bg-red-500/20 text-red-400"
+                                      : "bg-yellow-500/20 text-yellow-400"
+                                  }`}
+                                >
+                                  {claim.verification}
+                                </span>
+                              </div>
+                              <p className="text-muted-foreground text-xs">
+                                {claim.explanation}
+                              </p>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    )}
+                  </div>
+                </div>
+
+                {/* Collapse Indicator */}
+                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground py-2">
+                  <ChevronUp className="w-4 h-4" />
+                  <span>Tap to collapse</span>
                 </div>
               </div>
-            )}
-          </div>
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {article.url && (
           <a
