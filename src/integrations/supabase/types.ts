@@ -44,6 +44,39 @@ export type Database = {
         }
         Relationships: []
       }
+      app_settings: {
+        Row: {
+          description: string | null
+          id: string
+          key: string
+          previous_value: Json | null
+          updated_at: string | null
+          updated_by: string | null
+          value: Json
+          version: number | null
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          key: string
+          previous_value?: Json | null
+          updated_at?: string | null
+          updated_by?: string | null
+          value: Json
+          version?: number | null
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          key?: string
+          previous_value?: Json | null
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: Json
+          version?: number | null
+        }
+        Relationships: []
+      }
       bookmarks: {
         Row: {
           article_id: string
@@ -170,6 +203,33 @@ export type Database = {
           id?: string
           state?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      system_events: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          id: string
+          severity: string | null
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          severity?: string | null
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          severity?: string | null
+          type?: string
+          user_id?: string | null
         }
         Relationships: []
       }
