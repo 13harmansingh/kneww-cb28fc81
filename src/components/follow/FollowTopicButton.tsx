@@ -61,7 +61,7 @@ export const FollowTopicButton = ({
             )}
           </motion.div>
         )}
-        {following ? 'Following' : 'Follow'}
+        {topic.charAt(0).toUpperCase() + topic.slice(1)}
       </Button>
     </motion.div>
   );
