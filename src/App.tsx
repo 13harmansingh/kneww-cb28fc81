@@ -11,6 +11,7 @@ import Bookmarks from "./pages/Bookmarks";
 import Compare from "./pages/Compare";
 import ProfileSettings from "./pages/ProfileSettings";
 import Explore from "./pages/Explore";
+import Discover from "./pages/Discover";
 import Telemetry from "./pages/Telemetry";
 import AdminUsers from "./pages/AdminUsers";
 import ControlCenter from "./pages/admin/ControlCenter";
@@ -59,6 +60,7 @@ const App = () => {
               <Route path="/profile" element={<ProfileSettings />} />
               <Route path="/settings" element={<ProfileSettings />} />
               <Route path="/explore" element={<Explore />} />
+              <Route path="/discover" element={<Discover />} />
               <Route path="/banned" element={<Banned />} />
               
               {/* Admin Routes */}
