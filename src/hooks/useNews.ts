@@ -4,6 +4,7 @@ import { useAuth } from "./useAuth";
 import { useNewsCache } from "./useNewsCache";
 import { useRequestDedupe } from "./useRequestDedupe";
 import { useDebounce } from "./useDebounce";
+import { toast } from "sonner";
 
 export interface Claim {
   text: string;
@@ -162,6 +163,13 @@ export const useNews = (
           if (signal.aborted) return;
 
           if (data?.news) {
+            // Check if this is cached data due to rate limiting
+            if (data.rateLimitWarning) {
+              toast.warning('Showing cached news due to API rate limit', {
+                description: 'Latest articles will be available in a few moments'
+              });
+            }
+            
             // Return raw articles - AI analysis will be done lazily by NewsCard
             const articles = data.news as NewsArticle[];
             
@@ -169,8 +177,10 @@ export const useNews = (
             setAvailableLanguages(data.available_languages || []);
             setDefaultLanguage(data.default_language || 'en');
             
-            // Cache the results
-            setCachedNews(debouncedState, debouncedCategory, debouncedLanguage, sourceCountry, articles, data.available_languages || [], data.default_language || 'en', sourceCountries);
+            // Cache the results (only if not already a cached fallback)
+            if (!data.rateLimitWarning) {
+              setCachedNews(debouncedState, debouncedCategory, debouncedLanguage, sourceCountry, articles, data.available_languages || [], data.default_language || 'en', sourceCountries);
+            }
             
             console.log(`✅ Fetched ${articles.length} articles - AI analysis will load lazily as you scroll`);
           }

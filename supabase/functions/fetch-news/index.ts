@@ -195,7 +195,7 @@ serve(async (req) => {
       },
     });
 
-    // Handle rate limit gracefully - don't throw, return special response
+    // Handle rate limit gracefully - try to return ANY cached data as fallback
     if (response.status === 429) {
       console.warn('WorldNews API rate limit hit (429)');
       
@@ -211,12 +211,41 @@ serve(async (req) => {
         },
       });
 
+      // Try to find cached data without language filter as fallback
+      const fallbackCacheKey = generateNewsCacheKey({
+        textQuery,
+        entities,
+        category,
+        language: undefined, // Remove language filter to find any cached data
+        source_country,
+        source_countries,
+      });
+      
+      const fallbackCached = getCachedNewsResponse(fallbackCacheKey);
+      
+      if (fallbackCached) {
+        console.log('✅ Rate limit - Returning cached fallback data');
+        
+        return new Response(
+          JSON.stringify({ 
+            ...fallbackCached,
+            rateLimitWarning: true,
+            message: 'Showing cached news due to API rate limit'
+          }),
+          { 
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+
+      // No cached data available - return error
       return new Response(
         JSON.stringify({ 
           error: 'RATE_LIMIT_EXCEEDED',
-          message: 'WorldNews API rate limit reached. Please try again in a few moments.',
+          message: 'WorldNews API rate limit reached and no cached data available. Please try again in a few moments.',
           rateLimited: true,
-          fallbackToCache: true
+          fallbackToCache: false
         }),
         { 
           status: 429,
