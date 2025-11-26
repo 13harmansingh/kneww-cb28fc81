@@ -31,7 +31,6 @@ export const usePersonalizedFeed = () => {
   
   const { executeRequest } = useRequestDedupe<PersonalizedFeedResponse>();
   const { follows } = useFollowManager();
-  const abortControllerRef = useRef<AbortController | null>(null);
   const seenArticleIds = useRef<Set<string>>(new Set());
 
   // Listen for follow updates
@@ -74,11 +73,6 @@ export const usePersonalizedFeed = () => {
     setLoading(true);
     setError(null);
 
-    // Abort previous request if exists
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
     try {
       const states = follows.filter(f => f.follow_type === 'state').map(f => f.value);
       const topics = follows.filter(f => f.follow_type === 'topic').map(f => f.value);
@@ -86,8 +80,6 @@ export const usePersonalizedFeed = () => {
       const requestKey = `personalized-feed-${pageNum}`;
       
       const response = await executeRequest(requestKey, async (signal) => {
-        abortControllerRef.current = signal as any;
-        
         const apiResponse = await invokeEdgeFunction<PersonalizedFeedResponse>({
           functionName: 'fetch-personalized-feed',
           body: {
@@ -132,7 +124,6 @@ export const usePersonalizedFeed = () => {
       }
     } finally {
       setLoading(false);
-      abortControllerRef.current = null;
     }
   }, [loading, follows, getCacheKey, executeRequest]);
 
@@ -151,15 +142,6 @@ export const usePersonalizedFeed = () => {
       fetchFeed(1);
     }
   }, [follows, items.length, loading]); // Only run when follows change or initial load
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, []);
 
   return {
     items,
