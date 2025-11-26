@@ -1,16 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { invokeEdgeFunction } from '@/api/client';
 import { NewsArticle } from './useNews';
 import { useRequestDedupe } from './useRequestDedupe';
+import { useFollowManager } from './useFollowManager';
 import { toast } from 'sonner';
-
-interface Follow {
-  id: string;
-  follow_type: 'state' | 'topic';
-  value: string;
-  created_at: string;
-}
 
 interface PersonalizedFeedResponse {
   news: NewsArticle[];
@@ -30,7 +23,6 @@ interface CachedFeedData {
 const feedCache = new Map<string, CachedFeedData>();
 
 export const usePersonalizedFeed = () => {
-  const [follows, setFollows] = useState<Follow[]>([]);
   const [items, setItems] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,79 +30,23 @@ export const usePersonalizedFeed = () => {
   const [page, setPage] = useState(1);
   
   const { executeRequest } = useRequestDedupe<PersonalizedFeedResponse>();
+  const { follows } = useFollowManager();
   const abortControllerRef = useRef<AbortController | null>(null);
   const seenArticleIds = useRef<Set<string>>(new Set());
 
-  // Fetch user's follows
-  const fetchFollows = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('user_follows')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching follows:', error);
-      return;
-    }
-
-    setFollows((data || []) as Follow[]);
-  }, []);
-
+  // Listen for follow updates
   useEffect(() => {
-    fetchFollows();
-  }, [fetchFollows]);
+    const handleFollowUpdate = () => {
+      // Reset feed when follows change
+      setPage(1);
+      setItems([]);
+      seenArticleIds.current.clear();
+      feedCache.clear();
+    };
 
-  // Add follow
-  const addFollow = useCallback(async (type: 'state' | 'topic', value: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { error } = await supabase
-      .from('user_follows')
-      .insert({ user_id: user.id, follow_type: type, value });
-
-    if (error) {
-      if (error.code === '23505') { // Unique constraint violation
-        toast.info(`Already following ${value}`);
-      } else {
-        toast.error('Failed to add follow');
-        console.error('Error adding follow:', error);
-      }
-      return;
-    }
-
-    toast.success(`Now following ${value}`);
-    fetchFollows();
-    
-    // Reset feed to refetch with new follows
-    setPage(1);
-    setItems([]);
-    seenArticleIds.current.clear();
-    feedCache.clear();
-  }, [fetchFollows]);
-
-  // Remove follow
-  const removeFollow = useCallback(async (followId: string) => {
-    const { error } = await supabase
-      .from('user_follows')
-      .delete()
-      .eq('id', followId);
-
-    if (error) {
-      toast.error('Failed to remove follow');
-      console.error('Error removing follow:', error);
-      return;
-    }
-
-    toast.success('Follow removed');
-    fetchFollows();
-    
-    // Reset feed to refetch with updated follows
-    setPage(1);
-    setItems([]);
-    seenArticleIds.current.clear();
-    feedCache.clear();
-  }, [fetchFollows]);
+    window.addEventListener('follow-updated', handleFollowUpdate);
+    return () => window.removeEventListener('follow-updated', handleFollowUpdate);
+  }, []);
 
   // Generate cache key
   const getCacheKey = useCallback((pageNum: number) => {
@@ -232,8 +168,6 @@ export const usePersonalizedFeed = () => {
     hasMore,
     follows,
     loadMore,
-    addFollow,
-    removeFollow,
     retry: () => {
       setError(null);
       fetchFeed(page);

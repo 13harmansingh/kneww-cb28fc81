@@ -4,12 +4,12 @@ import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { NewsCardSkeleton } from '@/components/skeletons/NewsCardSkeleton';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Heart } from 'lucide-react';
-import { FollowedTopicsBar } from './FollowedTopicsBar';
+import { FollowingPanel } from '@/components/follow/FollowingPanel';
 import { motion } from 'framer-motion';
 import { NewsCard } from '@/components/NewsCard';
 
 export const PersonalizedFeed = () => {
-  const { items, loading, error, hasMore, follows, loadMore, removeFollow, retry } = usePersonalizedFeed();
+  const { items, loading, error, hasMore, follows, loadMore, retry } = usePersonalizedFeed();
   const [translatingId, setTranslatingId] = useState<string | null>(null);
 
   const sentinelRef = useInfiniteScroll({
@@ -40,9 +40,9 @@ export const PersonalizedFeed = () => {
 
   return (
     <div className="space-y-6">
-      {/* Followed Topics Bar */}
+      {/* Following Panel */}
       {follows.length > 0 && (
-        <FollowedTopicsBar follows={follows} onRemove={removeFollow} />
+        <FollowingPanel />
       )}
 
       {/* Error State */}

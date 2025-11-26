@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { USState } from "@/data/usStates";
+import { FollowStateButton } from "@/components/follow/FollowStateButton";
 
 interface StateMapCardProps {
   state: USState;
@@ -86,8 +87,18 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
     >
       <div ref={mapContainer} className="w-full h-48 bg-muted/20" />
       <div className="bg-card p-4 border-t border-border">
-        <h3 className="text-lg font-semibold text-white">{state.name}</h3>
-        <p className="text-sm text-muted-foreground">{state.code}</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-white">{state.name}</h3>
+            <p className="text-sm text-muted-foreground">{state.code}</p>
+          </div>
+          <FollowStateButton
+            stateCode={state.code}
+            stateName={state.name}
+            size="sm"
+            variant="ghost"
+          />
+        </div>
       </div>
     </button>
   );
