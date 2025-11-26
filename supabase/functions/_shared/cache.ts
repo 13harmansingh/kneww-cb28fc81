@@ -129,6 +129,27 @@ export function getCachedNewsResponse(cacheKey: string): any | null {
   return cached.data;
 }
 
+export function getAnyCachedNewsResponse(): any | null {
+  // Find ANY non-expired cached response as fallback
+  const now = Date.now();
+  const cacheSize = newsCache.size;
+  
+  console.log(`[Cache] Searching for fallback data. Total cache entries: ${cacheSize}`);
+  
+  for (const [key, value] of newsCache.entries()) {
+    const isExpired = now > value.expiresAt;
+    console.log(`[Cache] Checking key=${key}, expired=${isExpired}, expiresIn=${Math.floor((value.expiresAt - now) / 1000)}s`);
+    
+    if (!isExpired) {
+      console.log(`[Cache] ✅ Found valid fallback cached data: key=${key}, articles=${value.data?.news?.length || 0}`);
+      return value.data;
+    }
+  }
+  
+  console.log('[Cache] ❌ No valid cached data found for fallback');
+  return null;
+}
+
 export function setCachedNewsResponse(cacheKey: string, data: any): void {
   newsCache.set(cacheKey, {
     data,
