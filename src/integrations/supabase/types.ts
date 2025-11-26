@@ -84,9 +84,12 @@ export type Database = {
           article_title: string
           article_url: string | null
           bias: string | null
+          category: string | null
           claims: Json | null
+          country: string | null
           created_at: string
           id: string
+          language: string | null
           ownership: string | null
           sentiment: string | null
           summary: string | null
@@ -98,9 +101,12 @@ export type Database = {
           article_title: string
           article_url?: string | null
           bias?: string | null
+          category?: string | null
           claims?: Json | null
+          country?: string | null
           created_at?: string
           id?: string
+          language?: string | null
           ownership?: string | null
           sentiment?: string | null
           summary?: string | null
@@ -112,9 +118,12 @@ export type Database = {
           article_title?: string
           article_url?: string | null
           bias?: string | null
+          category?: string | null
           claims?: Json | null
+          country?: string | null
           created_at?: string
           id?: string
+          language?: string | null
           ownership?: string | null
           sentiment?: string | null
           summary?: string | null

@@ -128,6 +128,9 @@ export const NewsCard = ({
             ownership: ownership || null,
             sentiment: sentiment || null,
             claims: claims ? JSON.parse(JSON.stringify(claims)) : null,
+            language: language || null,
+            country: null, // Will be populated from article metadata if available
+            category: null, // Will be populated from article metadata if available
           });
         
         if (error) throw error;
