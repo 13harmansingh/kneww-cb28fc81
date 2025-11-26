@@ -260,6 +260,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_follows: {
+        Row: {
+          created_at: string | null
+          follow_type: string
+          id: string
+          user_id: string
+          value: string
+        }
+        Insert: {
+          created_at?: string | null
+          follow_type: string
+          id?: string
+          user_id: string
+          value: string
+        }
+        Update: {
+          created_at?: string | null
+          follow_type?: string
+          id?: string
+          user_id?: string
+          value?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           auto_translate: boolean | null
