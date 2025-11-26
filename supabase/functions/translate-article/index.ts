@@ -140,7 +140,7 @@ Return format:
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': LOVABLE_API_KEY,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
