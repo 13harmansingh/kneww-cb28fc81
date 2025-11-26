@@ -1,4 +1,5 @@
 import { Search, Bell, ArrowRight, MapPin, Scale, Bookmark, Globe, Languages, Sparkles, Loader2, ChevronLeft, CheckCircle2, Flag } from "lucide-react";
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
@@ -442,6 +443,75 @@ const Index = () => {
           )}
           <span className="text-xs text-muted-foreground">Global News Platform</span>
         </div>
+
+        {/* Breadcrumb Navigation */}
+        {(selectedRegion || selectedCountry || selectedState) && !aiSearchParams && (
+          <div className="mt-3">
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink 
+                    onClick={handleBackToRegions}
+                    className="cursor-pointer text-muted-foreground hover:text-accent transition"
+                  >
+                    🌍 World
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                
+                {selectedRegion && (
+                  <>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      {selectedCountry ? (
+                        <BreadcrumbLink 
+                          onClick={handleBackToCountries}
+                          className="cursor-pointer text-muted-foreground hover:text-accent transition"
+                        >
+                          {REGIONS.find(r => r.id === selectedRegion)?.name}
+                        </BreadcrumbLink>
+                      ) : (
+                        <BreadcrumbPage className="text-accent font-medium">
+                          {REGIONS.find(r => r.id === selectedRegion)?.name}
+                        </BreadcrumbPage>
+                      )}
+                    </BreadcrumbItem>
+                  </>
+                )}
+
+                {selectedCountry && (
+                  <>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      {selectedState ? (
+                        <BreadcrumbLink 
+                          onClick={handleBackToStates}
+                          className="cursor-pointer text-muted-foreground hover:text-accent transition"
+                        >
+                          {selectedCountryName}
+                        </BreadcrumbLink>
+                      ) : (
+                        <BreadcrumbPage className="text-accent font-medium">
+                          {selectedCountryName}
+                        </BreadcrumbPage>
+                      )}
+                    </BreadcrumbItem>
+                  </>
+                )}
+
+                {selectedState && (
+                  <>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      <BreadcrumbPage className="text-accent font-medium">
+                        {selectedState}
+                      </BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </>
+                )}
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
+        )}
       </div>
 
       {aiSearchParams ? (/* AI Search Results View */
