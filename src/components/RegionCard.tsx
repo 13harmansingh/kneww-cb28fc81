@@ -1,4 +1,5 @@
 import { Region } from "@/data/countries";
+import { FollowStateButton } from "@/components/follow/FollowStateButton";
 
 interface RegionCardProps {
   region: Region;
@@ -19,6 +20,12 @@ export const RegionCard = ({ region, onClick }: RegionCardProps) => {
         <p className="text-sm text-muted-foreground text-center">
           Click to explore countries
         </p>
+        <FollowStateButton
+          stateCode={region.id}
+          stateName={region.name}
+          size="sm"
+          variant="outline"
+        />
       </div>
     </div>
   );
