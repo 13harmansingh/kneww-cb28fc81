@@ -26,6 +26,11 @@ export class ErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Uncaught error:", error, errorInfo);
     
+    // Record crash for safe mode detection
+    import('@/stores/systemStore').then(({ useSystemStore }) => {
+      useSystemStore.getState().recordCrash();
+    });
+    
     // Log to telemetry
     this.logErrorToTelemetry(error, errorInfo);
   }
@@ -34,6 +39,7 @@ export class ErrorBoundary extends Component<Props, State> {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
+      // Log to telemetry with enhanced details
       await supabase.from('telemetry_logs').insert({
         event_type: 'error.boundary',
         endpoint: window.location.pathname,
@@ -42,7 +48,21 @@ export class ErrorBoundary extends Component<Props, State> {
           error_message: error.message,
           error_stack: error.stack,
           component_stack: errorInfo.componentStack,
+          browser: navigator.userAgent,
+          url: window.location.href,
           timestamp: new Date().toISOString(),
+        },
+      });
+      
+      // Emit system event
+      await supabase.from('system_events').insert({
+        type: 'ERROR_BOUNDARY_TRIGGERED',
+        severity: 'error',
+        user_id: session?.user?.id,
+        data: {
+          message: error.message,
+          stack: error.stack,
+          url: window.location.href,
         },
       });
     } catch (err) {

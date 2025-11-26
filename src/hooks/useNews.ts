@@ -5,6 +5,8 @@ import { useNewsCache } from "./useNewsCache";
 import { useRequestDedupe } from "./useRequestDedupe";
 import { useDebounce } from "./useDebounce";
 import { toast } from "sonner";
+import { recoveryQueue } from "@/lib/recoveryQueue";
+import { useRateLimitObserver } from "./system/useRateLimitObserver";
 
 export interface Claim {
   text: string;
@@ -54,6 +56,8 @@ export const useNews = (
   sourceCountries?: string,
   aiSearchParams?: { searchText?: string; entities?: string[] }
 ) => {
+  const { user } = useAuth();
+  const { recordRateLimit } = useRateLimitObserver();
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [availableLanguages, setAvailableLanguages] = useState<AvailableLanguage[]>([]);
   const [defaultLanguage, setDefaultLanguage] = useState<string>('en');
