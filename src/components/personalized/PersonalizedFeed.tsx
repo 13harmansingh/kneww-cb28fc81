@@ -6,11 +6,18 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw, Heart } from 'lucide-react';
 import { FollowingPanel } from '@/components/follow/FollowingPanel';
 import { motion } from 'framer-motion';
-import { NewsCard } from '@/components/NewsCard';
+import { ArticleItem } from '@/components/ArticleItem';
+import { NewsArticle } from '@/config/types';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 export const PersonalizedFeed = () => {
   const { items, loading, error, hasMore, follows, loadMore, retry } = usePersonalizedFeed();
-  const [translatingId, setTranslatingId] = useState<string | null>(null);
+  const [translating, setTranslating] = useState<Record<string, boolean>>({});
+  const [translatedNews, setTranslatedNews] = useState<Record<string, Partial<NewsArticle>>>({});
+  const { session } = useAuth();
+  const [userLanguage, setUserLanguage] = useState("en");
 
   const sentinelRef = useInfiniteScroll({
     onLoadMore: loadMore,
@@ -19,6 +26,57 @@ export const PersonalizedFeed = () => {
     threshold: 0.8,
     rootMargin: '100px',
   });
+
+  const translateArticle = async (articleId: string, article: NewsArticle) => {
+    if (translating[articleId]) return;
+
+    setTranslating((prev) => ({
+      ...prev,
+      [articleId]: true,
+    }));
+
+    try {
+      const { data, error } = await supabase.functions.invoke('translate-article', {
+        body: {
+          title: article.title,
+          text: article.text,
+          summary: article.summary,
+          bias: article.bias,
+          ownership: article.ownership,
+          targetLanguage: userLanguage,
+        },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data) {
+        toast.success(`Article translated to ${userLanguage.toUpperCase()}`);
+
+        setTranslatedNews((prev) => ({
+          ...prev,
+          [articleId]: {
+            title: data.title || article.title,
+            text: data.text || article.text,
+            summary: data.summary || article.summary,
+            bias: data.bias || article.bias,
+            ownership: data.ownership || article.ownership,
+            language: userLanguage,
+          },
+        }));
+      }
+    } catch (err) {
+      console.error('Translation error:', err);
+      toast.error('Failed to translate article');
+    } finally {
+      setTranslating((prev) => ({
+        ...prev,
+        [articleId]: false,
+      }));
+    }
+  };
 
   // Empty state
   if (!loading && items.length === 0 && follows.length === 0) {
@@ -57,33 +115,30 @@ export const PersonalizedFeed = () => {
       )}
 
       {/* Feed Items */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {items.map((article, index) => (
-          <motion.div
-            key={article.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.05 }}
-          >
-            <NewsCard
-              id={article.id}
-              title={article.title}
-              image={article.image}
-              url={article.url}
-              language={article.language}
-              text={article.text}
-              bias={article.bias}
-              summary={article.summary}
-              ownership={article.ownership}
-              sentiment={article.sentiment}
-              claims={article.claims}
-              onTranslate={() => {
-                setTranslatingId(article.id);
-                setTimeout(() => setTranslatingId(null), 2000);
-              }}
-            />
-          </motion.div>
-        ))}
+      <div className="grid grid-cols-1 gap-6">
+        {items.map((article, index) => {
+          const translatedArticle = translatedNews[article.id];
+          const finalArticle = translatedArticle
+            ? { ...article, ...translatedArticle }
+            : article;
+
+          return (
+            <motion.div
+              key={article.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+            >
+              <ArticleItem
+                article={finalArticle}
+                isSelected={false}
+                userLanguage={userLanguage}
+                translating={translating}
+                onTranslate={translateArticle}
+              />
+            </motion.div>
+          );
+        })}
 
         {/* Loading Skeletons */}
         {loading && (

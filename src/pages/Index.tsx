@@ -695,9 +695,12 @@ const Index = () => {
     <>
           {/* Location Header */}
           <div className="px-4 mt-6">
-            <button onClick={selectedState ? handleBackToStates : handleBackToCountries} className="flex items-center gap-2 mb-4 hover:underline font-extrabold text-xl text-slate-50">
-              
-              {selectedState ? "Back to States" : `Back to ${REGIONS.find(r => r.id === selectedRegion)?.name}`}
+            <button 
+              onClick={selectedState ? handleBackToStates : handleBackToCountries} 
+              className="flex items-center gap-2 text-accent mb-4 hover:underline"
+            >
+              <ArrowRight className="w-4 h-4 rotate-180" />
+              {selectedState ? "Back to States" : `Back to ${REGIONS.find(r => r.id === selectedRegion)?.name || 'Countries'}`}
             </button>
             
             <div className="flex items-center gap-4 mb-6">
@@ -709,10 +712,10 @@ const Index = () => {
               {!selectedState && selectedCountryName && <Globe className="w-24 h-24 text-accent" />}
               <div>
                 <h2 className="text-3xl font-bold text-white">
-                  {selectedState ? `${selectedState} News` : `${selectedCountryName} News`}
+                  {selectedState || selectedCountryName || 'News'}
                 </h2>
                 <p className="text-muted-foreground">
-                  Latest updates from {selectedState || selectedCountryName}
+                  Latest updates {(selectedState || selectedCountryName) ? `from ${selectedState || selectedCountryName}` : ''}
                 </p>
               </div>
             </div>
