@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Region } from "@/data/countries";
+import { FollowStateButton } from "@/components/follow/FollowStateButton";
 
 const MAPBOX_TOKEN = "pk.eyJ1IjoicjR3Y2xvIiwiYSI6ImNtOHFwNmhzbzBsdXcyanNjcmhjdm9hOGsifQ.7XhOgtfnTOl8qKZZNgMMLw";
 
@@ -98,13 +99,23 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
     >
       <div ref={mapContainer} className="h-56 w-full bg-muted/20" />
       <div className="p-6">
-        <div className="flex items-center gap-3 mb-2">
-          <span className="text-4xl">{region.icon}</span>
-          <h3 className="text-xl font-semibold text-white group-hover:text-accent transition">
-            {region.name}
-          </h3>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <span className="text-4xl">{region.icon}</span>
+            <div>
+              <h3 className="text-xl font-semibold text-white group-hover:text-accent transition">
+                {region.name}
+              </h3>
+              <p className="text-sm text-muted-foreground">Click to explore countries</p>
+            </div>
+          </div>
+          <FollowStateButton
+            stateCode={region.id}
+            stateName={region.name}
+            size="sm"
+            variant="ghost"
+          />
         </div>
-        <p className="text-sm text-muted-foreground">Click to explore countries</p>
       </div>
     </div>
   );
