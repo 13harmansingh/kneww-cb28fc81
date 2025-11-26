@@ -53,7 +53,7 @@ export const DiscoverSection = () => {
                 topic={topic}
                 variant="outline"
                 size="sm"
-                showIcon={true}
+                showIcon={false}
               />
             </motion.div>
           ))}
@@ -81,7 +81,7 @@ export const DiscoverSection = () => {
                 stateName={location.name}
                 variant="outline"
                 size="sm"
-                showIcon={true}
+                showIcon={false}
               />
             </motion.div>
           ))}

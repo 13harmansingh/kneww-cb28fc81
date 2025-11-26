@@ -63,7 +63,7 @@ export const FollowStateButton = ({
             )}
           </motion.div>
         )}
-        {following ? 'Following' : 'Follow'}
+        {stateName}
       </Button>
     </motion.div>
   );
