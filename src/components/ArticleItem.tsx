@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Languages, ChevronDown, ChevronUp } from "lucide-react";
+import { Languages } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { SentimentBadge } from "@/components/SentimentBadge";
@@ -85,17 +85,6 @@ export const ArticleItem = ({
               </button>
             )}
             <ArticleBookmarkButton article={article} />
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate('/compare', {
-                  state: { article },
-                });
-              }}
-              className="flex-shrink-0 px-3 py-1 rounded-lg text-xs font-semibold bg-accent/20 text-accent hover:bg-accent/30 transition"
-            >
-              Compare Sources
-            </button>
           </div>
         </div>
 
@@ -131,14 +120,6 @@ export const ArticleItem = ({
             </a>
           )}
         </div>
-
-        {/* Expand/Collapse Indicator */}
-        {!isExpanded && (
-          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground py-3 border-t border-border/50">
-            <ChevronDown className="w-4 h-4" />
-            <span>Tap to analyze with AI</span>
-          </div>
-        )}
 
         {/* AI Analysis Section - Expandable */}
         <AnimatePresence>
@@ -251,12 +232,6 @@ export const ArticleItem = ({
                       </div>
                     )}
                   </div>
-                </div>
-
-                {/* Collapse Indicator */}
-                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground py-2">
-                  <ChevronUp className="w-4 h-4" />
-                  <span>Tap to collapse</span>
                 </div>
               </div>
             </motion.div>
