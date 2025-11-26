@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { NewsArticle } from "./useNews";
+import { NewsArticle } from "@/config/types";
 
 interface CachedNewsData {
   news: NewsArticle[];

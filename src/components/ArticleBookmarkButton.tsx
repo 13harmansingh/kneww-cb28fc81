@@ -1,6 +1,6 @@
 import { Bookmark } from "lucide-react";
 import { useArticleBookmark } from "@/hooks/useArticleBookmark";
-import { NewsArticle } from "@/hooks/useNews";
+import { NewsArticle } from "@/config/types";
 import { cn } from "@/lib/utils";
 
 interface ArticleBookmarkButtonProps {

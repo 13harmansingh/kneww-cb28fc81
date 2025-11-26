@@ -9,7 +9,7 @@ import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { SwipeIndicator } from "@/components/SwipeIndicator";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { ArticleItem } from "@/components/ArticleItem";
-import { NewsArticle } from "@/hooks/useNews";
+import { NewsArticle } from "@/config/types";
 import { CategoryPill } from "@/components/CategoryPill";
 import { LanguagePill } from "@/components/LanguagePill";
 import { EmptyState } from "@/components/EmptyState";
