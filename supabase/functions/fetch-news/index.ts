@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateAuth, getClientIP } from '../_shared/auth.ts';
 import { applyRateLimit } from '../_shared/rateLimit.ts';
 import { logEvent, TelemetryEvents } from '../_shared/telemetry.ts';
-import { generateNewsCacheKey, getCachedNewsResponse, setCachedNewsResponse } from '../_shared/cache.ts';
+import { generateNewsCacheKey, getCachedNewsResponse, setCachedNewsResponse, getAnyCachedNewsResponse } from '../_shared/cache.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -211,26 +211,20 @@ serve(async (req) => {
         },
       });
 
-      // Try to find cached data without language filter as fallback
-      const fallbackCacheKey = generateNewsCacheKey({
-        textQuery,
-        entities,
-        category,
-        language: undefined, // Remove language filter to find any cached data
-        source_country,
-        source_countries,
-      });
+      // Import the new function
+      const { getAnyCachedNewsResponse } = await import('../_shared/cache.ts');
       
-      const fallbackCached = getCachedNewsResponse(fallbackCacheKey);
+      // Try to find ANY cached data as fallback
+      const fallbackCached = getAnyCachedNewsResponse();
       
       if (fallbackCached) {
-        console.log('✅ Rate limit - Returning cached fallback data');
+        console.log('✅ Rate limit - Returning ANY available cached data');
         
         return new Response(
           JSON.stringify({ 
             ...fallbackCached,
             rateLimitWarning: true,
-            message: 'Showing cached news due to API rate limit'
+            message: 'Showing cached news due to API rate limit. Refresh in a few moments for updated content.'
           }),
           { 
             status: 200,
@@ -239,11 +233,11 @@ serve(async (req) => {
         );
       }
 
-      // No cached data available - return error
+      // No cached data available at all - return error
       return new Response(
         JSON.stringify({ 
           error: 'RATE_LIMIT_EXCEEDED',
-          message: 'WorldNews API rate limit reached and no cached data available. Please try again in a few moments.',
+          message: 'WorldNews API rate limit reached and no cached data available. Please wait a few moments and try again.',
           rateLimited: true,
           fallbackToCache: false
         }),
