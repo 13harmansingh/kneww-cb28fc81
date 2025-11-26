@@ -16,6 +16,7 @@ import { ArticleBookmarkButton } from "@/components/ArticleBookmarkButton";
 import { NewsCardSkeleton } from "@/components/skeletons/NewsCardSkeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SwipeIndicator } from "@/components/SwipeIndicator";
+import { PersonalizedFeed } from "@/components/personalized/PersonalizedFeed";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { US_STATES } from "@/data/usStates";
 import { CANADA_PROVINCES } from "@/data/canadaProvinces";
@@ -809,6 +810,17 @@ const Index = () => {
                   </div> : <p className="text-muted-foreground">No news articles found for {selectedState || selectedCountryName}</p>}
               </div>}
           </div>
+          
+          {/* Personalized Feed Section - Only for authenticated users */}
+          {user && (
+            <div className="px-4 mt-16 pt-8 border-t border-border/30">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-foreground mb-1">Your Personalized Feed</h2>
+                <p className="text-sm text-muted-foreground">Curated news based on your followed topics and locations</p>
+              </div>
+              <PersonalizedFeed />
+            </div>
+          )}
           
           {/* Swipe Navigation Indicator */}
           <SwipeIndicator progress={swipeProgress} direction={swipeDirection} />
