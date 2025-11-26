@@ -7,42 +7,13 @@ import { useDebounce } from "./useDebounce";
 import { toast } from "sonner";
 import { recoveryQueue } from "@/lib/recoveryQueue";
 import { useRateLimitObserver } from "./system/useRateLimitObserver";
-
-export interface Claim {
-  text: string;
-  verification: "verified" | "disputed" | "unverified";
-  explanation: string;
-}
-
-export interface NewsArticle {
-  id: string;
-  title: string;
-  text?: string;
-  url?: string;
-  image?: string;
-  publish_date?: string;
-  author?: string;
-  source_country?: string;
-  language?: string;
-  bias?: string;
-  summary?: string;
-  ownership?: string;
-  sentiment?: "positive" | "negative" | "neutral";
-  claims?: Claim[];
-  analysisLoading?: boolean;
-}
+import { NewsArticle, AvailableLanguage } from "@/config/types";
 
 const MIN_REQUEST_INTERVAL = 1500; // Minimum 1.5s between requests
 
 const isRateLimitError = (error: any): boolean => {
   return error?.status === 429 || error?.message?.includes('429') || error?.message?.includes('Too Many Requests');
 };
-
-export interface AvailableLanguage {
-  code: string;
-  name: string;
-  count: number;
-}
 
 // Global state to track last request time for throttling
 let lastRequestTime = 0;

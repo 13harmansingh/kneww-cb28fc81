@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { NewsArticle } from "@/hooks/useNews";
+import { NewsArticle } from "@/config/types";
 
 export const useArticleBookmark = (article: NewsArticle) => {
   const [isBookmarked, setIsBookmarked] = useState(false);

@@ -1,6 +1,6 @@
 import { ArrowLeft, Scale, Loader2, Languages } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { NewsArticle } from "@/hooks/useNews";
+import { NewsArticle } from "@/config/types";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";

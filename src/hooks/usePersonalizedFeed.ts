@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { invokeEdgeFunction } from '@/api/client';
-import { NewsArticle } from './useNews';
+import { NewsArticle } from '@/config/types';
 import { useRequestDedupe } from './useRequestDedupe';
 import { useFollowManager } from './useFollowManager';
 import { toast } from 'sonner';

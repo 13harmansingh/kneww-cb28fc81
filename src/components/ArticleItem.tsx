@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { SentimentBadge } from "@/components/SentimentBadge";
 import { ArticleBookmarkButton } from "@/components/ArticleBookmarkButton";
-import { NewsArticle } from "@/hooks/useNews";
+import { NewsArticle } from "@/config/types";
 import { useLazyAnalysis } from "@/hooks/useLazyAnalysis";
 
 interface ArticleItemProps {
@@ -96,10 +96,10 @@ export const ArticleItem = ({
               <span className="uppercase">{article.language}</span>
             </div>
           )}
-          {article.author && (
+          {article.authors && article.authors.length > 0 && (
             <div className="flex items-center gap-1">
               <span className="font-medium">Author:</span>
-              <span>{article.author}</span>
+              <span>{article.authors[0]}</span>
             </div>
           )}
           {article.publish_date && (
