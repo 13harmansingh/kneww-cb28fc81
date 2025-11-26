@@ -13,6 +13,8 @@ import { SwipeIndicator } from "@/components/SwipeIndicator";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useAppState } from "@/stores/appState";
+import { DiscoverSection } from "@/components/profile/DiscoverSection";
+import { FollowingPanel } from "@/components/follow/FollowingPanel";
 
 interface Profile {
   id: string;
@@ -363,6 +365,12 @@ export default function ProfileSettings() {
               </div>
             </div>
           </div>
+
+          {/* Discover Section */}
+          <DiscoverSection />
+
+          {/* Following Panel */}
+          <FollowingPanel />
 
           {/* Sign Out */}
           <button
