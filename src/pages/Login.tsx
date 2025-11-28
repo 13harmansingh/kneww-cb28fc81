@@ -44,7 +44,7 @@ export default function Login() {
     setLoading(true);
     try {
       await signIn(email.trim(), password);
-      toast.success("Logged in successfully!");
+      toast.success("Access granted successfully");
       navigate("/");
     } catch (error: any) {
       toast.error(error.message || "Failed to log in");
@@ -202,10 +202,10 @@ export default function Login() {
                   {loading ? (
                     <span className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Signing in...
+                      Entering KNEW...
                     </span>
                   ) : (
-                    "Sign In"
+                    "Enter KNEW"
                   )}
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"

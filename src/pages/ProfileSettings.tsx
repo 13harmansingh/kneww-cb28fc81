@@ -131,7 +131,7 @@ export default function ProfileSettings() {
 
       setProfile((prev) => prev ? { ...prev, display_name: displayName } : null);
       setEditing(false);
-      toast.success("Profile updated");
+      toast.success("Profile refined successfully");
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error("Failed to update profile");
@@ -170,13 +170,13 @@ export default function ProfileSettings() {
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Fixed Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur px-4 pt-6 pb-4 border-b border-border/50">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-4 border-b border-border/50">
         <div className="flex items-center justify-between max-w-2xl mx-auto">
           <h1 className="text-3xl font-bold text-foreground">Profile & Settings</h1>
           {saving && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Save className="w-4 h-4 animate-pulse" />
-              Saving...
+              Preserving preferences...
             </div>
           )}
         </div>

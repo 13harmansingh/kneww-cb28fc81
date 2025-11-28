@@ -150,7 +150,7 @@ export const ArticleItem = ({
                         <div className="h-4 bg-muted rounded animate-pulse mt-1" />
                       ) : (
                         <p className="text-sm text-foreground mt-1">
-                          {bias || "Not analyzed yet"}
+                          {bias || "Awaiting intelligence synthesis..."}
                         </p>
                       )}
                     </div>
@@ -166,7 +166,7 @@ export const ArticleItem = ({
                         </div>
                       ) : (
                         <p className="text-sm text-foreground mt-1">
-                          {summary || "Not analyzed yet"}
+                          {summary || "Awaiting intelligence synthesis..."}
                         </p>
                       )}
                     </div>
@@ -179,7 +179,7 @@ export const ArticleItem = ({
                         <div className="h-4 bg-muted rounded animate-pulse mt-1" />
                       ) : (
                         <p className="text-sm text-foreground mt-1">
-                          {ownership || "Not analyzed yet"}
+                          {ownership || "Awaiting intelligence synthesis..."}
                         </p>
                       )}
                     </div>

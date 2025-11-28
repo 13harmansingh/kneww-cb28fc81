@@ -54,7 +54,7 @@ export const NotificationBell = () => {
         </div>
         <ScrollArea className="h-[400px]">
           {loading ? (
-            <div className="p-4 text-center text-muted-foreground">Loading...</div>
+            <div className="p-4 text-center text-muted-foreground">Curating notifications...</div>
           ) : notifications.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <Bell className="w-12 h-12 mx-auto mb-2 opacity-50" />
