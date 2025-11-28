@@ -17,7 +17,7 @@ export const FollowingPanel = () => {
       <Card className="p-8">
         <div className="flex items-center justify-center gap-2 text-muted-foreground">
           <Loader2 className="w-5 h-5 animate-spin" />
-          <span>Loading your follows...</span>
+          <span>Gathering your curated interests...</span>
         </div>
       </Card>
     );

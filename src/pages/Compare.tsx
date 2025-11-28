@@ -116,10 +116,10 @@ export default function Compare() {
           : a
       ));
 
-      toast.success("Article translated successfully");
+      toast.success("Content localized successfully");
     } catch (error) {
       console.error("Translation error:", error);
-      toast.error("Failed to translate article");
+      toast.error("Localization temporarily unavailable");
     } finally {
       setTranslating(null);
     }
@@ -165,8 +165,8 @@ export default function Compare() {
 
   return (
     <div className="min-h-screen bg-background pb-6">
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
-        <div className="flex items-center gap-4 p-4">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-4">
+        <div className="flex items-center gap-4">
           <button onClick={() => navigate(-1)} className="text-white">
             <ArrowLeft className="w-6 h-6" />
           </button>

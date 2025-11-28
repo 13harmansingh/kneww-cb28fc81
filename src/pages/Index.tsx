@@ -152,7 +152,7 @@ const Index = () => {
 
       // Clear AI search params to show location-based news
       setAiSearchParams(undefined);
-      toast.success(`Loading news for ${countryName}`);
+      toast.success(`Curating stories from ${countryName}...`);
     }
   }, [searchParams]);
 
@@ -302,7 +302,7 @@ const Index = () => {
       setSelectedState(null);
 
       // AI search is always global unless user explicitly mentioned location
-      toast.success(`Searching worldwide: ${data.searchText || aiSearchQuery}`);
+      toast.success(`Curating global intelligence: ${data.searchText || aiSearchQuery}`);
       setAiSearchQuery("");
     } catch (error) {
       console.error('AI Search error:', error);
@@ -341,7 +341,7 @@ const Index = () => {
       });
       if (error) throw error;
       if (data) {
-        toast.success(`Article translated to ${userLanguage.toUpperCase()}`);
+        toast.success(`Content localized to ${userLanguage.toUpperCase()}`);
 
         // Store the translated version
         setTranslatedNews(prev => ({
@@ -358,7 +358,7 @@ const Index = () => {
       }
     } catch (err) {
       console.error('Translation error:', err);
-      toast.error('Failed to translate article');
+      toast.error('Localization temporarily unavailable');
     } finally {
       setTranslating(prev => ({
         ...prev,
@@ -391,7 +391,7 @@ const Index = () => {
     return <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">Preparing your experience...</p>
         </div>
       </div>;
   }
@@ -415,7 +415,7 @@ const Index = () => {
 
   return <div className="min-h-screen bg-background pb-24">
       {/* Header Search */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur px-4 pt-6 pb-4 border-b border-border/50">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-4 border-b border-border/50">
         <div className="flex items-center gap-3 mb-3">
           <div className="flex-1 relative">
             <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-accent" />
@@ -429,7 +429,7 @@ const Index = () => {
         {aiSearching && <div className="bg-accent/5 rounded-lg p-2 border border-accent/20 mb-2">
             <p className="text-xs text-muted-foreground">
               <Sparkles className="w-3 h-3 inline mr-1 text-accent" />
-              AI is understanding your query and finding relevant news worldwide...
+              Our AI is synthesizing intelligence across global sources...
             </p>
           </div>}
         <div className="flex items-center gap-3">

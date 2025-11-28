@@ -44,7 +44,7 @@ export default function Signup() {
     setLoading(true);
     try {
       await signUp(email.trim(), password);
-      toast.success("Account created! You can now log in.");
+      toast.success("Intelligence initialized. Welcome to KNEW.");
       navigate("/login");
     } catch (error: any) {
       toast.error(error.message || "Failed to create account");
@@ -203,10 +203,10 @@ export default function Signup() {
                   {loading ? (
                     <span className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Creating account...
+                      Initiating access...
                     </span>
                   ) : (
-                    "Sign Up"
+                    "Join KNEW"
                   )}
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"

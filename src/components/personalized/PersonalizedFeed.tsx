@@ -53,7 +53,7 @@ export const PersonalizedFeed = () => {
       if (error) throw error;
 
       if (data) {
-        toast.success(`Article translated to ${userLanguage.toUpperCase()}`);
+        toast.success(`Content localized to ${userLanguage.toUpperCase()}`);
 
         setTranslatedNews((prev) => ({
           ...prev,
@@ -69,7 +69,7 @@ export const PersonalizedFeed = () => {
       }
     } catch (err) {
       console.error('Translation error:', err);
-      toast.error('Failed to translate article');
+      toast.error('Localization temporarily unavailable');
     } finally {
       setTranslating((prev) => ({
         ...prev,
@@ -154,7 +154,7 @@ export const PersonalizedFeed = () => {
       {hasMore && !error && (
         <div ref={sentinelRef} className="h-20 flex items-center justify-center">
           {loading && (
-            <div className="text-muted-foreground text-sm">Loading more...</div>
+            <div className="text-muted-foreground text-sm">Discovering more stories...</div>
           )}
         </div>
       )}

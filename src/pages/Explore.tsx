@@ -113,7 +113,7 @@ const Explore = () => {
             .addTo(map.current!);
 
           // Set state to show news for this country
-          toast.success(`Loading news for ${countryName}`);
+          toast.success(`Curating stories from ${countryName}...`);
           setSelectedCountry(countryCode);
           setSelectedCountryName(countryName);
           setShowNews(true);
@@ -160,7 +160,7 @@ const Explore = () => {
         ...prev,
         [id]: translated
       }));
-      toast.success("Article translated successfully");
+      toast.success("Content localized successfully");
     } else if (translateError) {
       toast.error(translateError);
     }
@@ -190,7 +190,7 @@ const Explore = () => {
           </h1>
         </div>
         {!showNews && (
-          <p className="text-muted-foreground">Click anywhere on the map to discover local news</p>
+          <p className="text-muted-foreground">Tap anywhere to unveil regional intelligence</p>
         )}
       </div>
 
@@ -280,7 +280,7 @@ const Explore = () => {
             <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center">
               <div className="text-center">
                 <div className="inline-block w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin mb-2" />
-                <p className="text-foreground">Finding location...</p>
+                <p className="text-foreground">Discovering your destination...</p>
               </div>
             </div>
           )}
