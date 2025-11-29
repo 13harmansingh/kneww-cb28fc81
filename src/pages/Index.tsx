@@ -32,12 +32,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useAppState } from "@/stores/appState";
-
 const Index = () => {
   const routerLocation = useLocation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  
+
   // Global app state with persistence
   const {
     selectedRegion: globalSelectedRegion,
@@ -47,9 +46,9 @@ const Index = () => {
     setSelectedRegion: setGlobalSelectedRegion,
     setSelectedCountry: setGlobalSelectedCountry,
     setSelectedState: setGlobalSelectedState,
-    setSelectedLanguage: setGlobalSelectedLanguage,
+    setSelectedLanguage: setGlobalSelectedLanguage
   } = useAppState();
-  
+
   // Local state (mirrors global state for component logic)
   const [selectedRegion, setSelectedRegion] = useState<string | null>(globalSelectedRegion);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(globalSelectedCountry);
@@ -74,20 +73,25 @@ const Index = () => {
   if (!routerLocation) return null;
 
   // Scroll position restoration
-  useScrollRestoration({ pageKey: 'index-page', enabled: true });
+  useScrollRestoration({
+    pageKey: 'index-page',
+    enabled: true
+  });
   const {
     user,
     session,
     loading: authLoading
   } = useAuth();
-  const { isBanned, loading: roleLoading } = useUserRole();
+  const {
+    isBanned,
+    loading: roleLoading
+  } = useUserRole();
   const categories = ["All", "Politics", "Sports", "Technology", "Entertainment"];
   const location = selectedState || selectedCountryName || selectedRegion;
   const sourceCountryCode = selectedCountry || undefined;
 
   // For continent-level, get all country codes
   const sourceCountryCodes = selectedRegion && !selectedCountry ? getCountriesByRegion(selectedRegion).map(c => c.code).join(',') : undefined;
-  
   const handleBackNavigation = () => {
     if (selectedState) {
       handleBackToStates();
@@ -97,7 +101,6 @@ const Index = () => {
       handleBackToRegions();
     }
   };
-
   const {
     news,
     availableLanguages,
@@ -108,9 +111,12 @@ const Index = () => {
   } = useNews(aiSearchParams ? undefined : location, selectedCategory, session, selectedLanguage, aiSearchParams ? undefined : sourceCountryCode, aiSearchParams ? undefined : sourceCountryCodes, aiSearchParams);
 
   // Swipe navigation
-  const { swipeProgress, swipeDirection } = useSwipeNavigation({
+  const {
+    swipeProgress,
+    swipeDirection
+  } = useSwipeNavigation({
     enabled: true,
-    onSwipeRight: handleBackNavigation,
+    onSwipeRight: handleBackNavigation
   });
 
   // Filter news by selected language on client side and apply translations
@@ -177,19 +183,15 @@ const Index = () => {
   useEffect(() => {
     setGlobalSelectedRegion(selectedRegion);
   }, [selectedRegion, setGlobalSelectedRegion]);
-
   useEffect(() => {
     setGlobalSelectedCountry(selectedCountry);
   }, [selectedCountry, setGlobalSelectedCountry]);
-
   useEffect(() => {
     setGlobalSelectedState(selectedState);
   }, [selectedState, setGlobalSelectedState]);
-
   useEffect(() => {
     setGlobalSelectedLanguage(selectedLanguage);
   }, [selectedLanguage, setGlobalSelectedLanguage]);
-
   const filteredRegions = REGIONS.filter(region => region.name.toLowerCase().includes(searchQuery.toLowerCase()));
   const filteredCountries = selectedRegion ? getCountriesByRegion(selectedRegion).filter(country => country.name.toLowerCase().includes(searchQuery.toLowerCase())) : [];
 
@@ -400,19 +402,20 @@ const Index = () => {
   if (!user || !session) {
     return <div className="min-h-screen bg-background flex items-center justify-center px-4 pb-24">
         <div className="text-center max-w-md">
-          <div className="text-6xl mb-6">🔒</div>
-          <h2 className="text-2xl font-bold text-white mb-3">KNEW        </h2>
-          <p className="text-muted-foreground mb-6">
-            News articles and explore global news coverage.
-          </p>
-          <button onClick={() => navigate("/login")} className="px-6 py-3 bg-accent text-white rounded-lg font-semibold hover:bg-accent/90 transition">
-            ​Sign in  
+          
+          <h2 className="font-bold text-white mb-3 text-7xl">KNEW</h2>
+          
+          <button onClick={() => navigate("/login")} className="px-6 py-3 text-white rounded-lg font-semibold transition bg-secondary">
+            
+ 
+  
+ 
+ press​         
           </button>
         </div>
         <BottomNav />
       </div>;
   }
-
   return <div className="min-h-screen bg-background pb-24">
       {/* Header Search */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-4 border-b border-border/50">
@@ -434,86 +437,55 @@ const Index = () => {
           </div>}
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold text-white">KNEW</h1>
-          {(selectedState || selectedCountry || selectedRegion || aiSearchParams) && (
-            <button 
-              onClick={handleBackNavigation}
-              className="ml-auto p-2 rounded-full hover:bg-accent/20 transition"
-              title="Go Back"
-            >
+          {(selectedState || selectedCountry || selectedRegion || aiSearchParams) && <button onClick={handleBackNavigation} className="ml-auto p-2 rounded-full hover:bg-accent/20 transition" title="Go Back">
               <ChevronLeft className="w-5 h-5 text-accent" />
-            </button>
-          )}
+            </button>}
           <span className="text-xs text-muted-foreground">Global News Platform</span>
         </div>
 
         {/* Breadcrumb Navigation */}
-        {(selectedRegion || selectedCountry || selectedState) && !aiSearchParams && (
-          <div className="mt-3">
+        {(selectedRegion || selectedCountry || selectedState) && !aiSearchParams && <div className="mt-3">
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
-                  <BreadcrumbLink 
-                    onClick={handleBackToRegions}
-                    className="cursor-pointer text-muted-foreground hover:text-accent transition"
-                  >
+                  <BreadcrumbLink onClick={handleBackToRegions} className="cursor-pointer text-muted-foreground hover:text-accent transition">
                     🌍 World
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 
-                {selectedRegion && (
-                  <>
+                {selectedRegion && <>
                     <BreadcrumbSeparator />
                     <BreadcrumbItem>
-                      {selectedCountry ? (
-                        <BreadcrumbLink 
-                          onClick={handleBackToCountries}
-                          className="cursor-pointer text-muted-foreground hover:text-accent transition"
-                        >
+                      {selectedCountry ? <BreadcrumbLink onClick={handleBackToCountries} className="cursor-pointer text-muted-foreground hover:text-accent transition">
                           {REGIONS.find(r => r.id === selectedRegion)?.name}
-                        </BreadcrumbLink>
-                      ) : (
-                        <BreadcrumbPage className="text-accent font-medium">
+                        </BreadcrumbLink> : <BreadcrumbPage className="text-accent font-medium">
                           {REGIONS.find(r => r.id === selectedRegion)?.name}
-                        </BreadcrumbPage>
-                      )}
+                        </BreadcrumbPage>}
                     </BreadcrumbItem>
-                  </>
-                )}
+                  </>}
 
-                {selectedCountry && (
-                  <>
+                {selectedCountry && <>
                     <BreadcrumbSeparator />
                     <BreadcrumbItem>
-                      {selectedState ? (
-                        <BreadcrumbLink 
-                          onClick={handleBackToStates}
-                          className="cursor-pointer text-muted-foreground hover:text-accent transition"
-                        >
+                      {selectedState ? <BreadcrumbLink onClick={handleBackToStates} className="cursor-pointer text-muted-foreground hover:text-accent transition">
                           {selectedCountryName}
-                        </BreadcrumbLink>
-                      ) : (
-                        <BreadcrumbPage className="text-accent font-medium">
+                        </BreadcrumbLink> : <BreadcrumbPage className="text-accent font-medium">
                           {selectedCountryName}
-                        </BreadcrumbPage>
-                      )}
+                        </BreadcrumbPage>}
                     </BreadcrumbItem>
-                  </>
-                )}
+                  </>}
 
-                {selectedState && (
-                  <>
+                {selectedState && <>
                     <BreadcrumbSeparator />
                     <BreadcrumbItem>
                       <BreadcrumbPage className="text-accent font-medium">
                         {selectedState}
                       </BreadcrumbPage>
                     </BreadcrumbItem>
-                  </>
-                )}
+                  </>}
               </BreadcrumbList>
             </Breadcrumb>
-          </div>
-        )}
+          </div>}
       </div>
 
       {aiSearchParams ? (/* AI Search Results View */
@@ -559,21 +531,14 @@ const Index = () => {
               </div>
 
               <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
-                <LanguagePill 
-                  key="all" 
-                  code="all" 
-                  name="All Languages" 
-                  count={news.length} 
-                  isActive={selectedLanguage === 'all'} 
-                  onClick={() => {
-                    setSelectedLanguage('all');
-                    setGlobalSelectedLanguage('all');
-                  }} 
-                />
+                <LanguagePill key="all" code="all" name="All Languages" count={news.length} isActive={selectedLanguage === 'all'} onClick={() => {
+            setSelectedLanguage('all');
+            setGlobalSelectedLanguage('all');
+          }} />
                 {availableLanguages.map(lang => <LanguagePill key={lang.code} code={lang.code} name={lang.name} count={lang.count} isActive={selectedLanguage === lang.code} onClick={() => {
-                  setSelectedLanguage(lang.code);
-                  setGlobalSelectedLanguage(lang.code);
-                }} />)}
+            setSelectedLanguage(lang.code);
+            setGlobalSelectedLanguage(lang.code);
+          }} />)}
               </div>
             </div>}
 
@@ -615,18 +580,9 @@ const Index = () => {
                 <p className="mt-4 text-muted-foreground">Loading news...</p>
               </div> : filteredNews.length > 0 ? <div className="grid grid-cols-1 gap-6">
                 {filteredNews.map(article => {
-                  const isSelected = selectedForCompare.find(a => a.id === article.id);
-                  return (
-                    <ArticleItem
-                      key={article.id}
-                      article={article}
-                      isSelected={!!isSelected}
-                      userLanguage={userLanguage}
-                      translating={translating}
-                      onTranslate={translateArticle}
-                    />
-                  );
-                })}
+            const isSelected = selectedForCompare.find(a => a.id === article.id);
+            return <ArticleItem key={article.id} article={article} isSelected={!!isSelected} userLanguage={userLanguage} translating={translating} onTranslate={translateArticle} />;
+          })}
               </div> : <div className="text-center py-12">
                 <div className="text-muted-foreground text-4xl mb-3">📰</div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">No articles found</h3>
@@ -695,27 +651,22 @@ const Index = () => {
     <>
           {/* Location Header */}
           <div className="px-4 mt-6">
-            <button 
-              onClick={selectedState ? handleBackToStates : handleBackToCountries} 
-              className="flex items-center gap-2 text-accent mb-4 hover:underline"
-            >
+            <button onClick={selectedState ? handleBackToStates : handleBackToCountries} className="flex items-center gap-2 text-accent mb-4 hover:underline">
               <ArrowRight className="w-4 h-4 rotate-180" />
               {selectedState ? "Back to States" : `Back to ${REGIONS.find(r => r.id === selectedRegion)?.name || 'Countries'}`}
             </button>
             
             <div className="flex items-center gap-4 mb-6">
-              {selectedState && currentStates.find(s => s.name === selectedState) && (
-                <div className="w-24 h-24 rounded-xl overflow-hidden border-2 border-accent">
+              {selectedState && currentStates.find(s => s.name === selectedState) && <div className="w-24 h-24 rounded-xl overflow-hidden border-2 border-accent">
                   <StateMapCard state={currentStates.find(s => s.name === selectedState)!} onClick={() => {}} />
-                </div>
-              )}
+                </div>}
               {!selectedState && selectedCountryName && <Globe className="w-24 h-24 text-accent" />}
               <div>
                 <h2 className="text-3xl font-bold text-white">
                   {selectedState || selectedCountryName || 'News'}
                 </h2>
                 <p className="text-muted-foreground">
-                  Latest updates {(selectedState || selectedCountryName) ? `from ${selectedState || selectedCountryName}` : ''}
+                  Latest updates {selectedState || selectedCountryName ? `from ${selectedState || selectedCountryName}` : ''}
                 </p>
               </div>
             </div>
@@ -742,21 +693,14 @@ const Index = () => {
               </div>
 
               <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
-                <LanguagePill 
-                  key="all" 
-                  code="all" 
-                  name="All Languages" 
-                  count={news.length} 
-                  isActive={selectedLanguage === 'all'} 
-                  onClick={() => {
-                    setSelectedLanguage('all');
-                    setGlobalSelectedLanguage('all');
-                  }} 
-                />
+                <LanguagePill key="all" code="all" name="All Languages" count={news.length} isActive={selectedLanguage === 'all'} onClick={() => {
+            setSelectedLanguage('all');
+            setGlobalSelectedLanguage('all');
+          }} />
                 {availableLanguages.map(lang => <LanguagePill key={lang.code} code={lang.code} name={lang.name} count={lang.count} isActive={selectedLanguage === lang.code} onClick={() => {
-                  setSelectedLanguage(lang.code);
-                  setGlobalSelectedLanguage(lang.code);
-                }} />)}
+            setSelectedLanguage(lang.code);
+            setGlobalSelectedLanguage(lang.code);
+          }} />)}
               </div>
             </div>}
 
@@ -798,14 +742,7 @@ const Index = () => {
               </div> : filteredNews.length > 0 ? <div className="grid grid-cols-1 gap-6">
                 {filteredNews.map(article => {
             const isSelected = selectedForCompare.find(a => a.id === article.id);
-            return <ArticleItem
-                      key={article.id}
-                      article={article}
-                      isSelected={!!isSelected}
-                      userLanguage={userLanguage}
-                      translating={translating}
-                      onTranslate={translateArticle}
-                    />;
+            return <ArticleItem key={article.id} article={article} isSelected={!!isSelected} userLanguage={userLanguage} translating={translating} onTranslate={translateArticle} />;
           })}
               </div> : <div className="text-center py-12">
                 {!user ? <div>
@@ -816,15 +753,13 @@ const Index = () => {
           </div>
           
           {/* Personalized Feed Section - Only for authenticated users */}
-          {user && (
-            <div className="px-4 mt-16 pt-8 border-t border-border/30">
+          {user && <div className="px-4 mt-16 pt-8 border-t border-border/30">
               <div className="mb-6">
                 <h2 className="text-2xl font-bold text-foreground mb-1">Your Personalized Feed</h2>
                 <p className="text-sm text-muted-foreground">Curated news based on your followed topics and locations</p>
               </div>
               <PersonalizedFeed />
-            </div>
-          )}
+            </div>}
           
           {/* Swipe Navigation Indicator */}
           <SwipeIndicator progress={swipeProgress} direction={swipeDirection} />
