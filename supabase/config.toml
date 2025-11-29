@@ -17,3 +17,12 @@ verify_jwt = true
 
 [functions.admin-get-users]
 verify_jwt = true
+
+[functions.admin-create-user]
+verify_jwt = true
+
+[functions.admin-get-access-requests]
+verify_jwt = true
+
+[functions.admin-reject-request]
+verify_jwt = true

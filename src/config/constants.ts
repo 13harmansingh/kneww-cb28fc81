@@ -53,4 +53,7 @@ export const EDGE_FUNCTIONS = {
   AI_SEARCH_NEWS: 'ai-search-news',
   FETCH_RELATED_NEWS: 'fetch-related-news',
   ADMIN_GET_USERS: 'admin-get-users',
+  ADMIN_CREATE_USER: 'admin-create-user',
+  ADMIN_GET_ACCESS_REQUESTS: 'admin-get-access-requests',
+  ADMIN_REJECT_REQUEST: 'admin-reject-request',
 } as const;
