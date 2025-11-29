@@ -222,9 +222,9 @@ export default function Login() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5, duration: 0.5 }}
               >
-                Don't have an account?{" "}
+                Don't have access?{" "}
                 <Link to="/signup" className="text-accent hover:underline transition-colors">
-                  Sign up
+                  Request an invitation
                 </Link>
               </motion.p>
             </motion.form>

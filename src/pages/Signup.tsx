@@ -1,25 +1,28 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2 } from "lucide-react";
 
-const signupSchema = z.object({
+const requestSchema = z.object({
+  full_name: z.string().trim().min(1, { message: "Name is required" }).max(100, { message: "Name must be less than 100 characters" }),
   email: z.string().trim().email({ message: "Invalid email address" }).max(255, { message: "Email must be less than 255 characters" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }).max(100, { message: "Password must be less than 100 characters" }),
+  reason: z.string().max(500, { message: "Reason must be less than 500 characters" }).optional(),
 });
 
 export default function Signup() {
   const location = useLocation();
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
-  const { signUp } = useAuth();
+  const [submitted, setSubmitted] = useState(false);
   const navigate = useNavigate();
 
   // Guard: ensure router context exists
@@ -30,11 +33,11 @@ export default function Signup() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate input
-    const result = signupSchema.safeParse({ email, password });
+    const result = requestSchema.safeParse({ full_name: fullName, email, reason });
     if (!result.success) {
       const errors = result.error.errors.map(err => err.message).join(", ");
       toast.error(errors);
@@ -43,11 +46,26 @@ export default function Signup() {
     
     setLoading(true);
     try {
-      await signUp(email.trim(), password);
-      toast.success("Intelligence initialized. Welcome to KNEW.");
-      navigate("/login");
+      const { error } = await supabase
+        .from('access_requests')
+        .insert({
+          full_name: fullName.trim(),
+          email: email.trim(),
+          reason: reason.trim() || null
+        });
+
+      if (error) {
+        if (error.code === '23505') {
+          toast.error("This email has already been submitted");
+        } else {
+          throw error;
+        }
+      } else {
+        setSubmitted(true);
+        toast.success("Your request has been submitted. We'll review it and get back to you.");
+      }
     } catch (error: any) {
-      toast.error(error.message || "Failed to create account");
+      toast.error(error.message || "Failed to submit request");
     } finally {
       setLoading(false);
     }
@@ -128,107 +146,159 @@ export default function Signup() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
-            <div className="text-center mb-8">
-              <motion.h1 
-                className="text-5xl font-black tracking-tight text-foreground mb-2"
-                animate={{ 
-                  textShadow: [
-                    '0 0 10px hsl(180 60% 50% / 0.3)',
-                    '0 0 20px hsl(180 60% 50% / 0.5)',
-                    '0 0 10px hsl(180 60% 50% / 0.3)'
-                  ]
-                }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              >
-                KNEW
-              </motion.h1>
-              <p className="text-muted-foreground">Join the revolution</p>
-            </div>
-            
-            <motion.form 
-              onSubmit={handleSignup} 
-              className="relative bg-card/50 backdrop-blur-xl p-8 rounded-3xl border border-accent/20 shadow-2xl shadow-accent/10 space-y-6"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-            >
-              <motion.div 
-                className="space-y-4"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-              >
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
-                    Email
-                  </label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    required
-                    className="bg-background/50 border-accent/30 focus:border-accent focus:ring-accent/50 transition-all duration-300"
-                  />
+            {!submitted ? (
+              <>
+                <div className="text-center mb-8">
+                  <motion.h1 
+                    className="text-5xl font-black tracking-tight text-foreground mb-2"
+                    animate={{ 
+                      textShadow: [
+                        '0 0 10px hsl(180 60% 50% / 0.3)',
+                        '0 0 20px hsl(180 60% 50% / 0.5)',
+                        '0 0 10px hsl(180 60% 50% / 0.3)'
+                      ]
+                    }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    KNEW
+                  </motion.h1>
+                  <p className="text-muted-foreground">Request Intelligence Access</p>
                 </div>
                 
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
-                    Password
-                  </label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Create a password"
-                    required
-                    minLength={6}
-                    className="bg-background/50 border-accent/30 focus:border-accent focus:ring-accent/50 transition-all duration-300"
-                  />
-                </div>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-              >
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-accent hover:bg-accent/90 text-accent-foreground relative overflow-hidden group transition-all duration-300 hover:shadow-lg hover:shadow-accent/50"
+                <motion.form 
+                  onSubmit={handleSubmit} 
+                  className="relative bg-card/50 backdrop-blur-xl p-8 rounded-3xl border border-accent/20 shadow-2xl shadow-accent/10 space-y-6"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2, duration: 0.6 }}
                 >
-                  {loading ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Initiating access...
-                    </span>
-                  ) : (
-                    "Join KNEW"
-                  )}
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                    initial={{ x: "-100%" }}
-                    whileHover={{ x: "100%" }}
-                    transition={{ duration: 0.6 }}
-                  />
-                </Button>
-              </motion.div>
+                  <motion.div 
+                    className="space-y-4"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.5 }}
+                  >
+                    <div>
+                      <label htmlFor="fullName" className="block text-sm font-medium text-foreground mb-2">
+                        Full Name
+                      </label>
+                      <Input
+                        id="fullName"
+                        type="text"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="Enter your full name"
+                        required
+                        className="bg-background/50 border-accent/30 focus:border-accent focus:ring-accent/50 transition-all duration-300"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
+                        Email
+                      </label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        required
+                        className="bg-background/50 border-accent/30 focus:border-accent focus:ring-accent/50 transition-all duration-300"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="reason" className="block text-sm font-medium text-foreground mb-2">
+                        Why do you want access? (Optional)
+                      </label>
+                      <Textarea
+                        id="reason"
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        placeholder="Tell us why you'd like to join KNEW"
+                        rows={3}
+                        className="bg-background/50 border-accent/30 focus:border-accent focus:ring-accent/50 transition-all duration-300 resize-none"
+                      />
+                    </div>
+                  </motion.div>
 
-              <motion.p 
-                className="text-center text-sm text-muted-foreground"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.5 }}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, duration: 0.5 }}
+                  >
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full bg-accent hover:bg-accent/90 text-accent-foreground relative overflow-hidden group transition-all duration-300 hover:shadow-lg hover:shadow-accent/50"
+                    >
+                      {loading ? (
+                        <span className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Submitting request...
+                        </span>
+                      ) : (
+                        "Request Access"
+                      )}
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                        initial={{ x: "-100%" }}
+                        whileHover={{ x: "100%" }}
+                        transition={{ duration: 0.6 }}
+                      />
+                    </Button>
+                  </motion.div>
+
+                  <motion.p 
+                    className="text-center text-sm text-muted-foreground"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5, duration: 0.5 }}
+                  >
+                    Already have an account?{" "}
+                    <Link to="/login" className="text-accent hover:underline transition-colors">
+                      Enter KNEW
+                    </Link>
+                  </motion.p>
+                </motion.form>
+              </>
+            ) : (
+              <motion.div
+                className="relative bg-card/50 backdrop-blur-xl p-8 rounded-3xl border border-accent/20 shadow-2xl shadow-accent/10 text-center"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
               >
-                Already have an account?{" "}
-                <Link to="/login" className="text-accent hover:underline transition-colors">
-                  Log in
-                </Link>
-              </motion.p>
-            </motion.form>
+                <motion.h2 
+                  className="text-3xl font-bold text-foreground mb-4"
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  Request Submitted
+                </motion.h2>
+                <motion.p 
+                  className="text-muted-foreground mb-6"
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  Thank you for your interest in KNEW. We'll review your request and get back to you soon.
+                </motion.p>
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <Link to="/login">
+                    <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                      Back to Login
+                    </Button>
+                  </Link>
+                </motion.div>
+              </motion.div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
