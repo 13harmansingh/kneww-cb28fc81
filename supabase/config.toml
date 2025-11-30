@@ -15,6 +15,9 @@ verify_jwt = true
 [functions.ai-search-news]
 verify_jwt = true
 
+[functions.generate-daily-newspaper]
+verify_jwt = true
+
 [functions.admin-get-users]
 verify_jwt = true
 

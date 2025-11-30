@@ -15,6 +15,7 @@ import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useAppState } from "@/stores/appState";
 import { DiscoverSection } from "@/components/profile/DiscoverSection";
 import { FollowingPanel } from "@/components/follow/FollowingPanel";
+import { DailyNewspaper } from "@/components/DailyNewspaper";
 
 interface Profile {
   id: string;
@@ -365,6 +366,9 @@ export default function ProfileSettings() {
               </div>
             </div>
           </div>
+
+          {/* Daily Newspaper */}
+          <DailyNewspaper />
 
           {/* Discover Section */}
           <DiscoverSection />

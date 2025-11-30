@@ -400,21 +400,8 @@ const Index = () => {
 
   // Require authentication
   if (!user || !session) {
-    return <div className="min-h-screen bg-background flex items-center justify-center px-4 pb-24">
-        <div className="text-center max-w-md">
-          
-          <h2 className="font-bold text-white mb-3 text-7xl">KNEW</h2>
-          
-          <button onClick={() => navigate("/login")} className="px-6 py-3 text-white rounded-lg font-semibold transition bg-secondary">
-            
- 
-  
- 
- press​         
-          </button>
-        </div>
-        <BottomNav />
-      </div>;
+    navigate("/login");
+    return null;
   }
   return <div className="min-h-screen bg-background pb-24">
       {/* Header Search */}
