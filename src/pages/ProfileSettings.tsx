@@ -16,6 +16,7 @@ import { useAppState } from "@/stores/appState";
 import { DiscoverSection } from "@/components/profile/DiscoverSection";
 import { FollowingPanel } from "@/components/follow/FollowingPanel";
 import { DailyNewspaper } from "@/components/DailyNewspaper";
+import { PersonalizedFeed } from "@/components/personalized/PersonalizedFeed";
 
 interface Profile {
   id: string;
@@ -370,11 +371,16 @@ export default function ProfileSettings() {
           {/* Daily Newspaper */}
           <DailyNewspaper />
 
+          {/* Personalized Feed */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl font-bold text-foreground">Your Personalized Feed</h2>
+            </div>
+            <PersonalizedFeed />
+          </div>
+
           {/* Discover Section */}
           <DiscoverSection />
-
-          {/* Following Panel */}
-          <FollowingPanel />
 
           {/* Sign Out */}
           <button
