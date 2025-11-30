@@ -164,6 +164,39 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_newspaper: {
+        Row: {
+          articles: Json
+          created_at: string | null
+          generated_date: string
+          generation_progress: Json | null
+          generation_status: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          articles?: Json
+          created_at?: string | null
+          generated_date?: string
+          generation_progress?: Json | null
+          generation_status?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          articles?: Json
+          created_at?: string | null
+          generated_date?: string
+          generation_progress?: Json | null
+          generation_status?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string | null
