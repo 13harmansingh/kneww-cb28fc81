@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePreferences } from "@/hooks/usePreferences";
+import { useOnboarding } from "@/hooks/useOnboarding";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Loader2, Camera, User, Mail, LogOut, Save, Settings as SettingsIcon } from "lucide-react";
+import { Loader2, Camera, User, Mail, LogOut, Save, Settings as SettingsIcon, Sparkles, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
 import { Switch } from "@/components/ui/switch";
@@ -17,6 +18,7 @@ import { DiscoverSection } from "@/components/profile/DiscoverSection";
 import { FollowingPanel } from "@/components/follow/FollowingPanel";
 import { DailyNewspaper } from "@/components/DailyNewspaper";
 import { PersonalizedFeed } from "@/components/personalized/PersonalizedFeed";
+import { OnboardingTour } from "@/components/OnboardingTour";
 
 interface Profile {
   id: string;
@@ -29,6 +31,7 @@ export default function ProfileSettings() {
   const location = useLocation();
   const { user, loading: authLoading } = useAuth();
   const { preferences, loading: prefsLoading, saving, updatePreference } = usePreferences();
+  const { showOnboarding, replayOnboarding, completeOnboarding, skipOnboarding } = useOnboarding({ userId: user?.id });
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -368,6 +371,28 @@ export default function ProfileSettings() {
             </div>
           </div>
 
+          {/* Welcome Tour Replay */}
+          <div className="bg-card rounded-2xl border border-border p-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-accent" />
+                  Welcome Tour
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Revisit the KNEW experience guide
+                </p>
+              </div>
+              <button
+                onClick={replayOnboarding}
+                className="px-4 py-2 bg-accent/10 text-accent rounded-lg font-medium hover:bg-accent/20 transition flex items-center gap-2"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Replay Tour
+              </button>
+            </div>
+          </div>
+
           {/* Daily Newspaper */}
           <DailyNewspaper />
 
@@ -397,6 +422,14 @@ export default function ProfileSettings() {
       <SwipeIndicator progress={swipeProgress} direction={swipeDirection} />
 
       <BottomNav />
+
+      {/* Onboarding Tour Modal */}
+      {showOnboarding && (
+        <OnboardingTour
+          onComplete={completeOnboarding}
+          onSkip={skipOnboarding}
+        />
+      )}
     </div>
   );
 }

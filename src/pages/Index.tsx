@@ -17,7 +17,9 @@ import { NewsCardSkeleton } from "@/components/skeletons/NewsCardSkeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SwipeIndicator } from "@/components/SwipeIndicator";
 import { PersonalizedFeed } from "@/components/personalized/PersonalizedFeed";
+import { OnboardingTour } from "@/components/OnboardingTour";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
+import { useOnboarding } from "@/hooks/useOnboarding";
 import { US_STATES } from "@/data/usStates";
 import { CANADA_PROVINCES } from "@/data/canadaProvinces";
 import { AUSTRALIA_STATES } from "@/data/australiaStates";
@@ -86,6 +88,14 @@ const Index = () => {
     isBanned,
     loading: roleLoading
   } = useUserRole();
+  
+  // Onboarding tour for first-time users
+  const {
+    showOnboarding,
+    loading: onboardingLoading,
+    completeOnboarding,
+    skipOnboarding
+  } = useOnboarding({ userId: user?.id });
   const categories = ["All", "Politics", "Sports", "Technology", "Entertainment"];
   const location = selectedState || selectedCountryName || selectedRegion;
   const sourceCountryCode = selectedCountry || undefined;
@@ -753,6 +763,14 @@ const Index = () => {
         </>)}
 
       <BottomNav />
+      
+      {/* Onboarding Tour for first-time users */}
+      {showOnboarding && (
+        <OnboardingTour
+          onComplete={completeOnboarding}
+          onSkip={skipOnboarding}
+        />
+      )}
     </div>;
 };
 export default Index;
