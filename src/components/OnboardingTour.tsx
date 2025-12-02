@@ -1,69 +1,144 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Globe, Newspaper, Sparkles, Bookmark, Map, Heart, ChevronRight, ChevronLeft, X } from "lucide-react";
+import { Globe, Newspaper, Sparkles, Bookmark, Map, Heart, ChevronRight, ChevronLeft, X, Check, Plus } from "lucide-react";
+import { useFollowManager } from "@/hooks/useFollowManager";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface OnboardingTourProps {
   onComplete: () => void;
   onSkip: () => void;
 }
 
-const TOUR_STEPS = [
-  {
-    id: 1,
-    title: "Welcome to KNEW",
-    subtitle: "Your intelligent news companion awaits",
-    description: "Experience news like never before — curated, analyzed, and personalized just for you.",
-    icon: Sparkles,
-    gradient: "from-accent/30 to-primary/20",
-  },
-  {
-    id: 2,
-    title: "Curate Your World",
-    subtitle: "Follow what matters to you",
-    description: "Follow states, countries, and topics. We'll curate news based on your unique interests.",
-    icon: Heart,
-    gradient: "from-pink-500/20 to-rose-500/20",
-  },
-  {
-    id: 3,
-    title: "Your Daily Brief",
-    subtitle: "A personalized newspaper, just for you",
-    description: "Every day, we generate a custom newspaper based on your follows. One tap, infinite insights.",
-    icon: Newspaper,
-    gradient: "from-amber-500/20 to-orange-500/20",
-  },
-  {
-    id: 4,
-    title: "Uncover the Truth",
-    subtitle: "AI-powered analysis at your fingertips",
-    description: "Tap any article to reveal bias detection, fact-checks, sentiment analysis, and summaries.",
-    icon: Sparkles,
-    gradient: "from-cyan-500/20 to-blue-500/20",
-  },
-  {
-    id: 5,
-    title: "Build Your Library",
-    subtitle: "Save articles for later",
-    description: "Bookmark articles to build your personal intelligence archive. Access them anytime, anywhere.",
-    icon: Bookmark,
-    gradient: "from-emerald-500/20 to-green-500/20",
-  },
-  {
-    id: 6,
-    title: "Navigate the Globe",
-    subtitle: "Explore stories from every corner",
-    description: "Use our interactive map to discover news from any country or region in the world.",
-    icon: Map,
-    gradient: "from-violet-500/20 to-purple-500/20",
-  },
+// Suggested topics for onboarding
+const SUGGESTED_TOPICS = [
+  { name: "Technology", icon: "💻" },
+  { name: "Politics", icon: "🏛️" },
+  { name: "Sports", icon: "⚽" },
+  { name: "Business", icon: "📈" },
+  { name: "Science", icon: "🔬" },
+  { name: "Health", icon: "🏥" },
+  { name: "Entertainment", icon: "🎬" },
+  { name: "Climate", icon: "🌍" },
+];
+
+// Suggested regions/states
+const SUGGESTED_REGIONS = [
+  { name: "California", country: "US", icon: "🌴" },
+  { name: "New York", country: "US", icon: "🗽" },
+  { name: "Texas", country: "US", icon: "⛪" },
+  { name: "Ontario", country: "CA", icon: "🍁" },
+  { name: "England", country: "UK", icon: "🏰" },
+  { name: "Bavaria", country: "DE", icon: "🏔️" },
 ];
 
 export function OnboardingTour({ onComplete, onSkip }: OnboardingTourProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const isLastStep = currentStep === TOUR_STEPS.length - 1;
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
+  const { follow, isFollowing, syncing } = useFollowManager();
 
-  const handleNext = () => {
+  const toggleTopic = useCallback((topic: string) => {
+    setSelectedTopics(prev => 
+      prev.includes(topic) 
+        ? prev.filter(t => t !== topic) 
+        : [...prev, topic]
+    );
+  }, []);
+
+  const toggleRegion = useCallback((region: string) => {
+    setSelectedRegions(prev => 
+      prev.includes(region) 
+        ? prev.filter(r => r !== region) 
+        : [...prev, region]
+    );
+  }, []);
+
+  const handleFollowSelections = async () => {
+    // Follow all selected topics
+    for (const topic of selectedTopics) {
+      if (!isFollowing('topic', topic)) {
+        await follow('topic', topic);
+      }
+    }
+    // Follow all selected regions
+    for (const region of selectedRegions) {
+      if (!isFollowing('state', region)) {
+        await follow('state', region);
+      }
+    }
+    
+    if (selectedTopics.length > 0 || selectedRegions.length > 0) {
+      toast.success(`Following ${selectedTopics.length + selectedRegions.length} interests!`);
+    }
+  };
+
+  const TOUR_STEPS = [
+    {
+      id: 1,
+      title: "Welcome to KNEW",
+      subtitle: "Your intelligent news companion awaits",
+      description: "Experience news like never before — curated, analyzed, and personalized just for you.",
+      icon: Sparkles,
+      gradient: "from-accent/30 to-primary/20",
+      interactive: null,
+    },
+    {
+      id: 2,
+      title: "Curate Your World",
+      subtitle: "Select topics that interest you",
+      description: "Tap to follow topics. We'll personalize your news feed based on your selections.",
+      icon: Heart,
+      gradient: "from-pink-500/20 to-rose-500/20",
+      interactive: "topics",
+    },
+    {
+      id: 3,
+      title: "Follow Regions",
+      subtitle: "Stay updated on locations you care about",
+      description: "Follow states and regions to get localized news from anywhere in the world.",
+      icon: Globe,
+      gradient: "from-cyan-500/20 to-blue-500/20",
+      interactive: "regions",
+    },
+    {
+      id: 4,
+      title: "Your Daily Brief",
+      subtitle: "A personalized newspaper, just for you",
+      description: "Every day, we generate a custom newspaper based on your follows. One tap, infinite insights.",
+      icon: Newspaper,
+      gradient: "from-amber-500/20 to-orange-500/20",
+      interactive: "preview",
+    },
+    {
+      id: 5,
+      title: "Uncover the Truth",
+      subtitle: "AI-powered analysis at your fingertips",
+      description: "Tap any article to reveal bias detection, fact-checks, sentiment analysis, and summaries.",
+      icon: Sparkles,
+      gradient: "from-violet-500/20 to-purple-500/20",
+      interactive: null,
+    },
+    {
+      id: 6,
+      title: "You're All Set!",
+      subtitle: "Begin your journey into informed intelligence",
+      description: selectedTopics.length > 0 || selectedRegions.length > 0
+        ? `You're following ${selectedTopics.length} topics and ${selectedRegions.length} regions. Your personalized experience awaits!`
+        : "Start exploring and follow topics that interest you to personalize your experience.",
+      icon: Bookmark,
+      gradient: "from-emerald-500/20 to-green-500/20",
+      interactive: null,
+    },
+  ];
+
+  const isLastStep = currentStep === TOUR_STEPS.length - 1;
+  const step = TOUR_STEPS[currentStep];
+  const Icon = step.icon;
+
+  const handleNext = async () => {
     if (isLastStep) {
+      await handleFollowSelections();
       onComplete();
     } else {
       setCurrentStep((prev) => prev + 1);
@@ -76,15 +151,134 @@ export function OnboardingTour({ onComplete, onSkip }: OnboardingTourProps) {
     }
   };
 
-  const step = TOUR_STEPS[currentStep];
-  const Icon = step.icon;
+  const renderInteractiveContent = () => {
+    switch (step.interactive) {
+      case "topics":
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex flex-wrap justify-center gap-3 mt-6"
+          >
+            {SUGGESTED_TOPICS.map((topic) => {
+              const isSelected = selectedTopics.includes(topic.name);
+              return (
+                <motion.button
+                  key={topic.name}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => toggleTopic(topic.name)}
+                  className={cn(
+                    "px-4 py-2 rounded-full border-2 transition-all flex items-center gap-2 font-medium",
+                    isSelected
+                      ? "bg-accent text-white border-accent"
+                      : "bg-secondary/50 text-foreground border-border hover:border-accent/50"
+                  )}
+                >
+                  <span>{topic.icon}</span>
+                  <span>{topic.name}</span>
+                  {isSelected ? (
+                    <Check className="w-4 h-4" />
+                  ) : (
+                    <Plus className="w-4 h-4 opacity-50" />
+                  )}
+                </motion.button>
+              );
+            })}
+          </motion.div>
+        );
+
+      case "regions":
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex flex-wrap justify-center gap-3 mt-6"
+          >
+            {SUGGESTED_REGIONS.map((region) => {
+              const isSelected = selectedRegions.includes(region.name);
+              return (
+                <motion.button
+                  key={region.name}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => toggleRegion(region.name)}
+                  className={cn(
+                    "px-4 py-2 rounded-full border-2 transition-all flex items-center gap-2 font-medium",
+                    isSelected
+                      ? "bg-accent text-white border-accent"
+                      : "bg-secondary/50 text-foreground border-border hover:border-accent/50"
+                  )}
+                >
+                  <span>{region.icon}</span>
+                  <span>{region.name}</span>
+                  <span className="text-xs opacity-60">{region.country}</span>
+                  {isSelected ? (
+                    <Check className="w-4 h-4" />
+                  ) : (
+                    <Plus className="w-4 h-4 opacity-50" />
+                  )}
+                </motion.button>
+              );
+            })}
+          </motion.div>
+        );
+
+      case "preview":
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-6 bg-card/50 rounded-2xl border border-border p-4 max-w-sm mx-auto"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
+                <Newspaper className="w-5 h-5 text-accent" />
+              </div>
+              <div className="text-left">
+                <p className="font-semibold text-foreground text-sm">Your Daily Brief</p>
+                <p className="text-xs text-muted-foreground">Generated fresh each day</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {selectedTopics.length > 0 || selectedRegions.length > 0 ? (
+                <>
+                  {selectedTopics.slice(0, 2).map((topic) => (
+                    <div key={topic} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span className="w-2 h-2 rounded-full bg-accent"></span>
+                      <span>Latest {topic} news...</span>
+                    </div>
+                  ))}
+                  {selectedRegions.slice(0, 2).map((region) => (
+                    <div key={region} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span className="w-2 h-2 rounded-full bg-primary"></span>
+                      <span>Updates from {region}...</span>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">
+                  Follow topics and regions to see your personalized preview!
+                </p>
+              )}
+            </div>
+          </motion.div>
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-background/98 backdrop-blur-xl flex flex-col items-center justify-center p-6"
+      className="fixed inset-0 z-50 bg-background/98 backdrop-blur-xl flex flex-col items-center justify-center p-6 overflow-y-auto"
     >
       {/* Background gradient orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -117,7 +311,7 @@ export function OnboardingTour({ onComplete, onSkip }: OnboardingTourProps) {
       </button>
 
       {/* Content */}
-      <div className="relative z-10 max-w-md w-full flex flex-col items-center">
+      <div className="relative z-10 max-w-lg w-full flex flex-col items-center py-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={step.id}
@@ -132,7 +326,7 @@ export function OnboardingTour({ onComplete, onSkip }: OnboardingTourProps) {
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.1, type: "spring" }}
-              className={`w-32 h-32 mx-auto mb-8 rounded-3xl bg-gradient-to-br ${step.gradient} flex items-center justify-center border border-border/50 shadow-2xl`}
+              className={`w-24 h-24 mx-auto mb-6 rounded-3xl bg-gradient-to-br ${step.gradient} flex items-center justify-center border border-border/50 shadow-2xl`}
             >
               <motion.div
                 animate={{
@@ -141,7 +335,7 @@ export function OnboardingTour({ onComplete, onSkip }: OnboardingTourProps) {
                 }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               >
-                <Icon className="w-16 h-16 text-foreground" />
+                <Icon className="w-12 h-12 text-foreground" />
               </motion.div>
             </motion.div>
 
@@ -150,7 +344,7 @@ export function OnboardingTour({ onComplete, onSkip }: OnboardingTourProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="text-3xl font-bold text-foreground mb-2"
+              className="text-2xl font-bold text-foreground mb-2"
             >
               {step.title}
             </motion.h2>
@@ -158,7 +352,7 @@ export function OnboardingTour({ onComplete, onSkip }: OnboardingTourProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-accent font-medium mb-4"
+              className="text-accent font-medium mb-3"
             >
               {step.subtitle}
             </motion.p>
@@ -166,15 +360,34 @@ export function OnboardingTour({ onComplete, onSkip }: OnboardingTourProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
-              className="text-muted-foreground leading-relaxed"
+              className="text-muted-foreground leading-relaxed text-sm"
             >
               {step.description}
             </motion.p>
+
+            {/* Interactive content */}
+            {renderInteractiveContent()}
+
+            {/* Selection count badge */}
+            {(step.interactive === "topics" || step.interactive === "regions") && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mt-4 text-sm text-muted-foreground"
+              >
+                {step.interactive === "topics" && selectedTopics.length > 0 && (
+                  <span className="text-accent font-medium">{selectedTopics.length} topics selected</span>
+                )}
+                {step.interactive === "regions" && selectedRegions.length > 0 && (
+                  <span className="text-accent font-medium">{selectedRegions.length} regions selected</span>
+                )}
+              </motion.div>
+            )}
           </motion.div>
         </AnimatePresence>
 
         {/* Progress dots */}
-        <div className="flex items-center gap-2 mt-12 mb-8">
+        <div className="flex items-center gap-2 mt-8 mb-6">
           {TOUR_STEPS.map((_, index) => (
             <motion.div
               key={index}
@@ -193,7 +406,7 @@ export function OnboardingTour({ onComplete, onSkip }: OnboardingTourProps) {
         </div>
 
         {/* Navigation buttons */}
-        <div className="flex items-center gap-4 w-full">
+        <div className="flex items-center gap-4 w-full max-w-md">
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -208,9 +421,20 @@ export function OnboardingTour({ onComplete, onSkip }: OnboardingTourProps) {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleNext}
-            className="flex-1 py-3 px-6 rounded-xl bg-accent text-white font-medium hover:bg-accent/90 transition-colors flex items-center justify-center gap-2"
+            disabled={syncing}
+            className="flex-1 py-3 px-6 rounded-xl bg-accent text-white font-medium hover:bg-accent/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
           >
-            {isLastStep ? (
+            {syncing ? (
+              <>
+                Saving...
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                >
+                  <Sparkles className="w-5 h-5" />
+                </motion.div>
+              </>
+            ) : isLastStep ? (
               <>
                 Begin Your Journey
                 <Sparkles className="w-5 h-5" />
@@ -225,7 +449,7 @@ export function OnboardingTour({ onComplete, onSkip }: OnboardingTourProps) {
         </div>
 
         {/* Step indicator */}
-        <p className="mt-6 text-sm text-muted-foreground">
+        <p className="mt-4 text-sm text-muted-foreground">
           Step {currentStep + 1} of {TOUR_STEPS.length}
         </p>
       </div>
