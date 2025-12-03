@@ -4,7 +4,8 @@ import { usePreferences } from "@/hooks/usePreferences";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Loader2, Camera, User, Mail, LogOut, Save, Settings as SettingsIcon, Sparkles, RotateCcw } from "lucide-react";
+import { useTheme } from "next-themes";
+import { Loader2, Camera, User, Mail, LogOut, Save, Settings as SettingsIcon, Sparkles, RotateCcw, Sun, Moon } from "lucide-react";
 import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
 import { Switch } from "@/components/ui/switch";
@@ -32,6 +33,7 @@ export default function ProfileSettings() {
   const { user, loading: authLoading } = useAuth();
   const { preferences, loading: prefsLoading, saving, updatePreference } = usePreferences();
   const { showOnboarding, replayOnboarding, completeOnboarding, skipOnboarding } = useOnboarding({ userId: user?.id });
+  const { theme, setTheme } = useTheme();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -355,17 +357,22 @@ export default function ProfileSettings() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <Label htmlFor="dark-mode" className="text-foreground font-medium">
-                    Dark Mode
+                  <Label htmlFor="dark-mode" className="text-foreground font-medium flex items-center gap-2">
+                    {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                    {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Use dark theme throughout the app
+                    Toggle between dark and light themes
                   </p>
                 </div>
                 <Switch
                   id="dark-mode"
-                  checked={preferences.dark_mode}
-                  onCheckedChange={(checked) => updatePreference("dark_mode", checked)}
+                  checked={theme === 'dark'}
+                  onCheckedChange={(checked) => {
+                    const newTheme = checked ? 'dark' : 'light';
+                    setTheme(newTheme);
+                    updatePreference("dark_mode", checked);
+                  }}
                 />
               </div>
             </div>
