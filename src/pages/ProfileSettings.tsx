@@ -380,7 +380,7 @@ export default function ProfileSettings() {
                   Welcome Tour
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Revisit the KNEW experience guide
+                  Revisit the knew experience guide
                 </p>
               </div>
               <button

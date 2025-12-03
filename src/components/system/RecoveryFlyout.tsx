@@ -20,7 +20,7 @@ export function RecoveryFlyout() {
           <div className="flex-1">
             <p className="text-sm font-medium flex items-center gap-2">
               <RefreshCw className="h-4 w-4" />
-              KNEW is restoring
+              knew is restoring
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               Please wait...

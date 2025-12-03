@@ -433,7 +433,7 @@ const Index = () => {
             </p>
           </div>}
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-white">KNEW</h1>
+          <h1 className="text-2xl font-bold text-white">knew</h1>
           {(selectedState || selectedCountry || selectedRegion || aiSearchParams) && <button onClick={handleBackNavigation} className="ml-auto p-2 rounded-full hover:bg-accent/20 transition" title="Go Back">
               <ChevronLeft className="w-5 h-5 text-accent" />
             </button>}
