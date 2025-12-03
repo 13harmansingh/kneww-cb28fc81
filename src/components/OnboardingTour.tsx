@@ -76,7 +76,7 @@ export function OnboardingTour({ onComplete, onSkip }: OnboardingTourProps) {
   const TOUR_STEPS = [
     {
       id: 1,
-      title: "Welcome to KNEW",
+      title: "Welcome to knew",
       subtitle: "Your intelligent news companion awaits",
       description: "Experience news like never before — curated, analyzed, and personalized just for you.",
       icon: Sparkles,

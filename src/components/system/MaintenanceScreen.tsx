@@ -8,7 +8,7 @@ export function MaintenanceScreen({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
   
-  const message = settings.global_banner_message || 'KNEW is currently undergoing maintenance. We\'ll be back soon!';
+  const message = settings.global_banner_message || 'knew is currently undergoing maintenance. We\'ll be back soon!';
   
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">

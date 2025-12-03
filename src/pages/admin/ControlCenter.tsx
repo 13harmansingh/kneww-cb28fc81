@@ -102,7 +102,7 @@ export default function ControlCenter() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">KNEW Control Center</h1>
+        <h1 className="text-4xl font-bold mb-2">knew Control Center</h1>
         <p className="text-muted-foreground">
           Global system configuration and monitoring
         </p>
