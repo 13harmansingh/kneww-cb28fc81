@@ -40,35 +40,35 @@ All colors MUST be HSL.
     --radius: 1rem;
   }
 
-  /* Light mode - ChatGPT light theme */
+  /* Light mode - OpenAI inspired warm light theme */
   .light {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 9%;
+    --background: 30 20% 98%;
+    --foreground: 220 15% 15%;
 
-    --card: 0 0% 96%;
-    --card-foreground: 0 0% 9%;
+    --card: 30 15% 95%;
+    --card-foreground: 220 15% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 9%;
+    --popover: 30 20% 98%;
+    --popover-foreground: 220 15% 15%;
 
-    --primary: 180 60% 40%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 92%;
-    --secondary-foreground: 0 0% 15%;
+    --secondary: 30 10% 90%;
+    --secondary-foreground: 220 15% 20%;
 
-    --muted: 0 0% 94%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 30 10% 92%;
+    --muted-foreground: 220 10% 40%;
 
-    --accent: 180 60% 40%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 160 84% 39%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 88%;
-    --input: 0 0% 92%;
-    --ring: 180 60% 40%;
+    --border: 30 10% 85%;
+    --input: 30 10% 90%;
+    --ring: 160 84% 39%;
   }
 }
 
