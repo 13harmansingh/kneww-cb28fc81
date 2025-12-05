@@ -172,7 +172,7 @@ export function OnboardingTour({ onComplete, onSkip }: OnboardingTourProps) {
                   className={cn(
                     "px-4 py-2 rounded-full border-2 transition-all flex items-center gap-2 font-medium",
                     isSelected
-                      ? "bg-accent text-white border-accent"
+                      ? "bg-accent text-accent-foreground border-accent"
                       : "bg-secondary/50 text-foreground border-border hover:border-accent/50"
                   )}
                 >
@@ -208,7 +208,7 @@ export function OnboardingTour({ onComplete, onSkip }: OnboardingTourProps) {
                   className={cn(
                     "px-4 py-2 rounded-full border-2 transition-all flex items-center gap-2 font-medium",
                     isSelected
-                      ? "bg-accent text-white border-accent"
+                      ? "bg-accent text-accent-foreground border-accent"
                       : "bg-secondary/50 text-foreground border-border hover:border-accent/50"
                   )}
                 >
@@ -422,7 +422,7 @@ export function OnboardingTour({ onComplete, onSkip }: OnboardingTourProps) {
             whileTap={{ scale: 0.98 }}
             onClick={handleNext}
             disabled={syncing}
-            className="flex-1 py-3 px-6 rounded-xl bg-accent text-white font-medium hover:bg-accent/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+            className="flex-1 py-3 px-6 rounded-xl bg-accent text-accent-foreground font-medium hover:bg-accent/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
           >
             {syncing ? (
               <>

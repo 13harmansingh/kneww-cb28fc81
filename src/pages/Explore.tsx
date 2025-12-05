@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { useTheme } from "next-themes";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { BottomNav } from "@/components/BottomNav";
@@ -32,6 +33,7 @@ const Explore = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const { session } = useAuth();
+  const { theme } = useTheme();
   
   // State for country selection and news display
   const [selectedCountry, setSelectedCountry] = useState<string>("");
@@ -58,13 +60,26 @@ const Explore = () => {
   if (!location) return null;
 
   useEffect(() => {
-    if (!mapContainer.current || map.current || showNews) return;
+    if (!mapContainer.current || showNews) return;
+
+    // If map already exists and theme changed, update the style
+    if (map.current) {
+      const newStyle = theme === 'light' 
+        ? "mapbox://styles/mapbox/light-v11" 
+        : "mapbox://styles/mapbox/dark-v11";
+      map.current.setStyle(newStyle);
+      return;
+    }
 
     mapboxgl.accessToken = MAPBOX_TOKEN;
 
+    const mapStyle = theme === 'light' 
+      ? "mapbox://styles/mapbox/light-v11" 
+      : "mapbox://styles/mapbox/dark-v11";
+
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: "mapbox://styles/mapbox/dark-v11",
+      style: mapStyle,
       projection: "globe",
       zoom: 1.5,
       center: [0, 20],
@@ -78,11 +93,13 @@ const Explore = () => {
     );
 
     map.current.on("style.load", () => {
-      map.current?.setFog({
-        color: "rgb(25, 25, 40)",
-        "high-color": "rgb(50, 50, 80)",
-        "horizon-blend": 0.2,
-      });
+      if (theme === 'dark') {
+        map.current?.setFog({
+          color: "rgb(25, 25, 40)",
+          "high-color": "rgb(50, 50, 80)",
+          "horizon-blend": 0.2,
+        });
+      }
     });
 
     // Add click handler for reverse geocoding
@@ -130,7 +147,7 @@ const Explore = () => {
       map.current?.remove();
       map.current = null;
     };
-  }, [showNews]);
+  }, [showNews, theme]);
 
   const handleBackToMap = () => {
     setShowNews(false);

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "next-themes";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Region } from "@/data/countries";
@@ -15,6 +16,7 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -60,26 +62,32 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
       "middle-east": 4,
     };
 
+    const mapStyle = theme === 'light' 
+      ? "mapbox://styles/mapbox/light-v11" 
+      : "mapbox://styles/mapbox/dark-v11";
+
     // Add a small delay before initializing map to prevent rapid re-renders
     const timeoutId = setTimeout(() => {
       if (!mapContainer.current) return;
 
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: "mapbox://styles/mapbox/dark-v11",
+        style: mapStyle,
         center: region.coordinates,
         zoom: zoomLevels[region.id] || 3,
         interactive: false,
         attributionControl: false,
-        preserveDrawingBuffer: true, // Helps with mobile performance
+        preserveDrawingBuffer: true,
       });
 
       map.current.on("style.load", () => {
-        map.current?.setFog({
-          color: "rgb(25, 25, 40)",
-          "high-color": "rgb(50, 50, 80)",
-          "horizon-blend": 0.2,
-        });
+        if (theme === 'dark') {
+          map.current?.setFog({
+            color: "rgb(25, 25, 40)",
+            "high-color": "rgb(50, 50, 80)",
+            "horizon-blend": 0.2,
+          });
+        }
       });
     }, 100);
 
@@ -90,7 +98,7 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
         map.current = null;
       }
     };
-  }, [region.id, region.coordinates, isVisible]);
+  }, [region.id, region.coordinates, isVisible, theme]);
 
   return (
     <div
@@ -103,7 +111,7 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
           <div className="flex items-center gap-3">
             <span className="text-4xl">{region.icon}</span>
             <div>
-              <h3 className="text-xl font-semibold text-white group-hover:text-accent transition">
+              <h3 className="text-xl font-semibold text-foreground group-hover:text-accent transition">
                 {region.name}
               </h3>
               <p className="text-sm text-muted-foreground">Click to explore countries</p>

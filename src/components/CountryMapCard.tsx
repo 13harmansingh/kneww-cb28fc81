@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "next-themes";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Country } from "@/data/countries";
@@ -15,6 +16,7 @@ export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -49,12 +51,16 @@ export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
 
     mapboxgl.accessToken = MAPBOX_TOKEN;
 
+    const mapStyle = theme === 'light' 
+      ? "mapbox://styles/mapbox/light-v11" 
+      : "mapbox://styles/mapbox/dark-v11";
+
     const timeoutId = setTimeout(() => {
       if (!mapContainer.current) return;
 
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: "mapbox://styles/mapbox/dark-v11",
+        style: mapStyle,
         center: country.coordinates,
         zoom: 3,
         interactive: false,
@@ -70,7 +76,7 @@ export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
         map.current = null;
       }
     };
-  }, [country.code, isVisible]);
+  }, [country.code, isVisible, theme]);
 
   return (
     <div
@@ -81,7 +87,7 @@ export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
       <div className="p-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-white group-hover:text-accent transition">
+            <h3 className="text-lg font-semibold text-foreground group-hover:text-accent transition">
               {country.name}
             </h3>
             <p className="text-sm text-muted-foreground">Click to view news</p>

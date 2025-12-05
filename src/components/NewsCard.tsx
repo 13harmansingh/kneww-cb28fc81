@@ -241,13 +241,13 @@ export const NewsCard = ({
             )}
           </div>
           <div className="mt-3 space-y-2">
-            <h3 className="text-white font-medium line-clamp-3 leading-snug">{title}</h3>
+            <h3 className="text-foreground font-medium line-clamp-3 leading-snug">{title}</h3>
             <div className="flex items-center justify-between">
               <span className="text-accent text-sm">Read more</span>
               <button 
                 onClick={toggleBookmark}
                 disabled={loading}
-                className="text-white hover:text-accent transition-colors"
+                className="text-foreground hover:text-accent transition-colors"
               >
                 <Bookmark className={cn("w-5 h-5", isBookmarked && "fill-accent text-accent")} />
               </button>

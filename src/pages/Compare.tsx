@@ -167,13 +167,13 @@ export default function Compare() {
     <div className="min-h-screen bg-background pb-6">
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-4">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate(-1)} className="text-white">
+          <button onClick={() => navigate(-1)} className="text-foreground">
             <ArrowLeft className="w-6 h-6" />
           </button>
           <div className="flex items-center gap-2 flex-1">
             <Scale className="w-6 h-6 text-accent" />
             <div>
-              <h1 className="text-xl font-bold text-white">Coverage Analysis</h1>
+              <h1 className="text-xl font-bold text-foreground">Coverage Analysis</h1>
               <p className="text-xs text-muted-foreground">Multiple perspectives on: {article.title.substring(0, 60)}...</p>
             </div>
           </div>
@@ -316,7 +316,7 @@ function ArticleCard({
         />
       )}
       
-      <h3 className="font-bold text-white text-sm line-clamp-3">{article.title}</h3>
+      <h3 className="font-bold text-foreground text-sm line-clamp-3">{article.title}</h3>
       
       {article.source_country && (
         <div className="text-xs text-muted-foreground">
