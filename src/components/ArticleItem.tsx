@@ -63,7 +63,7 @@ export const ArticleItem = ({
       )}
       <div className="p-4 space-y-4">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-lg font-semibold text-white mb-2 flex-1">
+          <h3 className="text-lg font-semibold text-foreground mb-2 flex-1">
             {article.title}
           </h3>
           <div className="flex items-center gap-2">

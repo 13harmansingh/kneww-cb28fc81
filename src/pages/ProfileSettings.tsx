@@ -214,7 +214,7 @@ export default function ProfileSettings() {
                   )}
                 </div>
                 <button
-                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center hover:bg-accent/80 transition"
+                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center hover:bg-accent/80 transition"
                   onClick={() => toast.info("Photo upload coming soon!")}
                 >
                   <Camera className="w-4 h-4" />

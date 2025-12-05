@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "next-themes";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { USState } from "@/data/usStates";
@@ -16,6 +17,7 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -61,9 +63,13 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
 
       mapboxgl.accessToken = MAPBOX_TOKEN;
 
+      const mapStyle = theme === 'light' 
+        ? "mapbox://styles/mapbox/light-v11" 
+        : "mapbox://styles/mapbox/dark-v11";
+
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: "mapbox://styles/mapbox/dark-v11",
+        style: mapStyle,
         center: state.coordinates,
         zoom: state.zoom,
         interactive: false,
@@ -78,7 +84,7 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
         map.current = null;
       }
     };
-  }, [state.code, state.coordinates, state.zoom, isVisible]);
+  }, [state.code, state.coordinates, state.zoom, isVisible, theme]);
 
   return (
     <button
@@ -89,7 +95,7 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
       <div className="bg-card p-4 border-t border-border">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-white">{state.name}</h3>
+            <h3 className="text-lg font-semibold text-foreground">{state.name}</h3>
             <p className="text-sm text-muted-foreground">{state.code}</p>
           </div>
           <FollowStateButton
