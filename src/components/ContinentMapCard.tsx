@@ -62,9 +62,7 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
       "middle-east": 4,
     };
 
-    const mapStyle = theme === 'light' 
-      ? "mapbox://styles/mapbox/outdoors-v12" 
-      : "mapbox://styles/mapbox/navigation-night-v1";
+    const mapStyle = "mapbox://styles/mapbox/outdoors-v12";
 
     // Add a small delay before initializing map to prevent rapid re-renders
     const timeoutId = setTimeout(() => {

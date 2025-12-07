@@ -64,18 +64,13 @@ const Explore = () => {
 
     // If map already exists and theme changed, update the style
     if (map.current) {
-      const newStyle = theme === 'light' 
-        ? "mapbox://styles/mapbox/outdoors-v12" 
-        : "mapbox://styles/mapbox/navigation-night-v1";
-      map.current.setStyle(newStyle);
+      map.current.setStyle("mapbox://styles/mapbox/outdoors-v12");
       return;
     }
 
     mapboxgl.accessToken = MAPBOX_TOKEN;
 
-    const mapStyle = theme === 'light' 
-      ? "mapbox://styles/mapbox/outdoors-v12" 
-      : "mapbox://styles/mapbox/navigation-night-v1";
+    const mapStyle = "mapbox://styles/mapbox/outdoors-v12";
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
