@@ -53,7 +53,7 @@ export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
 
     const mapStyle = theme === 'light' 
       ? "mapbox://styles/mapbox/outdoors-v12" 
-      : "mapbox://styles/mapbox/dark-v11";
+      : "mapbox://styles/mapbox/navigation-night-v1";
 
     const timeoutId = setTimeout(() => {
       if (!mapContainer.current) return;
