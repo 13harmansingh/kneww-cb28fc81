@@ -64,7 +64,7 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
       mapboxgl.accessToken = MAPBOX_TOKEN;
 
       const mapStyle = theme === 'light' 
-        ? "mapbox://styles/mapbox/light-v11" 
+        ? "mapbox://styles/mapbox/outdoors-v12" 
         : "mapbox://styles/mapbox/dark-v11";
 
       map.current = new mapboxgl.Map({

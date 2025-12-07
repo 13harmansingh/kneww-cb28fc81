@@ -40,35 +40,35 @@ All colors MUST be HSL.
     --radius: 1rem;
   }
 
-  /* Light mode - OpenAI inspired warm light theme */
+  /* Light mode - Apple inspired clean light theme */
   .light {
-    --background: 30 20% 98%;
-    --foreground: 220 15% 15%;
+    --background: 0 0% 100%;
+    --foreground: 220 20% 10%;
 
-    --card: 30 15% 95%;
-    --card-foreground: 220 15% 15%;
+    --card: 220 14% 96%;
+    --card-foreground: 220 20% 10%;
 
-    --popover: 30 20% 98%;
-    --popover-foreground: 220 15% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
 
-    --primary: 160 84% 39%;
+    --primary: 211 100% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 30 10% 90%;
-    --secondary-foreground: 220 15% 20%;
+    --secondary: 220 14% 93%;
+    --secondary-foreground: 220 20% 20%;
 
-    --muted: 30 10% 92%;
-    --muted-foreground: 220 10% 40%;
+    --muted: 220 14% 95%;
+    --muted-foreground: 220 10% 46%;
 
-    --accent: 160 84% 39%;
+    --accent: 211 100% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 10% 85%;
-    --input: 30 10% 90%;
-    --ring: 160 84% 39%;
+    --border: 220 13% 88%;
+    --input: 220 14% 93%;
+    --ring: 211 100% 50%;
   }
 }
 
