@@ -51,9 +51,7 @@ export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
 
     mapboxgl.accessToken = MAPBOX_TOKEN;
 
-    const mapStyle = theme === 'light' 
-      ? "mapbox://styles/mapbox/outdoors-v12" 
-      : "mapbox://styles/mapbox/navigation-night-v1";
+    const mapStyle = "mapbox://styles/mapbox/outdoors-v12";
 
     const timeoutId = setTimeout(() => {
       if (!mapContainer.current) return;
