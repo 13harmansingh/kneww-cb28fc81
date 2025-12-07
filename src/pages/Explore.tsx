@@ -66,7 +66,7 @@ const Explore = () => {
     if (map.current) {
       const newStyle = theme === 'light' 
         ? "mapbox://styles/mapbox/outdoors-v12" 
-        : "mapbox://styles/mapbox/dark-v11";
+        : "mapbox://styles/mapbox/navigation-night-v1";
       map.current.setStyle(newStyle);
       return;
     }
@@ -75,7 +75,7 @@ const Explore = () => {
 
     const mapStyle = theme === 'light' 
       ? "mapbox://styles/mapbox/outdoors-v12" 
-      : "mapbox://styles/mapbox/dark-v11";
+      : "mapbox://styles/mapbox/navigation-night-v1";
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -95,9 +95,9 @@ const Explore = () => {
     map.current.on("style.load", () => {
       if (theme === 'dark') {
         map.current?.setFog({
-          color: "rgb(25, 25, 40)",
-          "high-color": "rgb(50, 50, 80)",
-          "horizon-blend": 0.2,
+          color: "rgb(15, 20, 35)",
+          "high-color": "rgb(40, 50, 90)",
+          "horizon-blend": 0.15,
         });
       }
     });

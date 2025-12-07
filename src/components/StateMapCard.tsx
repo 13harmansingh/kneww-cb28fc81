@@ -65,7 +65,7 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
 
       const mapStyle = theme === 'light' 
         ? "mapbox://styles/mapbox/outdoors-v12" 
-        : "mapbox://styles/mapbox/dark-v11";
+        : "mapbox://styles/mapbox/navigation-night-v1";
 
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
@@ -74,6 +74,16 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
         zoom: state.zoom,
         interactive: false,
         attributionControl: false,
+      });
+
+      map.current.on("style.load", () => {
+        if (theme === 'dark') {
+          map.current?.setFog({
+            color: "rgb(15, 20, 35)",
+            "high-color": "rgb(40, 50, 90)",
+            "horizon-blend": 0.15,
+          });
+        }
       });
     }, 50);
 
