@@ -65,7 +65,7 @@ const Explore = () => {
     // If map already exists and theme changed, update the style
     if (map.current) {
       const newStyle = theme === 'light' 
-        ? "mapbox://styles/mapbox/light-v11" 
+        ? "mapbox://styles/mapbox/outdoors-v12" 
         : "mapbox://styles/mapbox/dark-v11";
       map.current.setStyle(newStyle);
       return;
@@ -74,7 +74,7 @@ const Explore = () => {
     mapboxgl.accessToken = MAPBOX_TOKEN;
 
     const mapStyle = theme === 'light' 
-      ? "mapbox://styles/mapbox/light-v11" 
+      ? "mapbox://styles/mapbox/outdoors-v12" 
       : "mapbox://styles/mapbox/dark-v11";
 
     map.current = new mapboxgl.Map({

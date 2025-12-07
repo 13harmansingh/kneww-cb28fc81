@@ -63,7 +63,7 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
     };
 
     const mapStyle = theme === 'light' 
-      ? "mapbox://styles/mapbox/light-v11" 
+      ? "mapbox://styles/mapbox/outdoors-v12" 
       : "mapbox://styles/mapbox/dark-v11";
 
     // Add a small delay before initializing map to prevent rapid re-renders
