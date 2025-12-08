@@ -179,7 +179,7 @@ export default function Article() {
               href={articleData.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-accent-foreground rounded-full font-semibold hover:bg-accent/80 transition"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-full font-semibold hover:bg-accent/80 transition"
             >
               Read Full Article
               <ExternalLink className="w-5 h-5" />

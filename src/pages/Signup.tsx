@@ -126,7 +126,7 @@ export default function Signup() {
                 }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               >
-                knew
+                KNEW
               </motion.h1>
             </motion.div>
             <motion.p
@@ -159,10 +159,10 @@ export default function Signup() {
                       ]
                     }}
                     transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              >
-                knew
-              </motion.h1>
-              <p className="text-muted-foreground">Request Intelligence Access</p>
+                  >
+                    KNEW
+                  </motion.h1>
+                  <p className="text-muted-foreground">Request Intelligence Access</p>
                 </div>
                 
                 <motion.form 
@@ -216,7 +216,7 @@ export default function Signup() {
                         id="reason"
                         value={reason}
                         onChange={(e) => setReason(e.target.value)}
-                        placeholder="Tell us why you'd like to join knew"
+                        placeholder="Tell us why you'd like to join KNEW"
                         rows={3}
                         className="bg-background/50 border-accent/30 focus:border-accent focus:ring-accent/50 transition-all duration-300 resize-none"
                       />
@@ -258,7 +258,7 @@ export default function Signup() {
                   >
                     Already have an account?{" "}
                     <Link to="/login" className="text-accent hover:underline transition-colors">
-                      Enter knew
+                      Enter KNEW
                     </Link>
                   </motion.p>
                 </motion.form>
@@ -284,7 +284,7 @@ export default function Signup() {
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.3 }}
                 >
-                  Thank you for your interest in knew. We'll review your request and get back to you soon.
+                  Thank you for your interest in KNEW. We'll review your request and get back to you soon.
                 </motion.p>
                 <motion.div
                   initial={{ y: 20, opacity: 0 }}

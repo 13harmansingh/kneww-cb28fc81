@@ -14,7 +14,7 @@ export const RegionCard = ({ region, onClick }: RegionCardProps) => {
     >
       <div className="flex flex-col items-center gap-4">
         <div className="text-6xl">{region.icon}</div>
-        <h3 className="text-xl font-semibold text-foreground group-hover:text-accent transition">
+        <h3 className="text-xl font-semibold text-white group-hover:text-accent transition">
           {region.name}
         </h3>
         <p className="text-sm text-muted-foreground text-center">

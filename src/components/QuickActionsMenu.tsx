@@ -82,7 +82,7 @@ export const QuickActionsMenu = ({
             {/* Close button */}
             <button
               onClick={onClose}
-              className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center hover:bg-accent/80 transition-colors shadow-lg"
+              className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center hover:bg-accent/80 transition-colors shadow-lg"
             >
               <X className="w-4 h-4" />
             </button>

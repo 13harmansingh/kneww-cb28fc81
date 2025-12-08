@@ -4,8 +4,7 @@ import { usePreferences } from "@/hooks/usePreferences";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useTheme } from "next-themes";
-import { Loader2, Camera, User, Mail, LogOut, Save, Settings as SettingsIcon, Sparkles, RotateCcw, Sun, Moon } from "lucide-react";
+import { Loader2, Camera, User, Mail, LogOut, Save, Settings as SettingsIcon, Sparkles, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
 import { Switch } from "@/components/ui/switch";
@@ -33,7 +32,6 @@ export default function ProfileSettings() {
   const { user, loading: authLoading } = useAuth();
   const { preferences, loading: prefsLoading, saving, updatePreference } = usePreferences();
   const { showOnboarding, replayOnboarding, completeOnboarding, skipOnboarding } = useOnboarding({ userId: user?.id });
-  const { theme, setTheme } = useTheme();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -214,7 +212,7 @@ export default function ProfileSettings() {
                   )}
                 </div>
                 <button
-                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center hover:bg-accent/80 transition"
+                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center hover:bg-accent/80 transition"
                   onClick={() => toast.info("Photo upload coming soon!")}
                 >
                   <Camera className="w-4 h-4" />
@@ -357,22 +355,17 @@ export default function ProfileSettings() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <Label htmlFor="dark-mode" className="text-foreground font-medium flex items-center gap-2">
-                    {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-                    {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
+                  <Label htmlFor="dark-mode" className="text-foreground font-medium">
+                    Dark Mode
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Toggle between dark and light themes
+                    Use dark theme throughout the app
                   </p>
                 </div>
                 <Switch
                   id="dark-mode"
-                  checked={theme === 'dark'}
-                  onCheckedChange={(checked) => {
-                    const newTheme = checked ? 'dark' : 'light';
-                    setTheme(newTheme);
-                    updatePreference("dark_mode", checked);
-                  }}
+                  checked={preferences.dark_mode}
+                  onCheckedChange={(checked) => updatePreference("dark_mode", checked)}
                 />
               </div>
             </div>
@@ -387,7 +380,7 @@ export default function ProfileSettings() {
                   Welcome Tour
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Revisit the knew experience guide
+                  Revisit the KNEW experience guide
                 </p>
               </div>
               <button

@@ -113,34 +113,10 @@ export const useNews = (
           // Check abort signal after request
           if (signal.aborted) return;
 
-          // Check if data indicates rate limit (edge function returns this in the response body)
-          if (data?.rateLimited || data?.error === 'RATE_LIMIT_EXCEEDED') {
-            console.warn('Rate limit hit via response body, attempting to use cached data...');
-            recordRateLimit(60000); // 60 second cooldown
-            
-            // Try to get cached data for any language for this location
-            const anyCached = !aiSearchParams ? getCachedNewsAnyLanguage(debouncedState, debouncedCategory, sourceCountry || 'us', sourceCountries) : null;
-            
-            if (anyCached) {
-              setNews(anyCached.news);
-              setAvailableLanguages(anyCached.available_languages);
-              setDefaultLanguage(anyCached.default_language);
-              setLoading(false);
-              toast.warning('Showing cached news due to API rate limit');
-              return;
-            }
-            
-            // No cache available - set friendly error message
-            setError('News temporarily unavailable. Please wait a moment and try again.');
-            setLoading(false);
-            return;
-          }
-
           if (fetchError) {
             // Handle rate limit errors specially - don't retry, use cache
             if (isRateLimitError(fetchError)) {
               console.warn('Rate limit hit, attempting to use cached data...');
-              recordRateLimit(60000); // 60 second cooldown
               
               // Try to get cached data for any language for this location
               const anyCached = !aiSearchParams ? getCachedNewsAnyLanguage(debouncedState, debouncedCategory, sourceCountry || 'us', sourceCountries) : null;
@@ -153,9 +129,7 @@ export const useNews = (
                 return;
               }
               
-              setError('News temporarily unavailable. Please wait a moment and try again.');
-              setLoading(false);
-              return;
+              throw new Error('Rate limit exceeded. Please wait a minute and try again.');
             }
             
             throw fetchError;

@@ -7,68 +7,36 @@ All colors MUST be HSL.
 */
 
 @layer base {
-  /* Dark mode (default) - Apple inspired dark theme */
   :root {
-    --background: 0 0% 0%;
+    --background: 0 0% 7%;
     --foreground: 0 0% 98%;
 
-    --card: 220 10% 12%;
+    --card: 0 0% 10%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 220 10% 12%;
+    --popover: 0 0% 10%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 211 100% 54%;
+    --primary: 180 60% 50%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 220 10% 16%;
+    --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 220 10% 20%;
+    --muted: 0 0% 20%;
     --muted-foreground: 0 0% 60%;
 
-    --accent: 211 100% 54%;
+    --accent: 180 60% 50%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 10% 20%;
-    --input: 220 10% 16%;
-    --ring: 211 100% 54%;
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 180 60% 50%;
 
     --radius: 1rem;
-  }
-
-  /* Light mode - Apple inspired clean light theme */
-  .light {
-    --background: 0 0% 100%;
-    --foreground: 220 20% 10%;
-
-    --card: 220 14% 96%;
-    --card-foreground: 220 20% 10%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 10%;
-
-    --primary: 211 100% 50%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 220 14% 93%;
-    --secondary-foreground: 220 20% 20%;
-
-    --muted: 220 14% 95%;
-    --muted-foreground: 220 10% 46%;
-
-    --accent: 211 100% 50%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 220 13% 88%;
-    --input: 220 14% 93%;
-    --ring: 211 100% 50%;
   }
 }
 
@@ -173,18 +141,4 @@ html {
   opacity: 0 !important;
   pointer-events: none !important;
   visibility: hidden !important;
-}
-
-/* Teal map overlay for premium look */
-.map-container-teal {
-  position: relative;
-}
-
-.map-container-teal::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(0, 200, 200, 0.35), rgba(0, 160, 180, 0.45));
-  pointer-events: none;
-  mix-blend-mode: color;
 }

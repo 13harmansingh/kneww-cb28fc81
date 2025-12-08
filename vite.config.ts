@@ -17,8 +17,8 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["logo-512.png"],
       manifest: {
-        name: "knew - Global News Network",
-        short_name: "knew",
+        name: "KNEW - Global News Network",
+        short_name: "KNEW",
         description: "Discover news from around the world with AI-powered insights and analysis",
         theme_color: "#000000",
         background_color: "#000000",

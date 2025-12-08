@@ -61,11 +61,9 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
 
       mapboxgl.accessToken = MAPBOX_TOKEN;
 
-      const mapStyle = "mapbox://styles/mapbox/outdoors-v12";
-
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: mapStyle,
+        style: "mapbox://styles/mapbox/dark-v11",
         center: state.coordinates,
         zoom: state.zoom,
         interactive: false,
@@ -83,13 +81,17 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
   }, [state.code, state.coordinates, state.zoom, isVisible]);
 
   return (
-    <div
+    <button
       onClick={onClick}
-      className="bg-card rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 transition-all group relative"
+      className="w-full rounded-2xl overflow-hidden border border-accent/20 hover:border-accent transition-all hover:scale-[1.02] active:scale-95"
     >
-      <div className="relative">
-        <div ref={mapContainer} className="h-44 w-full bg-muted/20 map-container-teal" />
-        <div className="absolute bottom-3 left-3 z-10">
+      <div ref={mapContainer} className="w-full h-48 bg-muted/20" />
+      <div className="bg-card p-4 border-t border-border">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-white">{state.name}</h3>
+            <p className="text-sm text-muted-foreground">{state.code}</p>
+          </div>
           <FollowStateButton
             stateCode={state.code}
             stateName={state.name}
@@ -98,11 +100,6 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
           />
         </div>
       </div>
-      <div className="p-3">
-        <h3 className="text-base font-semibold text-foreground group-hover:text-accent transition truncate">
-          {state.name}
-        </h3>
-      </div>
-    </div>
+    </button>
   );
 };

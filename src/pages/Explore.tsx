@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { useTheme } from "next-themes";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { BottomNav } from "@/components/BottomNav";
@@ -33,7 +32,6 @@ const Explore = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const { session } = useAuth();
-  const { theme } = useTheme();
   
   // State for country selection and news display
   const [selectedCountry, setSelectedCountry] = useState<string>("");
@@ -60,21 +58,13 @@ const Explore = () => {
   if (!location) return null;
 
   useEffect(() => {
-    if (!mapContainer.current || showNews) return;
-
-    // If map already exists and theme changed, update the style
-    if (map.current) {
-      map.current.setStyle("mapbox://styles/mapbox/outdoors-v12");
-      return;
-    }
+    if (!mapContainer.current || map.current || showNews) return;
 
     mapboxgl.accessToken = MAPBOX_TOKEN;
 
-    const mapStyle = "mapbox://styles/mapbox/outdoors-v12";
-
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: mapStyle,
+      style: "mapbox://styles/mapbox/dark-v11",
       projection: "globe",
       zoom: 1.5,
       center: [0, 20],
@@ -88,13 +78,11 @@ const Explore = () => {
     );
 
     map.current.on("style.load", () => {
-      if (theme === 'dark') {
-        map.current?.setFog({
-          color: "rgb(15, 20, 35)",
-          "high-color": "rgb(40, 50, 90)",
-          "horizon-blend": 0.15,
-        });
-      }
+      map.current?.setFog({
+        color: "rgb(25, 25, 40)",
+        "high-color": "rgb(50, 50, 80)",
+        "horizon-blend": 0.2,
+      });
     });
 
     // Add click handler for reverse geocoding
@@ -142,7 +130,7 @@ const Explore = () => {
       map.current?.remove();
       map.current = null;
     };
-  }, [showNews, theme]);
+  }, [showNews]);
 
   const handleBackToMap = () => {
     setShowNews(false);

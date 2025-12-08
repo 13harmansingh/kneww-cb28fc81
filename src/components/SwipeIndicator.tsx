@@ -25,18 +25,18 @@ export const SwipeIndicator = ({ progress, direction }: SwipeIndicatorProps) => 
           animate={{ scale: 1 + progress * 0.3 }}
           className={cn(
             "w-16 h-16 rounded-full flex items-center justify-center",
-            "bg-accent/80 backdrop-blur-sm shadow-lg border-2 border-accent-foreground/20"
+            "bg-accent/80 backdrop-blur-sm shadow-lg border-2 border-white/20"
           )}
         >
           {direction === "right" ? (
-            <ChevronLeft className="w-8 h-8 text-accent-foreground" />
+            <ChevronLeft className="w-8 h-8 text-white" />
           ) : (
-            <ChevronRight className="w-8 h-8 text-accent-foreground" />
+            <ChevronRight className="w-8 h-8 text-white" />
           )}
         </motion.div>
         <motion.p
           animate={{ opacity: progress }}
-          className="text-center text-accent-foreground text-sm font-semibold mt-2"
+          className="text-center text-white text-sm font-semibold mt-2"
         >
           {direction === "right" ? "Go Back" : "Go Forward"}
         </motion.p>

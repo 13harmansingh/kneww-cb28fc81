@@ -108,7 +108,7 @@ export default function Login() {
                 }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               >
-                knew
+                KNEW
               </motion.h1>
             </motion.div>
             <motion.p
@@ -140,7 +140,7 @@ export default function Login() {
                 }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               >
-                knew
+                KNEW
               </motion.h1>
               <p className="text-muted-foreground">Welcome back</p>
             </div>
@@ -202,10 +202,10 @@ export default function Login() {
                   {loading ? (
                     <span className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Entering knew...
+                      Entering KNEW...
                     </span>
                   ) : (
-                    "Enter knew"
+                    "Enter KNEW"
                   )}
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"

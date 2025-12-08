@@ -49,16 +49,14 @@ export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
 
     mapboxgl.accessToken = MAPBOX_TOKEN;
 
-    const mapStyle = "mapbox://styles/mapbox/outdoors-v12";
-
     const timeoutId = setTimeout(() => {
       if (!mapContainer.current) return;
 
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: mapStyle,
+        style: "mapbox://styles/mapbox/dark-v11",
         center: country.coordinates,
-        zoom: 3.5,
+        zoom: 3,
         interactive: false,
         attributionControl: false,
         preserveDrawingBuffer: true,
@@ -77,11 +75,17 @@ export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
   return (
     <div
       onClick={onClick}
-      className="bg-card rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 transition-all group relative"
+      className="bg-card border border-border rounded-2xl overflow-hidden cursor-pointer hover:border-accent transition-all group"
     >
-      <div className="relative">
-        <div ref={mapContainer} className="h-44 w-full bg-muted/20 map-container-teal" />
-        <div className="absolute bottom-3 left-3 z-10">
+      <div ref={mapContainer} className="h-48 w-full bg-muted/20" />
+      <div className="p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-white group-hover:text-accent transition">
+              {country.name}
+            </h3>
+            <p className="text-sm text-muted-foreground">Click to view news</p>
+          </div>
           <FollowStateButton
             stateCode={country.code}
             stateName={country.name}
@@ -89,11 +93,6 @@ export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
             variant="ghost"
           />
         </div>
-      </div>
-      <div className="p-3">
-        <h3 className="text-base font-semibold text-foreground group-hover:text-accent transition truncate">
-          {country.name}
-        </h3>
       </div>
     </div>
   );

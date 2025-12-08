@@ -454,7 +454,7 @@ export default function AdminUsers() {
           <DialogHeader>
             <DialogTitle>Grant Intelligence Access</DialogTitle>
             <DialogDescription>
-              Create a new user account and grant access to knew.
+              Create a new user account and grant access to KNEW.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">

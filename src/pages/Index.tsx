@@ -422,7 +422,7 @@ const Index = () => {
             <input type="text" value={aiSearchQuery} onChange={e => setAiSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAiSearch()} className="w-full bg-accent/10 border-2 border-accent rounded-full py-3 pl-12 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent" placeholder="Ask anything... " />
           </div>
           <button onClick={handleAiSearch} disabled={aiSearching || aiSearchQuery.length < 2} title="AI Search" className="p-3 rounded-full transition disabled:cursor-not-allowed bg-[sidebar-accent-foreground] bg-transparent text-slate-50 opacity-100">
-            {aiSearching ? <Loader2 className="w-5 h-5 text-foreground animate-spin" /> : <Search className="w-5 h-5 text-foreground" />}
+            {aiSearching ? <Loader2 className="w-5 h-5 text-white animate-spin" /> : <Search className="w-5 h-5 text-white" />}
           </button>
           <NotificationBell />
         </div>
@@ -433,7 +433,7 @@ const Index = () => {
             </p>
           </div>}
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-foreground">knew</h1>
+          <h1 className="text-2xl font-bold text-white">KNEW</h1>
           {(selectedState || selectedCountry || selectedRegion || aiSearchParams) && <button onClick={handleBackNavigation} className="ml-auto p-2 rounded-full hover:bg-accent/20 transition" title="Go Back">
               <ChevronLeft className="w-5 h-5 text-accent" />
             </button>}
@@ -497,7 +497,7 @@ const Index = () => {
             <div className="flex items-center gap-4 mb-6">
               <Sparkles className="w-24 h-24 text-accent" />
               <div>
-                <h2 className="text-3xl font-bold text-foreground">
+                <h2 className="text-3xl font-bold text-white">
                   AI Search Results
                 </h2>
                 <p className="text-muted-foreground">
@@ -510,7 +510,7 @@ const Index = () => {
           {/* Explore Categories */}
           <div className="px-4 mt-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-foreground">Categories</h2>
+              <h2 className="text-2xl font-bold text-white">Categories</h2>
             </div>
 
             <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
@@ -521,7 +521,7 @@ const Index = () => {
           {/* Dynamic Language Selector - Only show if we have languages */}
           {availableLanguages.length > 0 && <div className="px-4 mt-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-foreground">Languages</h2>
+                <h2 className="text-2xl font-bold text-white">Languages</h2>
                 <p className="text-sm text-muted-foreground">
                   {filteredNews.length} {filteredNews.length === 1 ? 'article' : 'articles'}
                 </p>
@@ -544,16 +544,16 @@ const Index = () => {
               <div className="bg-accent/90 backdrop-blur rounded-2xl p-4 border border-accent shadow-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Scale className="w-5 h-5 text-accent-foreground" />
-                    <span className="text-accent-foreground font-semibold">
+                    <Scale className="w-5 h-5 text-white" />
+                    <span className="text-white font-semibold">
                       {selectedForCompare.length} selected
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => setSelectedForCompare([])} className="px-3 py-2 bg-background/20 text-accent-foreground rounded-lg text-sm font-semibold hover:bg-background/30 transition">
+                    <button onClick={() => setSelectedForCompare([])} className="px-3 py-2 bg-white/20 text-white rounded-lg text-sm font-semibold hover:bg-white/30 transition">
                       Clear
                     </button>
-                    {selectedForCompare.length >= 2 && <button onClick={handleCompare} className="px-4 py-2 bg-background text-accent rounded-lg text-sm font-semibold hover:bg-background/90 transition">
+                    {selectedForCompare.length >= 2 && <button onClick={handleCompare} className="px-4 py-2 bg-white text-accent rounded-lg text-sm font-semibold hover:bg-white/90 transition">
                         Compare
                       </button>}
                   </div>
@@ -568,7 +568,7 @@ const Index = () => {
                   <div className="text-destructive text-4xl mb-3">⚠️</div>
                   <h3 className="text-lg font-semibold text-foreground mb-2">Failed to Load News</h3>
                   <p className="text-sm text-muted-foreground mb-4">{error}</p>
-                  <button onClick={retry} className="px-6 py-2 bg-accent text-accent-foreground rounded-lg font-semibold hover:bg-accent/90 transition">
+                  <button onClick={retry} className="px-6 py-2 bg-accent text-white rounded-lg font-semibold hover:bg-accent/90 transition">
                     Retry
                   </button>
                 </div>
@@ -590,74 +590,81 @@ const Index = () => {
           {/* Swipe Navigation Indicator */}
           <SwipeIndicator progress={swipeProgress} direction={swipeDirection} />
         </>) : !selectedRegion ? (/* Region Selection View */
-    <div className="px-4 mt-4">
-          <div className="flex items-center gap-2 mb-4">
-            <Flag className="w-6 h-6 text-accent" />
-            <h2 className="text-xl font-bold text-foreground">Select Region</h2>
+    <div className="px-4 mt-6">
+          <div className="flex items-center gap-2 mb-6">
+            <Flag className="w-8 h-8 text-accent" />
+            <div>
+              <h2 className="text-3xl font-bold text-white">Select Your Region</h2>
+              <p className="text-muted-foreground">Choose a region to explore countries</p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredRegions.map(region => <ContinentMapCard key={region.id} region={region} onClick={() => handleRegionSelect(region.id)} />)}
           </div>
         </div>) : !selectedCountry ? (/* Country Selection View */
-    <div className="px-4 mt-4">
-          <button onClick={handleBackToRegions} className="flex items-center gap-2 text-accent mb-3 hover:underline text-sm">
+    <div className="px-4 mt-6">
+          <button onClick={handleBackToRegions} className="flex items-center gap-2 text-accent mb-4 hover:underline">
             <ArrowRight className="w-4 h-4 rotate-180" />
             Back to Regions
           </button>
           
-          <div className="flex items-center gap-2 mb-4">
-            <Globe className="w-6 h-6 text-accent" />
-            <h2 className="text-xl font-bold text-foreground">
-              {REGIONS.find(r => r.id === selectedRegion)?.name}
-            </h2>
+          <div className="flex items-center gap-2 mb-6">
+            <Globe className="w-8 h-8 text-accent" />
+            <div>
+              <h2 className="text-3xl font-bold text-white">
+                {REGIONS.find(r => r.id === selectedRegion)?.name} - Select Country
+              </h2>
+              <p className="text-muted-foreground">Choose a country to view news</p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredCountries.map(country => <CountryMapCard key={country.code} country={country} onClick={() => handleCountrySelect(country.code, country.name)} />)}
           </div>
         </div>) : selectedCountry && COUNTRIES.find(c => c.code === selectedCountry)?.hasStates && !selectedState ? (/* State/Province Selection View */
-    <div className="px-4 mt-4">
-          <button onClick={handleBackToCountries} className="flex items-center gap-2 text-accent mb-3 hover:underline text-sm">
+    <div className="px-4 mt-6">
+          <button onClick={handleBackToCountries} className="flex items-center gap-2 text-accent mb-4 hover:underline">
             <ArrowRight className="w-4 h-4 rotate-180" />
             Back to {REGIONS.find(r => r.id === selectedRegion)?.name}
           </button>
           
-          <div className="flex items-center gap-2 mb-4">
-            <MapPin className="w-6 h-6 text-accent" />
-            <h2 className="text-xl font-bold text-foreground">
-              {selectedCountryName}
-            </h2>
+          <div className="flex items-center gap-2 mb-6">
+            <MapPin className="w-8 h-8 text-accent" />
+            <div>
+              <h2 className="text-3xl font-bold text-white">
+                Select {selectedCountry === 'CA' ? 'Province' : selectedCountry === 'AU' ? 'State/Territory' : selectedCountry === 'IN' ? 'State' : 'State'}
+              </h2>
+              <p className="text-muted-foreground">
+                Choose a {selectedCountry === 'CA' ? 'province' : 'state'} to view local news from {selectedCountryName}
+              </p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredStates.map(state => <StateMapCard key={state.code} state={state} onClick={() => handleStateSelect(state.name)} />)}
           </div>
         </div>) : (/* News View */
     <>
-          {/* Compact Map Header */}
-          <div className="px-4 mt-4">
-            <button onClick={selectedState ? handleBackToStates : handleBackToCountries} className="flex items-center gap-2 text-accent mb-3 hover:underline text-sm">
+          {/* Location Header */}
+          <div className="px-4 mt-6">
+            <button onClick={selectedState ? handleBackToStates : handleBackToCountries} className="flex items-center gap-2 text-accent mb-4 hover:underline">
               <ArrowRight className="w-4 h-4 rotate-180" />
               {selectedState ? "Back to States" : `Back to ${REGIONS.find(r => r.id === selectedRegion)?.name || 'Countries'}`}
             </button>
             
-            {/* Compact Map Hero with Location Overlay */}
-            <div className="relative w-full h-24 rounded-2xl overflow-hidden mb-4">
-              {selectedState && currentStates.find(s => s.name === selectedState) ? (
-                <div className="w-full h-full">
-                  <div className="w-full h-full bg-muted/20 map-container-teal" />
-                </div>
-              ) : (
-                <div className="w-full h-full bg-gradient-to-r from-accent/20 to-accent/5 flex items-center justify-center">
-                  <Globe className="w-12 h-12 text-accent/50" />
-                </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent" />
-              <div className="absolute bottom-3 left-4">
-                <h2 className="text-2xl font-bold text-foreground">
+            <div className="flex items-center gap-4 mb-6">
+              {selectedState && currentStates.find(s => s.name === selectedState) && <div className="w-24 h-24 rounded-xl overflow-hidden border-2 border-accent">
+                  <StateMapCard state={currentStates.find(s => s.name === selectedState)!} onClick={() => {}} />
+                </div>}
+              {!selectedState && selectedCountryName && <Globe className="w-24 h-24 text-accent" />}
+              <div>
+                <h2 className="text-3xl font-bold text-white">
                   {selectedState || selectedCountryName || 'News'}
                 </h2>
+                <p className="text-muted-foreground">
+                  Latest updates {selectedState || selectedCountryName ? `from ${selectedState || selectedCountryName}` : ''}
+                </p>
               </div>
             </div>
           </div>
@@ -665,7 +672,7 @@ const Index = () => {
           {/* Explore Categories */}
           <div className="px-4 mt-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-foreground">Categories</h2>
+              <h2 className="text-2xl font-bold text-white">Categories</h2>
             </div>
 
             <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
@@ -676,7 +683,7 @@ const Index = () => {
           {/* Dynamic Language Selector - Only show if we have languages */}
           {availableLanguages.length > 0 && <div className="px-4 mt-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-foreground">Languages</h2>
+                <h2 className="text-2xl font-bold text-white">Languages</h2>
                 <p className="text-sm text-muted-foreground">
                   {filteredNews.length} {filteredNews.length === 1 ? 'article' : 'articles'}
                 </p>
@@ -699,16 +706,16 @@ const Index = () => {
               <div className="bg-accent/90 backdrop-blur rounded-2xl p-4 border border-accent shadow-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Scale className="w-5 h-5 text-accent-foreground" />
-                    <span className="text-accent-foreground font-semibold">
+                    <Scale className="w-5 h-5 text-white" />
+                    <span className="text-white font-semibold">
                       {selectedForCompare.length} selected
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => setSelectedForCompare([])} className="px-4 py-2 bg-background/20 text-accent-foreground rounded-lg text-sm hover:bg-background/30 transition">
+                    <button onClick={() => setSelectedForCompare([])} className="px-4 py-2 bg-white/20 text-white rounded-lg text-sm hover:bg-white/30 transition">
                       Clear
                     </button>
-                    {selectedForCompare.length >= 2 && <button onClick={handleCompare} className="px-4 py-2 bg-background text-accent rounded-lg text-sm font-semibold hover:bg-background/90 transition">
+                    {selectedForCompare.length >= 2 && <button onClick={handleCompare} className="px-4 py-2 bg-white text-accent rounded-lg text-sm font-semibold hover:bg-white/90 transition">
                         Compare
                       </button>}
                   </div>
@@ -723,7 +730,7 @@ const Index = () => {
                   <div className="text-destructive text-4xl mb-3">⚠️</div>
                   <h3 className="text-lg font-semibold text-foreground mb-2">Failed to Load News</h3>
                   <p className="text-sm text-muted-foreground mb-4">{error}</p>
-                  <button onClick={retry} className="px-6 py-2 bg-accent text-accent-foreground rounded-lg font-semibold hover:bg-accent/90 transition">
+                  <button onClick={retry} className="px-6 py-2 bg-accent text-white rounded-lg font-semibold hover:bg-accent/90 transition">
                     Retry
                   </button>
                 </div>
@@ -737,7 +744,7 @@ const Index = () => {
               </div> : <div className="text-center py-12">
                 {!user ? <div>
                     <p className="text-muted-foreground">Please log in to view news for {selectedState || selectedCountryName}.</p>
-                    <a href="/login" className="inline-block mt-4 px-4 py-2 bg-accent text-accent-foreground rounded-lg">Log in</a>
+                    <a href="/login" className="inline-block mt-4 px-4 py-2 bg-accent text-white rounded-lg">Log in</a>
                   </div> : <p className="text-muted-foreground">No news articles found for {selectedState || selectedCountryName}</p>}
               </div>}
           </div>

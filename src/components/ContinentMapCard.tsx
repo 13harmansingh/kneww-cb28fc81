@@ -51,16 +51,14 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
 
     // Determine zoom level based on region size
     const zoomLevels: Record<string, number> = {
-      "north-america": 2.5,
-      "south-america": 2.5,
-      "europe": 3,
-      "africa": 2.5,
-      "asia": 2,
-      "oceania": 2.5,
-      "middle-east": 3.5,
+      "north-america": 3,
+      "south-america": 3,
+      "europe": 3.5,
+      "africa": 3,
+      "asia": 2.5,
+      "oceania": 3,
+      "middle-east": 4,
     };
-
-    const mapStyle = "mapbox://styles/mapbox/outdoors-v12";
 
     // Add a small delay before initializing map to prevent rapid re-renders
     const timeoutId = setTimeout(() => {
@@ -68,12 +66,20 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
 
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: mapStyle,
+        style: "mapbox://styles/mapbox/dark-v11",
         center: region.coordinates,
-        zoom: zoomLevels[region.id] || 2.5,
+        zoom: zoomLevels[region.id] || 3,
         interactive: false,
         attributionControl: false,
-        preserveDrawingBuffer: true,
+        preserveDrawingBuffer: true, // Helps with mobile performance
+      });
+
+      map.current.on("style.load", () => {
+        map.current?.setFog({
+          color: "rgb(25, 25, 40)",
+          "high-color": "rgb(50, 50, 80)",
+          "horizon-blend": 0.2,
+        });
       });
     }, 100);
 
@@ -89,11 +95,20 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
   return (
     <div
       onClick={onClick}
-      className="bg-card rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 transition-all group relative"
+      className="bg-card border border-border rounded-2xl overflow-hidden cursor-pointer hover:border-accent transition-all group"
     >
-      <div className="relative">
-        <div ref={mapContainer} className="h-44 w-full bg-muted/20 map-container-teal" />
-        <div className="absolute bottom-3 left-3 z-10">
+      <div ref={mapContainer} className="h-56 w-full bg-muted/20" />
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <span className="text-4xl">{region.icon}</span>
+            <div>
+              <h3 className="text-xl font-semibold text-white group-hover:text-accent transition">
+                {region.name}
+              </h3>
+              <p className="text-sm text-muted-foreground">Click to explore countries</p>
+            </div>
+          </div>
           <FollowStateButton
             stateCode={region.id}
             stateName={region.name}
@@ -101,12 +116,6 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
             variant="ghost"
           />
         </div>
-      </div>
-      <div className="p-3 flex items-center gap-2">
-        <span className="text-xl">{region.icon}</span>
-        <h3 className="text-base font-semibold text-foreground group-hover:text-accent transition truncate">
-          {region.name}
-        </h3>
       </div>
     </div>
   );
