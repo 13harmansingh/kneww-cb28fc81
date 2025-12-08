@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { useTheme } from "next-themes";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Country } from "@/data/countries";
@@ -16,7 +15,6 @@ export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const { theme } = useTheme();
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -60,7 +58,7 @@ export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
         container: mapContainer.current,
         style: mapStyle,
         center: country.coordinates,
-        zoom: 3,
+        zoom: 3.5,
         interactive: false,
         attributionControl: false,
         preserveDrawingBuffer: true,
@@ -74,22 +72,16 @@ export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
         map.current = null;
       }
     };
-  }, [country.code, isVisible, theme]);
+  }, [country.code, isVisible]);
 
   return (
     <div
       onClick={onClick}
-      className="bg-card border border-border rounded-2xl overflow-hidden cursor-pointer hover:border-accent transition-all group"
+      className="bg-card rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 transition-all group relative"
     >
-      <div ref={mapContainer} className="h-48 w-full bg-muted/20" />
-      <div className="p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-foreground group-hover:text-accent transition">
-              {country.name}
-            </h3>
-            <p className="text-sm text-muted-foreground">Click to view news</p>
-          </div>
+      <div className="relative">
+        <div ref={mapContainer} className="h-28 w-full bg-muted/20 map-container-teal" />
+        <div className="absolute bottom-2 right-2 z-10">
           <FollowStateButton
             stateCode={country.code}
             stateName={country.name}
@@ -97,6 +89,13 @@ export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
             variant="ghost"
           />
         </div>
+        {/* Gradient overlay for text readability */}
+        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-card to-transparent" />
+      </div>
+      <div className="p-3">
+        <h3 className="text-base font-semibold text-foreground group-hover:text-accent transition truncate">
+          {country.name}
+        </h3>
       </div>
     </div>
   );

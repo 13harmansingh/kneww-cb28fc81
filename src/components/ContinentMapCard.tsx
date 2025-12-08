@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { useTheme } from "next-themes";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Region } from "@/data/countries";
@@ -16,7 +15,6 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const { theme } = useTheme();
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -53,13 +51,13 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
 
     // Determine zoom level based on region size
     const zoomLevels: Record<string, number> = {
-      "north-america": 3,
-      "south-america": 3,
-      "europe": 3.5,
-      "africa": 3,
-      "asia": 2.5,
-      "oceania": 3,
-      "middle-east": 4,
+      "north-america": 2.5,
+      "south-america": 2.5,
+      "europe": 3,
+      "africa": 2.5,
+      "asia": 2,
+      "oceania": 2.5,
+      "middle-east": 3.5,
     };
 
     const mapStyle = "mapbox://styles/mapbox/outdoors-v12";
@@ -72,20 +70,10 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
         container: mapContainer.current,
         style: mapStyle,
         center: region.coordinates,
-        zoom: zoomLevels[region.id] || 3,
+        zoom: zoomLevels[region.id] || 2.5,
         interactive: false,
         attributionControl: false,
         preserveDrawingBuffer: true,
-      });
-
-      map.current.on("style.load", () => {
-        if (theme === 'dark') {
-          map.current?.setFog({
-            color: "rgb(15, 20, 35)",
-            "high-color": "rgb(40, 50, 90)",
-            "horizon-blend": 0.15,
-          });
-        }
       });
     }, 100);
 
@@ -96,25 +84,16 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
         map.current = null;
       }
     };
-  }, [region.id, region.coordinates, isVisible, theme]);
+  }, [region.id, region.coordinates, isVisible]);
 
   return (
     <div
       onClick={onClick}
-      className="bg-card border border-border rounded-2xl overflow-hidden cursor-pointer hover:border-accent transition-all group"
+      className="bg-card rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 transition-all group relative"
     >
-      <div ref={mapContainer} className="h-56 w-full bg-muted/20" />
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-3">
-            <span className="text-4xl">{region.icon}</span>
-            <div>
-              <h3 className="text-xl font-semibold text-foreground group-hover:text-accent transition">
-                {region.name}
-              </h3>
-              <p className="text-sm text-muted-foreground">Click to explore countries</p>
-            </div>
-          </div>
+      <div className="relative">
+        <div ref={mapContainer} className="h-32 w-full bg-muted/20 map-container-teal" />
+        <div className="absolute bottom-2 right-2 z-10">
           <FollowStateButton
             stateCode={region.id}
             stateName={region.name}
@@ -122,6 +101,14 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
             variant="ghost"
           />
         </div>
+        {/* Gradient overlay for text readability */}
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-card to-transparent" />
+      </div>
+      <div className="p-3 flex items-center gap-2">
+        <span className="text-2xl">{region.icon}</span>
+        <h3 className="text-base font-semibold text-foreground group-hover:text-accent transition truncate">
+          {region.name}
+        </h3>
       </div>
     </div>
   );
