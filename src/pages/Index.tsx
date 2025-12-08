@@ -596,7 +596,7 @@ const Index = () => {
             <h2 className="text-xl font-bold text-foreground">Select Region</h2>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-4">
             {filteredRegions.map(region => <ContinentMapCard key={region.id} region={region} onClick={() => handleRegionSelect(region.id)} />)}
           </div>
         </div>) : !selectedCountry ? (/* Country Selection View */
@@ -613,7 +613,7 @@ const Index = () => {
             </h2>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-4">
             {filteredCountries.map(country => <CountryMapCard key={country.code} country={country} onClick={() => handleCountrySelect(country.code, country.name)} />)}
           </div>
         </div>) : selectedCountry && COUNTRIES.find(c => c.code === selectedCountry)?.hasStates && !selectedState ? (/* State/Province Selection View */
@@ -630,7 +630,7 @@ const Index = () => {
             </h2>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-4">
             {filteredStates.map(state => <StateMapCard key={state.code} state={state} onClick={() => handleStateSelect(state.name)} />)}
           </div>
         </div>) : (/* News View */

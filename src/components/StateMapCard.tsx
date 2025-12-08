@@ -88,8 +88,8 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
       className="bg-card rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 transition-all group relative"
     >
       <div className="relative">
-        <div ref={mapContainer} className="h-28 w-full bg-muted/20 map-container-teal" />
-        <div className="absolute bottom-2 right-2 z-10">
+        <div ref={mapContainer} className="h-44 w-full bg-muted/20 map-container-teal" />
+        <div className="absolute bottom-3 left-3 z-10">
           <FollowStateButton
             stateCode={state.code}
             stateName={state.name}
@@ -97,8 +97,6 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
             variant="ghost"
           />
         </div>
-        {/* Gradient overlay for text readability */}
-        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-card to-transparent" />
       </div>
       <div className="p-3">
         <h3 className="text-base font-semibold text-foreground group-hover:text-accent transition truncate">
