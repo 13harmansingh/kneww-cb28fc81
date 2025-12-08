@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { useTheme } from "next-themes";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { USState } from "@/data/usStates";
@@ -17,7 +16,6 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const { theme } = useTheme();
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -73,16 +71,6 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
         interactive: false,
         attributionControl: false,
       });
-
-      map.current.on("style.load", () => {
-        if (theme === 'dark') {
-          map.current?.setFog({
-            color: "rgb(15, 20, 35)",
-            "high-color": "rgb(40, 50, 90)",
-            "horizon-blend": 0.15,
-          });
-        }
-      });
     }, 50);
 
     return () => {
@@ -92,20 +80,16 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
         map.current = null;
       }
     };
-  }, [state.code, state.coordinates, state.zoom, isVisible, theme]);
+  }, [state.code, state.coordinates, state.zoom, isVisible]);
 
   return (
-    <button
+    <div
       onClick={onClick}
-      className="w-full rounded-2xl overflow-hidden border border-accent/20 hover:border-accent transition-all hover:scale-[1.02] active:scale-95"
+      className="bg-card rounded-2xl overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-95 transition-all group relative"
     >
-      <div ref={mapContainer} className="w-full h-48 bg-muted/20" />
-      <div className="bg-card p-4 border-t border-border">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">{state.name}</h3>
-            <p className="text-sm text-muted-foreground">{state.code}</p>
-          </div>
+      <div className="relative">
+        <div ref={mapContainer} className="h-28 w-full bg-muted/20 map-container-teal" />
+        <div className="absolute bottom-2 right-2 z-10">
           <FollowStateButton
             stateCode={state.code}
             stateName={state.name}
@@ -113,7 +97,14 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
             variant="ghost"
           />
         </div>
+        {/* Gradient overlay for text readability */}
+        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-card to-transparent" />
       </div>
-    </button>
+      <div className="p-3">
+        <h3 className="text-base font-semibold text-foreground group-hover:text-accent transition truncate">
+          {state.name}
+        </h3>
+      </div>
+    </div>
   );
 };

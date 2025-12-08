@@ -174,3 +174,17 @@ html {
   pointer-events: none !important;
   visibility: hidden !important;
 }
+
+/* Teal map overlay for premium look */
+.map-container-teal {
+  position: relative;
+}
+
+.map-container-teal::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0, 180, 180, 0.15), rgba(0, 120, 160, 0.22));
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
