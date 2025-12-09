@@ -64,7 +64,7 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
 
     // Dynamic map style based on theme
     const mapStyle = resolvedTheme === "light"
-      ? "mapbox://styles/mapbox/outdoors-v12"
+      ? "mapbox://styles/mapbox/light-v11"
       : "mapbox://styles/mapbox/dark-v11";
 
     // Add a small delay before initializing map to prevent rapid re-renders
@@ -82,10 +82,10 @@ export const ContinentMapCard = ({ region, onClick }: ContinentMapCardProps) => 
       });
 
       map.current.on("style.load", () => {
-        // Theme-aware fog colors
+        // Theme-aware fog colors matching background tint
         const fogConfig = resolvedTheme === "light"
-          ? { color: "rgb(248, 247, 244)", "high-color": "rgb(200, 195, 185)", "horizon-blend": 0.15 }
-          : { color: "rgb(15, 20, 35)", "high-color": "rgb(40, 50, 90)", "horizon-blend": 0.2 };
+          ? { color: "rgb(240, 235, 225)", "high-color": "rgb(220, 210, 195)", "horizon-blend": 0.15 }
+          : { color: "rgb(18, 22, 32)", "high-color": "rgb(35, 45, 70)", "horizon-blend": 0.2 };
         
         map.current?.setFog(fogConfig);
       });

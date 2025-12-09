@@ -8,23 +8,23 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Dark mode (default) - Pure black inspired by Apple */
-    --background: 0 0% 0%;
+    /* Dark mode - Blue-tinted dark with warmth */
+    --background: 220 15% 8%;
     --foreground: 0 0% 98%;
 
-    --card: 220 10% 12%;
+    --card: 220 12% 12%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 220 10% 10%;
+    --popover: 220 12% 10%;
     --popover-foreground: 0 0% 98%;
 
     --primary: 211 100% 54%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 10% 15%;
+    --secondary: 220 12% 16%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 220 10% 20%;
+    --muted: 220 12% 18%;
     --muted-foreground: 0 0% 60%;
 
     --accent: 180 60% 50%;
@@ -33,42 +33,42 @@ All colors MUST be HSL.
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 10% 20%;
-    --input: 220 10% 15%;
+    --border: 220 12% 20%;
+    --input: 220 12% 16%;
     --ring: 211 100% 54%;
 
     --radius: 1rem;
   }
 
   .light {
-    /* Light mode - Claude-inspired warm palette */
-    --background: 0 0% 100%;
-    --foreground: 0 0% 8%;
+    /* Light mode - Warm beige/pampas tint */
+    --background: 40 30% 94%;
+    --foreground: 30 10% 15%;
 
-    --card: 220 14% 96%;
-    --card-foreground: 0 0% 8%;
+    --card: 40 25% 96%;
+    --card-foreground: 30 10% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 8%;
+    --popover: 40 25% 96%;
+    --popover-foreground: 30 10% 15%;
 
-    --primary: 211 100% 50%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 180 55% 38%;
+    --primary-foreground: 40 30% 96%;
 
-    --secondary: 220 14% 92%;
-    --secondary-foreground: 0 0% 20%;
+    --secondary: 40 20% 90%;
+    --secondary-foreground: 30 10% 20%;
 
-    --muted: 220 10% 90%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 40 18% 88%;
+    --muted-foreground: 30 8% 40%;
 
-    --accent: 180 55% 40%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 180 55% 38%;
+    --accent-foreground: 40 30% 96%;
 
     --destructive: 0 84% 50%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 40 30% 96%;
 
-    --border: 220 10% 88%;
-    --input: 220 14% 94%;
-    --ring: 211 100% 50%;
+    --border: 40 15% 82%;
+    --input: 40 20% 90%;
+    --ring: 180 55% 38%;
   }
 }
 
@@ -149,15 +149,15 @@ html {
 
 /* Light mode specific scrollbar */
 .light ::-webkit-scrollbar-track {
-  background: hsl(220 14% 96%);
+  background: hsl(40 25% 92%);
 }
 
 .light ::-webkit-scrollbar-thumb {
-  background: hsl(220 10% 80%);
+  background: hsl(40 15% 75%);
 }
 
 .light ::-webkit-scrollbar-thumb:hover {
-  background: hsl(0 0% 60%);
+  background: hsl(30 8% 50%);
 }
 
 @layer utilities {
