@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { useTheme } from "next-themes";
 import { Country } from "@/data/countries";
 import { FollowStateButton } from "@/components/follow/FollowStateButton";
 
@@ -15,6 +16,7 @@ export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -49,17 +51,30 @@ export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
 
     mapboxgl.accessToken = MAPBOX_TOKEN;
 
+    // Dynamic map style based on theme
+    const mapStyle = resolvedTheme === "light"
+      ? "mapbox://styles/mapbox/outdoors-v12"
+      : "mapbox://styles/mapbox/dark-v11";
+
     const timeoutId = setTimeout(() => {
       if (!mapContainer.current) return;
 
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: "mapbox://styles/mapbox/dark-v11",
+        style: mapStyle,
         center: country.coordinates,
         zoom: 3,
         interactive: false,
         attributionControl: false,
         preserveDrawingBuffer: true,
+      });
+
+      map.current.on("style.load", () => {
+        const fogConfig = resolvedTheme === "light"
+          ? { color: "rgb(248, 247, 244)", "high-color": "rgb(200, 195, 185)", "horizon-blend": 0.15 }
+          : { color: "rgb(15, 20, 35)", "high-color": "rgb(40, 50, 90)", "horizon-blend": 0.2 };
+        
+        map.current?.setFog(fogConfig);
       });
     }, 100);
 
@@ -70,7 +85,7 @@ export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
         map.current = null;
       }
     };
-  }, [country.code, isVisible]);
+  }, [country.code, isVisible, resolvedTheme]);
 
   return (
     <div
@@ -81,7 +96,7 @@ export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
       <div className="p-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-white group-hover:text-accent transition">
+            <h3 className="text-lg font-semibold text-foreground group-hover:text-accent transition">
               {country.name}
             </h3>
             <p className="text-sm text-muted-foreground">Click to view news</p>
