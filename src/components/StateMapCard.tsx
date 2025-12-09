@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { useTheme } from "next-themes";
 import { USState } from "@/data/usStates";
 import { FollowStateButton } from "@/components/follow/FollowStateButton";
 
@@ -16,6 +17,7 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -42,18 +44,18 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
   useEffect(() => {
     if (!mapContainer.current || !isVisible) return;
 
-    const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN || "";
-    
-    if (!MAPBOX_TOKEN) {
-      console.error("Mapbox token not found");
-      return;
-    }
+    const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN || "pk.eyJ1IjoicjR3Y2xvIiwiYSI6ImNtOHFwNmhzbzBsdXcyanNjcmhjdm9hOGsifQ.7XhOgtfnTOl8qKZZNgMMLw";
 
     // Clean up existing map before creating new one
     if (map.current) {
       map.current.remove();
       map.current = null;
     }
+
+    // Dynamic map style based on theme
+    const mapStyle = resolvedTheme === "light"
+      ? "mapbox://styles/mapbox/outdoors-v12"
+      : "mapbox://styles/mapbox/dark-v11";
 
     // Add small delay to ensure proper cleanup
     const timeoutId = setTimeout(() => {
@@ -63,11 +65,19 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
 
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: "mapbox://styles/mapbox/dark-v11",
+        style: mapStyle,
         center: state.coordinates,
         zoom: state.zoom,
         interactive: false,
         attributionControl: false,
+      });
+
+      map.current.on("style.load", () => {
+        const fogConfig = resolvedTheme === "light"
+          ? { color: "rgb(248, 247, 244)", "high-color": "rgb(200, 195, 185)", "horizon-blend": 0.15 }
+          : { color: "rgb(15, 20, 35)", "high-color": "rgb(40, 50, 90)", "horizon-blend": 0.2 };
+        
+        map.current?.setFog(fogConfig);
       });
     }, 50);
 
@@ -78,7 +88,7 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
         map.current = null;
       }
     };
-  }, [state.code, state.coordinates, state.zoom, isVisible]);
+  }, [state.code, state.coordinates, state.zoom, isVisible, resolvedTheme]);
 
   return (
     <button
@@ -89,7 +99,7 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
       <div className="bg-card p-4 border-t border-border">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-white">{state.name}</h3>
+            <h3 className="text-lg font-semibold text-foreground">{state.name}</h3>
             <p className="text-sm text-muted-foreground">{state.code}</p>
           </div>
           <FollowStateButton

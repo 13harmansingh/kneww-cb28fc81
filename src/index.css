@@ -8,35 +8,67 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 7%;
+    /* Dark mode (default) - Pure black inspired by Apple */
+    --background: 0 0% 0%;
     --foreground: 0 0% 98%;
 
-    --card: 0 0% 10%;
+    --card: 220 10% 12%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 10%;
+    --popover: 220 10% 10%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 180 60% 50%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 211 100% 54%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 15%;
+    --secondary: 220 10% 15%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 0 0% 20%;
+    --muted: 220 10% 20%;
     --muted-foreground: 0 0% 60%;
 
     --accent: 180 60% 50%;
-    --accent-foreground: 0 0% 98%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 15%;
-    --ring: 180 60% 50%;
+    --border: 220 10% 20%;
+    --input: 220 10% 15%;
+    --ring: 211 100% 54%;
 
     --radius: 1rem;
+  }
+
+  .light {
+    /* Light mode - Claude-inspired warm palette */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 8%;
+
+    --card: 220 14% 96%;
+    --card-foreground: 0 0% 8%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 8%;
+
+    --primary: 211 100% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 92%;
+    --secondary-foreground: 0 0% 20%;
+
+    --muted: 220 10% 90%;
+    --muted-foreground: 0 0% 40%;
+
+    --accent: 180 55% 40%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 10% 88%;
+    --input: 220 14% 94%;
+    --ring: 211 100% 50%;
   }
 }
 
@@ -113,6 +145,19 @@ html {
 
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-muted-foreground;
+}
+
+/* Light mode specific scrollbar */
+.light ::-webkit-scrollbar-track {
+  background: hsl(220 14% 96%);
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background: hsl(220 10% 80%);
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: hsl(0 0% 60%);
 }
 
 @layer utilities {

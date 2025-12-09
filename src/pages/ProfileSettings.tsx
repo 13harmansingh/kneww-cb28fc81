@@ -4,6 +4,7 @@ import { usePreferences } from "@/hooks/usePreferences";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { Loader2, Camera, User, Mail, LogOut, Save, Settings as SettingsIcon, Sparkles, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
@@ -32,6 +33,7 @@ export default function ProfileSettings() {
   const { user, loading: authLoading } = useAuth();
   const { preferences, loading: prefsLoading, saving, updatePreference } = usePreferences();
   const { showOnboarding, replayOnboarding, completeOnboarding, skipOnboarding } = useOnboarding({ userId: user?.id });
+  const { theme, setTheme } = useTheme();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -364,8 +366,11 @@ export default function ProfileSettings() {
                 </div>
                 <Switch
                   id="dark-mode"
-                  checked={preferences.dark_mode}
-                  onCheckedChange={(checked) => updatePreference("dark_mode", checked)}
+                  checked={theme === "dark"}
+                  onCheckedChange={(checked) => {
+                    setTheme(checked ? "dark" : "light");
+                    updatePreference("dark_mode", checked);
+                  }}
                 />
               </div>
             </div>

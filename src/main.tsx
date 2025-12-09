@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import App from "./App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary.tsx";
 import { reportWebVitals } from "./lib/performance";
@@ -23,11 +24,13 @@ window.onunhandledrejection = (event) => {
 };
 
 createRoot(document.getElementById("root")!).render(
-  <BrowserRouter>
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
-  </BrowserRouter>
+  <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+    <BrowserRouter>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </BrowserRouter>
+  </ThemeProvider>
 );
 
 // Report web vitals in development
