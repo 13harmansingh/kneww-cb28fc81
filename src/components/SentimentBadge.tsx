@@ -20,7 +20,7 @@ export const SentimentBadge = ({ sentiment, loading }: SentimentBadgeProps) => {
           emoji: "😊",
           label: "Positive",
           bgColor: "bg-green-500/10",
-          textColor: "text-green-400",
+          textColor: "text-green-600 dark:text-green-400",
           borderColor: "border-green-500/20",
         };
       case "negative":
@@ -28,7 +28,7 @@ export const SentimentBadge = ({ sentiment, loading }: SentimentBadgeProps) => {
           emoji: "😔",
           label: "Negative",
           bgColor: "bg-red-500/10",
-          textColor: "text-red-400",
+          textColor: "text-red-600 dark:text-red-400",
           borderColor: "border-red-500/20",
         };
       case "neutral":
@@ -37,7 +37,7 @@ export const SentimentBadge = ({ sentiment, loading }: SentimentBadgeProps) => {
           emoji: "😐",
           label: "Neutral",
           bgColor: "bg-yellow-500/10",
-          textColor: "text-yellow-400",
+          textColor: "text-yellow-600 dark:text-yellow-400",
           borderColor: "border-yellow-500/20",
         };
     }

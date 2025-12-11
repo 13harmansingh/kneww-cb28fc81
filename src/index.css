@@ -89,6 +89,23 @@ All colors MUST be HSL.
       padding-bottom: env(safe-area-inset-bottom);
     }
   }
+
+  /* Smooth theme transitions */
+  *,
+  *::before,
+  *::after {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
+
+  /* Exclude map elements from transitions to prevent visual glitches */
+  .mapboxgl-map,
+  .mapboxgl-map *,
+  .mapboxgl-canvas,
+  .mapboxgl-canvas-container {
+    transition: none !important;
+  }
 }
 
 /* Screen reader only utility */
