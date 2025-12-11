@@ -214,7 +214,7 @@ export default function ProfileSettings() {
                   )}
                 </div>
                 <button
-                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center hover:bg-accent/80 transition"
+                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center hover:bg-accent/80 transition"
                   onClick={() => toast.info("Photo upload coming soon!")}
                 >
                   <Camera className="w-4 h-4" />
@@ -252,7 +252,7 @@ export default function ProfileSettings() {
                     <button
                       onClick={handleSaveProfile}
                       disabled={savingProfile}
-                      className="flex-1 bg-accent text-white rounded-lg py-2 px-4 font-semibold hover:bg-accent/80 transition disabled:opacity-50"
+                      className="flex-1 bg-accent text-accent-foreground rounded-lg py-2 px-4 font-semibold hover:bg-accent/80 transition disabled:opacity-50"
                     >
                       {savingProfile ? (
                         <Loader2 className="w-5 h-5 mx-auto animate-spin" />

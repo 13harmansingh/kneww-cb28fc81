@@ -283,6 +283,8 @@ const Explore = () => {
       ) : (
         <div className="relative h-[calc(100vh-200px)] mx-4 mt-6 rounded-2xl overflow-hidden border border-border">
           <div ref={mapContainer} className="absolute inset-0" />
+          {/* Warm teal gradient overlay */}
+          <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-accent/10 dark:to-accent/5" />
           {isLoadingMap && (
             <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center">
               <div className="text-center">

@@ -19,7 +19,7 @@ export const ArticleBookmarkButton = ({ article, className }: ArticleBookmarkBut
       }}
       disabled={loading}
       className={cn(
-        "text-white hover:text-accent transition-colors",
+        "text-muted-foreground hover:text-accent transition-colors",
         className
       )}
     >

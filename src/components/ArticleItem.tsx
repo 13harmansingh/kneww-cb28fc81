@@ -63,7 +63,7 @@ export const ArticleItem = ({
       )}
       <div className="p-4 space-y-4">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-lg font-semibold text-white mb-2 flex-1">
+          <h3 className="text-lg font-semibold text-foreground mb-2 flex-1">
             {article.title}
           </h3>
           <div className="flex items-center gap-2">
@@ -214,10 +214,10 @@ export const ArticleItem = ({
                                 <span
                                   className={`text-xs font-semibold px-2 py-0.5 rounded ${
                                     claim.verification === "verified"
-                                      ? "bg-green-500/20 text-green-400"
+                                      ? "bg-green-500/20 text-green-600 dark:text-green-400"
                                       : claim.verification === "disputed"
-                                      ? "bg-red-500/20 text-red-400"
-                                      : "bg-yellow-500/20 text-yellow-400"
+                                      ? "bg-red-500/20 text-red-600 dark:text-red-400"
+                                      : "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400"
                                   }`}
                                 >
                                   {claim.verification}

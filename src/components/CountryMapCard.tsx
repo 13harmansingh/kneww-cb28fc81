@@ -92,7 +92,11 @@ export const CountryMapCard = ({ country, onClick }: CountryMapCardProps) => {
       onClick={onClick}
       className="bg-card border border-border rounded-2xl overflow-hidden cursor-pointer hover:border-accent transition-all group"
     >
-      <div ref={mapContainer} className="h-48 w-full bg-muted/20" />
+      <div className="relative">
+        <div ref={mapContainer} className="h-48 w-full bg-muted/20" />
+        {/* Warm teal gradient overlay */}
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-accent/10 dark:to-accent/5" />
+      </div>
       <div className="p-4">
         <div className="flex items-center justify-between">
           <div>

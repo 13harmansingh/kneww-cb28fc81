@@ -95,7 +95,11 @@ export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
       onClick={onClick}
       className="w-full rounded-2xl overflow-hidden border border-accent/20 hover:border-accent transition-all hover:scale-[1.02] active:scale-95"
     >
-      <div ref={mapContainer} className="w-full h-48 bg-muted/20" />
+      <div className="relative">
+        <div ref={mapContainer} className="w-full h-48 bg-muted/20" />
+        {/* Warm teal gradient overlay */}
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-accent/10 dark:to-accent/5" />
+      </div>
       <div className="bg-card p-4 border-t border-border">
         <div className="flex items-center justify-between">
           <div>
