@@ -8,9 +8,12 @@ import { ArticleItem } from "@/components/ArticleItem";
 import { CategoryPill } from "@/components/CategoryPill";
 import { LanguagePill } from "@/components/LanguagePill";
 import { NewsCardSkeleton } from "@/components/skeletons/NewsCardSkeleton";
+import { SwipeIndicator } from "@/components/SwipeIndicator";
 import { useAuth } from "@/hooks/useAuth";
 import { useNews } from "@/hooks/useNews";
 import { useTranslate } from "@/hooks/useTranslate";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { NewsArticle } from "@/config/types";
 import { toast } from "sonner";
 import { ArrowLeft, Globe } from "lucide-react";
@@ -58,6 +61,24 @@ const Explore = () => {
 
   // Guard: ensure router context exists
   if (!location) return null;
+
+  // Scroll restoration
+  useScrollRestoration({ pageKey: 'explore-page', enabled: true });
+
+  // Swipe navigation
+  const { swipeProgress, swipeDirection } = useSwipeNavigation({
+    enabled: true,
+    onSwipeRight: showNews ? handleBackToMap : undefined,
+  });
+
+  function handleBackToMap() {
+    setShowNews(false);
+    setSelectedCountry("");
+    setSelectedCountryName("");
+    setSelectedLanguage("all");
+    setSelectedCategory("all");
+    setTranslatedNews({});
+  }
 
   useEffect(() => {
     if (!mapContainer.current || map.current || showNews) return;
@@ -138,15 +159,6 @@ const Explore = () => {
       map.current = null;
     };
   }, [showNews]);
-
-  const handleBackToMap = () => {
-    setShowNews(false);
-    setSelectedCountry("");
-    setSelectedCountryName("");
-    setSelectedLanguage("all");
-    setSelectedCategory("all");
-    setTranslatedNews({});
-  };
 
   const handleTranslateArticle = async (id: string, article: NewsArticle) => {
     if (!session?.user) {
@@ -295,6 +307,9 @@ const Explore = () => {
           )}
         </div>
       )}
+
+      {/* Swipe Navigation Indicator */}
+      <SwipeIndicator progress={swipeProgress} direction={swipeDirection} />
 
       <BottomNav />
     </div>
