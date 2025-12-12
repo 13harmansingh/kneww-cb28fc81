@@ -1,9 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
-import { useTheme } from "next-themes";
 import { USState } from "@/data/usStates";
 import { FollowStateButton } from "@/components/follow/FollowStateButton";
+import { StaticMapImage } from "@/components/StaticMapImage";
 
 interface StateMapCardProps {
   state: USState;
@@ -13,93 +10,19 @@ interface StateMapCardProps {
 export const StateMapCard = ({ state, onClick }: StateMapCardProps) => {
   // Defensive check - return null if state is undefined
   if (!state) return null;
-  
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
-  const { resolvedTheme } = useTheme();
-
-  useEffect(() => {
-    if (!mapContainer.current) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setIsVisible(true);
-            observer.disconnect();
-          }
-        });
-      },
-      { rootMargin: "100px" }
-    );
-
-    observer.observe(mapContainer.current);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!mapContainer.current || !isVisible) return;
-
-    const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN || "pk.eyJ1IjoicjR3Y2xvIiwiYSI6ImNtOHFwNmhzbzBsdXcyanNjcmhjdm9hOGsifQ.7XhOgtfnTOl8qKZZNgMMLw";
-
-    // Clean up existing map before creating new one
-    if (map.current) {
-      map.current.remove();
-      map.current = null;
-    }
-
-    // Dynamic map style based on theme
-    const mapStyle = resolvedTheme === "light"
-      ? "mapbox://styles/mapbox/light-v11"
-      : "mapbox://styles/mapbox/dark-v11";
-
-    // Add small delay to ensure proper cleanup
-    const timeoutId = setTimeout(() => {
-      if (!mapContainer.current) return;
-
-      mapboxgl.accessToken = MAPBOX_TOKEN;
-
-      map.current = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: mapStyle,
-        center: state.coordinates,
-        zoom: state.zoom,
-        interactive: false,
-        attributionControl: false,
-      });
-
-      map.current.on("style.load", () => {
-        const fogConfig = resolvedTheme === "light"
-          ? { color: "rgb(240, 235, 225)", "high-color": "rgb(220, 210, 195)", "horizon-blend": 0.15 }
-          : { color: "rgb(18, 22, 32)", "high-color": "rgb(35, 45, 70)", "horizon-blend": 0.2 };
-        
-        map.current?.setFog(fogConfig);
-      });
-    }, 50);
-
-    return () => {
-      clearTimeout(timeoutId);
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-      }
-    };
-  }, [state.code, state.coordinates, state.zoom, isVisible, resolvedTheme]);
 
   return (
     <button
       onClick={onClick}
       className="w-full rounded-2xl overflow-hidden border border-accent/20 hover:border-accent transition-all hover:scale-[1.02] active:scale-95"
     >
-      <div className="relative">
-        <div ref={mapContainer} className="w-full h-48 bg-muted/20" />
-        {/* Warm teal gradient overlay */}
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-accent/10 dark:to-accent/5" />
-      </div>
+      <StaticMapImage
+        coordinates={state.coordinates}
+        zoom={state.zoom}
+        width={400}
+        height={192}
+        className="w-full h-48"
+      />
       <div className="bg-card p-4 border-t border-border">
         <div className="flex items-center justify-between">
           <div>
