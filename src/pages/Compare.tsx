@@ -6,6 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { NewsCardSkeleton } from "@/components/skeletons/NewsCardSkeleton";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { SwipeIndicator } from "@/components/SwipeIndicator";
+import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 
 export default function Compare() {
   const location = useLocation();
@@ -15,6 +18,12 @@ export default function Compare() {
   
   // Guard: ensure router context exists
   if (!location) return null;
+
+  // Scroll restoration
+  useScrollRestoration({ pageKey: 'compare-page', enabled: true });
+
+  // Swipe navigation
+  const { swipeProgress, swipeDirection } = useSwipeNavigation({ enabled: true });
   
   const [relatedArticles, setRelatedArticles] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(false);
@@ -273,6 +282,9 @@ export default function Compare() {
           </div>
         </div>
       )}
+      
+      {/* Swipe Navigation Indicator */}
+      <SwipeIndicator progress={swipeProgress} direction={swipeDirection} />
     </div>
   );
 }
